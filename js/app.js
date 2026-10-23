@@ -33,14 +33,27 @@ class App {
     // Setup Navigation Hashchange Listener
     window.addEventListener('hashchange', () => App.navigate());
 
-    // Toggle Mobile Sidebar inside App
+    // Toggle Mobile Sidebar inside App with backdrop and close button
     const toggleBtn = document.getElementById('toggle-sidebar');
+    const closeBtn = document.getElementById('close-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
     const sidebar = document.querySelector('.sidebar');
-    if (toggleBtn && sidebar) {
-      toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-      });
-    }
+
+    App.openSidebar = () => {
+      if (sidebar) sidebar.classList.add('open');
+      if (backdrop) backdrop.classList.add('active');
+      document.body.classList.add('sidebar-open');
+    };
+
+    App.closeSidebar = () => {
+      if (sidebar) sidebar.classList.remove('open');
+      if (backdrop) backdrop.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+    };
+
+    if (toggleBtn) toggleBtn.addEventListener('click', () => App.openSidebar());
+    if (closeBtn) closeBtn.addEventListener('click', () => App.closeSidebar());
+    if (backdrop) backdrop.addEventListener('click', () => App.closeSidebar());
 
     // Render initial view with local cache for instant UI
     App.navigate();
@@ -133,9 +146,20 @@ class App {
       }
     });
 
-    // Close Mobile Sidebar on navigation
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) sidebar.classList.remove('open');
+    // Update Active Nav Class in Mobile Bottom Nav Bar
+    document.querySelectorAll('.mobile-bottom-nav .bottom-nav-item').forEach(item => {
+      const routeAttr = item.getAttribute('data-route') || item.getAttribute('href').replace('#', '');
+      const isMatch = routeAttr === routeKey || 
+                      ((routeAttr === 'classes' || routeAttr === 'eleves') && (routeKey === 'classes' || routeKey === 'eleves'));
+      if (isMatch) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+
+    // Close Mobile Sidebar on navigation if open
+    if (App.closeSidebar) App.closeSidebar();
 
     // Render View Content
     const container = document.getElementById('view-container');

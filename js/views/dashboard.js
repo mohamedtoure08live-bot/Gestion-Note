@@ -159,20 +159,20 @@ export function renderDashboard(container) {
     container.innerHTML = `
       <div class="dashboard-wrapper">
         <!-- Top Toolbar with Activity & Class Filters -->
-        <div class="card" style="margin-bottom: 24px; padding: 18px 24px; background: #ffffff;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 16px;">
-            <div style="display:flex; align-items:center; gap: 12px;">
-              <div style="width: 42px; height: 42px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 1.2rem;">
+        <div class="card dash-filters-toolbar" style="margin-bottom: 24px; padding: 16px 20px; background: #ffffff;">
+          <div class="dash-filters-inner">
+            <div class="dash-filters-title">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 1.15rem; flex-shrink: 0;">
                 <i class="fas fa-filter"></i>
               </div>
               <div>
                 <h3 style="font-size: 1.05rem; margin:0; color: var(--text-main);">Filtres Analytiques</h3>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">Affinez les statistiques par discipline ou classe</span>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Affinez les statistiques par discipline ou classe</span>
               </div>
             </div>
 
-            <div style="display:flex; gap: 14px; flex-wrap:wrap; align-items:center;">
-              <div class="form-group" style="margin:0; min-width: 220px;">
+            <div class="dash-filters-controls">
+              <div class="form-group dash-filter-col" style="margin:0;">
                 <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Activité Sportive</label>
                 <select class="form-select" id="dash-filter-discipline">
                   <option value="ALL" ${activeDiscipline === 'ALL' ? 'selected' : ''}>Toutes les activités (${disciplinesList.length})</option>
@@ -180,7 +180,7 @@ export function renderDashboard(container) {
                 </select>
               </div>
 
-              <div class="form-group" style="margin:0; min-width: 200px;">
+              <div class="form-group dash-filter-col" style="margin:0;">
                 <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Classe Évaluée</label>
                 <select class="form-select" id="dash-filter-classe">
                   <option value="ALL" ${activeClasse === 'ALL' ? 'selected' : ''}>Toutes les classes</option>
@@ -189,7 +189,7 @@ export function renderDashboard(container) {
               </div>
 
               ${(activeDiscipline !== 'ALL' || activeClasse !== 'ALL') ? `
-                <button class="btn btn-secondary btn-sm" id="btn-reset-dash-filters" style="margin-top: 18px;" title="Réinitialiser les filtres">
+                <button class="btn btn-secondary btn-sm dash-btn-reset" id="btn-reset-dash-filters" title="Réinitialiser les filtres">
                   <i class="fas fa-rotate-left"></i> Réinitialiser
                 </button>
               ` : ''}

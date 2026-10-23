@@ -14,9 +14,9 @@ export function renderHistorique(container) {
         <div class="card-header">
           <h3 class="card-title"><i class="fas fa-history"></i> Historique des Évaluations</h3>
           
-          <div style="display:flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <input type="text" class="form-control" id="search-eval" placeholder="Rechercher élève..." style="width: 220px;" />
-            <button class="btn btn-secondary" id="btn-export-csv">
+          <div class="historique-header-actions" style="display:flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <input type="text" class="form-control" id="search-eval" placeholder="Rechercher élève, classe..." style="min-width: 200px; flex: 1;" />
+            <button class="btn btn-secondary" id="btn-export-csv" style="white-space: nowrap;">
               <i class="fas fa-file-csv"></i> Exporter CSV
             </button>
           </div>
@@ -31,7 +31,7 @@ export function renderHistorique(container) {
                 <th>Discipline (Engin)</th>
                 <th>Classe</th>
                 <th>Genre</th>
-                <th>Distance</th>
+                <th>Performance</th>
                 <th>Note sur 20</th>
                 <th>Action</th>
               </tr>
@@ -55,23 +55,24 @@ export function renderHistorique(container) {
 
     const filtered = evaluations.filter(ev => 
       ev.eleveNom.toLowerCase().includes(query) ||
+      (ev.classeNom && ev.classeNom.toLowerCase().includes(query)) ||
       ev.classe.toLowerCase().includes(query) ||
       ev.discipline.toLowerCase().includes(query)
     );
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted);">Aucune évaluation trouvée.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px 14px;">Aucune évaluation trouvée.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = filtered.map(ev => `
       <tr>
-        <td>${new Date(ev.date).toLocaleDateString('fr-FR')} ${new Date(ev.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
+        <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${new Date(ev.date).toLocaleDateString('fr-FR')} ${new Date(ev.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
         <td><strong>${ev.eleveNom}</strong></td>
         <td>${ev.discipline} ${ev.engin ? '(' + ev.engin + ')' : ''}</td>
-        <td>${ev.classe}</td>
+        <td><span class="badge" style="background:#f1f5f9; color:var(--text-main);">${ev.classeNom || ev.classe}</span></td>
         <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre}</span></td>
-        <td><strong>${typeof ev.distance === 'number' ? ev.distance.toFixed(2) : ev.distance}</strong></td>
+        <td><strong>${ev.performanceFormatted || (typeof ev.distance === 'number' ? ev.distance.toFixed(2) + 'm' : ev.distance)}</strong></td>
         <td><span class="badge ${ev.note >= 14 ? 'badge-note-high' : ev.note >= 10 ? 'badge-note-mid' : 'badge-note-low'}">${ev.note} / 20</span></td>
         <td>
           <button class="btn btn-sm btn-danger btn-delete-eval" data-id="${ev.id}">

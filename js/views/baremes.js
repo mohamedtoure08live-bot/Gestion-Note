@@ -53,13 +53,15 @@ export function renderBaremes(container) {
           </select>
         </div>
 
-        <button class="btn btn-primary" id="btn-save-bareme" style="margin-top:22px;">
-          <i class="fas fa-save"></i> Enregistrer
-        </button>
+        <div class="bareme-filter-actions">
+          <button class="btn btn-primary" id="btn-save-bareme">
+            <i class="fas fa-save"></i> Enregistrer
+          </button>
 
-        <button class="btn btn-secondary" id="btn-reset-baremes" style="margin-top:22px;">
-          <i class="fas fa-undo"></i> Barèmes Officiels
-        </button>
+          <button class="btn btn-secondary" id="btn-reset-baremes">
+            <i class="fas fa-undo"></i> Barèmes Officiels
+          </button>
+        </div>
       </div>
 
       <div class="card">

@@ -46,9 +46,9 @@ export function renderEleves(container) {
               </div>
               <div>
                 <h2 style="font-size: 1.25rem; margin: 0; color: var(--text-main);">Espace « Mes classes »</h2>
-                <div style="display:flex; align-items:center; gap: 10px; margin-top: 4px; font-size: 0.85rem; color: var(--text-muted);">
+                <div class="class-prof-selector-row" style="display:flex; align-items:center; gap: 8px; margin-top: 6px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;">
                   <span>Enseignant :</span>
-                  <select class="form-select" id="select-active-prof" style="padding: 3px 10px; font-size: 0.82rem; width: auto; font-weight: 600;">
+                  <select class="form-select" id="select-active-prof" style="padding: 4px 10px; font-size: 0.82rem; min-width: 180px; font-weight: 600;">
                     ${allProfesseurs.map(p => `
                       <option value="${p.id}" ${p.id === prof.id ? 'selected' : ''}>${p.nom} ${p.prenom || ''} (${p.etablissement || 'EPS'})</option>
                     `).join('')}
@@ -57,7 +57,7 @@ export function renderEleves(container) {
               </div>
             </div>
 
-            <div style="display:flex; gap: 12px; flex-wrap: wrap;">
+            <div class="class-header-actions" style="display:flex; gap: 10px; flex-wrap: wrap;">
               <button class="btn btn-secondary" id="btn-import-csv">
                 <i class="fas fa-file-csv"></i> Importer une liste (CSV)
               </button>
@@ -69,11 +69,11 @@ export function renderEleves(container) {
         </div>
 
         <!-- Class Cards Grid -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; flex-wrap: wrap; gap: 6px;">
           <h3 style="font-size: 1.1rem; color: var(--text-main); margin:0;">
             <i class="fas fa-layer-group" style="color:var(--primary); margin-right:6px;"></i> Vos classes actives (${myClasses.length})
           </h3>
-          <span style="font-size: 0.82rem; color: var(--text-muted);">Cliquez sur une classe pour consulter et gérer ses élèves</span>
+          <span class="classes-subtip" style="font-size: 0.8rem; color: var(--text-muted);">Cliquez sur une classe pour consulter et gérer ses élèves</span>
         </div>
 
         <div class="classes-cards-grid">

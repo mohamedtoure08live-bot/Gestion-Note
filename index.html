@@ -3,7 +3,11 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="theme-color" content="#0f172a">
   <title>GHIM PRO | EPS Notation & Barèmes</title>
   <meta name="description"
     content="Découvrez GHIM PRO, une application dédiée à la notation des performances sportives et à la structuration de l'évaluation en EPS.">
@@ -47,16 +51,24 @@
        EXISTING OPERATIONAL APPLICATION FRAMEWORK
        ========================================================================= -->
   <div id="app-layout" style="display: none;">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="brand-icon">
-          <i class="fas fa-running"></i>
+        <div style="display:flex; align-items:center; gap: 14px; flex: 1; min-width: 0;">
+          <div class="brand-icon">
+            <i class="fas fa-running"></i>
+          </div>
+          <div class="brand-info">
+            <h2>GHIM PRO</h2>
+            <span>Notation & Barèmes</span>
+          </div>
         </div>
-        <div class="brand-info">
-          <h2>GHIM PRO</h2>
-          <span>Notation & Barèmes</span>
-        </div>
+        <button class="sidebar-close-btn" id="close-sidebar" aria-label="Fermer le menu">
+          <i class="fas fa-xmark"></i>
+        </button>
       </div>
 
       <nav class="sidebar-nav">
@@ -99,19 +111,19 @@
     <div class="main-wrapper">
       <!-- Top Header -->
       <header class="top-header">
-        <div class="header-title-area" style="display:flex; align-items:center; gap: 16px;">
+        <div class="header-title-area">
           <button class="toggle-sidebar-btn" id="toggle-sidebar" aria-label="Toggle navigation">
             <i class="fas fa-bars"></i>
           </button>
           <h1 id="page-title">Tableau de Bord Analytics</h1>
         </div>
 
-        <div class="header-actions" style="display:flex; align-items:center; gap: 12px;">
-          <a href="#landing" class="btn btn-sm btn-secondary" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
-            <i class="fas fa-house"></i> <span>Vitrine</span>
+        <div class="header-actions">
+          <a href="#landing" class="btn btn-sm btn-secondary header-btn-vitrine" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+            <i class="fas fa-house"></i> <span class="header-btn-text">Vitrine</span>
           </a>
           <span class="badge badge-note-high" id="cloud-status-badge"
-            style="padding: 6px 14px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;">
+            style="padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas fa-cloud"></i>
           </span>
         </div>
@@ -122,6 +134,32 @@
         <!-- Views rendered dynamically via js/app.js router -->
       </main>
     </div>
+
+    <!-- iOS Native Style Bottom Navigation Bar for Mobile -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+      <a href="#dashboard" class="bottom-nav-item active" data-route="dashboard">
+        <i class="fas fa-chart-pie"></i>
+        <span>Stats</span>
+      </a>
+      <a href="#classes" class="bottom-nav-item" data-route="classes">
+        <i class="fas fa-chalkboard-user"></i>
+        <span>Classes</span>
+      </a>
+      <a href="#notation" class="bottom-nav-item bottom-nav-highlight" data-route="notation" aria-label="Notation Rapide">
+        <div class="highlight-circle">
+          <i class="fas fa-calculator"></i>
+        </div>
+        <span>Noter</span>
+      </a>
+      <a href="#baremes" class="bottom-nav-item" data-route="baremes">
+        <i class="fas fa-table-list"></i>
+        <span>Barèmes</span>
+      </a>
+      <a href="#historique" class="bottom-nav-item" data-route="historique">
+        <i class="fas fa-clock-rotate-left"></i>
+        <span>Historique</span>
+      </a>
+    </nav>
   </div>
 
   <!-- Main JavaScript Bundle -->

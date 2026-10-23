@@ -102,9 +102,18 @@ export function renderNotation(container) {
           <div class="form-group">
             <label class="form-label" id="label-performance">Distance Réalisée</label>
             <div class="distance-input-container">
-              <input type="text" class="form-control distance-big-input" id="input-distance" placeholder="0.00" autofocus />
+              <input type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" class="form-control distance-big-input" id="input-distance" placeholder="0.00" autofocus />
               <span class="distance-unit" id="unit-badge">mètres</span>
             </div>
+          </div>
+
+          <!-- Instant Live Score Banner for Mobile Viewports -->
+          <div class="mobile-live-score-banner" id="mobile-live-score-banner">
+            <div class="live-score-left">
+              <span class="live-score-label">Note calculée :</span>
+              <strong class="live-score-value" id="mobile-score-val">-- / 20</strong>
+            </div>
+            <span class="live-score-badge" id="mobile-score-apprec">En attente</span>
           </div>
 
           <button type="button" class="btn btn-success btn-lg" id="btn-save-eval" style="width: 100%; margin-top: 10px;">
@@ -163,6 +172,8 @@ export function renderNotation(container) {
   const scoreDetailExact = container.querySelector('#score-detail-exact');
   const scoreDetailPalier = container.querySelector('#score-detail-palier');
   const scoreCircle = container.querySelector('#score-circle');
+  const mobileScoreVal = container.querySelector('#mobile-score-val');
+  const mobileScoreApprec = container.querySelector('#mobile-score-apprec');
 
   // Helper: get current active class object and resolved official niveau
   function getActiveClasseInfo() {
@@ -172,14 +183,14 @@ export function renderNotation(container) {
       return {
         id: clsObj.id,
         nom: clsObj.nom,
-        niveau: clsObj.niveau
+        niveau: clsObj.niveau || (EPSEngine.OFFICIAL_LEVELS.includes(clsObj.nom) ? clsObj.nom : 'Troisième')
       };
     }
     // Fallback: standard niveau string
     return {
       id: null,
-      nom: val,
-      niveau: val
+      nom: val || 'Troisième',
+      niveau: val || 'Troisième'
     };
   }
 
@@ -311,6 +322,11 @@ export function renderNotation(container) {
       scoreDetailPalier.innerHTML = "Note Palier Strict : <strong>-</strong>";
       scoreDetail.textContent = `Barème officiel actif : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}`;
       scoreCircle.style.borderColor = "var(--primary)";
+      if (mobileScoreVal) mobileScoreVal.textContent = "-- / 20";
+      if (mobileScoreApprec) {
+        mobileScoreApprec.textContent = "En attente";
+        mobileScoreApprec.className = "live-score-badge";
+      }
       return;
     }
 
@@ -321,15 +337,25 @@ export function renderNotation(container) {
       scoreVal.textContent = displayNote;
       scoreApprec.textContent = result.appreciation;
 
+      let badgeClass = "badge-mid";
       if (result.note >= 14) {
         scoreCircle.style.borderColor = "var(--accent-emerald)";
         scoreApprec.style.background = "var(--accent-emerald)";
+        badgeClass = "badge-high";
       } else if (result.note >= 10) {
         scoreCircle.style.borderColor = "var(--accent-amber)";
         scoreApprec.style.background = "var(--accent-amber)";
+        badgeClass = "badge-mid";
       } else {
         scoreCircle.style.borderColor = "var(--accent-rose)";
         scoreApprec.style.background = "var(--accent-rose)";
+        badgeClass = "badge-low";
+      }
+
+      if (mobileScoreVal) mobileScoreVal.textContent = `${displayNote} / 20`;
+      if (mobileScoreApprec) {
+        mobileScoreApprec.textContent = result.appreciation;
+        mobileScoreApprec.className = `live-score-badge ${badgeClass}`;
       }
 
       scoreDetailExact.innerHTML = `Note Exacte (Interpolée) : <strong style="color: #4ade80;">${Number(result.noteExacte).toFixed(2)} / 20</strong>`;
@@ -340,6 +366,11 @@ export function renderNotation(container) {
       scoreApprec.textContent = result.appreciation || "Performance non valide";
       scoreApprec.style.background = "var(--accent-rose)";
       scoreCircle.style.borderColor = "var(--accent-rose)";
+      if (mobileScoreVal) mobileScoreVal.textContent = "-- / 20";
+      if (mobileScoreApprec) {
+        mobileScoreApprec.textContent = result.appreciation || "Non valide";
+        mobileScoreApprec.className = "live-score-badge badge-low";
+      }
       scoreDetailExact.innerHTML = "Note Exacte (Interpolée) : <strong>-</strong>";
       scoreDetailPalier.innerHTML = "Note Palier Strict : <strong>-</strong>";
       scoreDetail.textContent = result.detail || "Saisie hors barème";

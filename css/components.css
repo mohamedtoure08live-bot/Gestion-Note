@@ -411,3 +411,160 @@
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   MOBILE & IPHONE RESPONSIVE OVERRIDES (COMPONENTS)
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Cards */
+  .card {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+  }
+
+  /* Form Elements - Crucial iOS rule: 16px prevents Safari auto-zoom */
+  .form-control, .form-select, input, select, textarea {
+    font-size: 16px !important;
+    min-height: 46px;
+    padding: 10px 14px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-label {
+    font-size: 0.82rem;
+    margin-bottom: 6px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Buttons */
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    touch-action: manipulation;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .btn-lg {
+    min-height: 52px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  /* Modals on Mobile - Touch Friendly Bottom/Center Sheet */
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .modal-container {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(88vh - env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 14px 14px;
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .modal-header {
+    padding: 16px 18px;
+  }
+
+  .modal-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 16px 14px;
+  }
+
+  .modal-footer {
+    padding: 14px 16px;
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+
+  /* Tables */
+  .table-responsive {
+    border-radius: var(--radius-sm);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table th, .table td {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+  }
+
+  /* Toast notification on mobile positioned above bottom nav */
+  .toast-container {
+    left: 14px;
+    right: 14px;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 12px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Stats Cards Grid - Clean 2-column balanced layout */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    padding: 12px 10px;
+    gap: 8px;
+    border-radius: var(--radius-md);
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.05rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .stat-info h3 {
+    font-size: 1.25rem;
+    word-break: break-word;
+  }
+
+  .stat-info p {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+}

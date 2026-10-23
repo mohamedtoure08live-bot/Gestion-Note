@@ -317,3 +317,268 @@
   background: #fee2e2;
   color: #b91c1c;
 }
+
+/* ==========================================================================
+   MOBILE & IPHONE VIEW OVERRIDES
+   ========================================================================== */
+
+/* Mobile Live Score Banner inside Notation View */
+.mobile-live-score-banner {
+  display: none;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin: 12px 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.live-score-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.live-score-label {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.live-score-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.live-score-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.live-score-badge.badge-high {
+  background: var(--accent-emerald);
+  color: white;
+}
+
+.live-score-badge.badge-mid {
+  background: var(--accent-amber);
+  color: white;
+}
+
+.live-score-badge.badge-low {
+  background: var(--accent-rose);
+  color: white;
+}
+
+@media (max-width: 900px) {
+  .mobile-live-score-banner {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  /* 1. Notation View Mobile Tweaks */
+  .notation-card {
+    padding: 16px 14px;
+  }
+
+  .distance-big-input {
+    font-size: clamp(1.85rem, 6.5vw, 2.75rem);
+    height: 72px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .distance-unit {
+    right: 14px;
+    font-size: 1.05rem;
+  }
+
+  .score-result-card {
+    padding: 22px 16px;
+    border-radius: var(--radius-md);
+    margin-top: 14px;
+  }
+
+  .score-circle {
+    width: 104px;
+    height: 104px;
+    margin: 12px auto;
+  }
+
+  .score-value {
+    font-size: 2.5rem;
+  }
+
+  /* 2. Barèmes Editor Filter Bar on Mobile */
+  .bareme-filter-bar {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .bareme-filter-bar .form-group {
+    margin-bottom: 0;
+  }
+
+  .bareme-filter-actions {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .bareme-filter-actions .btn {
+    width: 100%;
+    margin-top: 0 !important;
+    justify-content: center;
+  }
+
+  /* 3. Mes Classes Header & Cards on Mobile */
+  .classes-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .class-prof-selector-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+
+  .class-prof-selector-row select {
+    width: 100% !important;
+  }
+
+  .class-header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .class-header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 4. Dashboard Toolbar Mobile Stacking */
+  .dash-filters-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .dash-filters-controls {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .dash-filter-col {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .dash-btn-reset {
+    margin-top: 4px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 5. Historique Mobile Header */
+  .historique-header-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .historique-header-actions input,
+  .historique-header-actions button {
+    width: 100% !important;
+  }
+}
+
+/* Dashboard Filter Toolbar Base Styles */
+.dash-filters-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dash-filters-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dash-filters-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.dash-filter-col {
+  min-width: 200px;
+}
+
+.dash-btn-reset {
+  margin-top: 18px;
+}
+
+.bareme-filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.historique-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 550px) {
+  /* Mes Classes Grid: 1 column clean list */
+  .classes-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .class-card-item {
+    padding: 16px 14px;
+  }
+
+  .class-card-title {
+    font-size: 1.2rem;
+  }
+
+  .classes-subtip {
+    display: none;
+  }
+
+  /* Barèmes grid for small screens (320px - 375px) */
+  @media (max-width: 400px) {
+    .bareme-filter-bar {
+      grid-template-columns: 1fr;
+    }
+    .bareme-filter-actions {
+      grid-column: span 1;
+    }
+  }
+}
