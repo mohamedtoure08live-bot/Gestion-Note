@@ -1,13 +1,17 @@
 /**
  * EPS Database Manager (js/db.js)
- * Manages persistence for Eleves, Baremes, Evaluations and Disciplines in LocalStorage.
+ * Full Stack Supabase integration with PostgreSQL cloud persistence,
+ * optimistic local caching, and offline resiliency.
  */
 
+import { SupabaseManager } from './supabaseClient.js';
+
 const DB_KEYS = {
-  BAREMES: 'eps_baremes_v10',
+  BAREMES: 'eps_baremes_v12',
   ELEVES: 'eps_eleves_v1',
   EVALUATIONS: 'eps_evaluations_v1',
-  INITIALIZED: 'eps_init_status_v10'
+  DISCIPLINES: 'eps_disciplines_v2',
+  INITIALIZED: 'eps_init_status_v12'
 };
 
 class EPSDatabase {
@@ -15,130 +19,233 @@ class EPSDatabase {
     this.baremes = [];
     this.eleves = [];
     this.evaluations = [];
+    this.cachedDisciplines = [];
+    this.isOnline = false;
+    this.realtimeSubscribed = false;
   }
 
   async init() {
+    console.log("Initializing EPS Full Stack Database...");
+    
+    // 1. Load local cache first for instant rendering
+    this.loadFromLocal();
+
+    // 2. Check connection to Supabase
     try {
-      const isInit = localStorage.getItem(DB_KEYS.INITIALIZED);
-      if (!isInit) {
-        // Keep existing eleves / evaluations if present from previous versions
-        const savedEleves = localStorage.getItem('eps_eleves_v1');
-        const savedEvals = localStorage.getItem('eps_evaluations_v1');
-        await this.seedDefaults();
-        if (savedEleves) this.eleves = JSON.parse(savedEleves);
-        if (savedEvals) this.evaluations = JSON.parse(savedEvals);
-        this.saveAll();
+      const connected = await SupabaseManager.checkConnection();
+      this.isOnline = connected;
+
+      if (connected) {
+        console.log("Connected to Supabase PostgreSQL. Syncing latest data...");
+        await this.syncFromSupabase();
+        this.setupRealtime();
       } else {
-        this.loadAll();
+        console.warn("Operating in offline cache mode.");
+        if (this.baremes.length === 0) {
+          await this.seedDefaultsLocally();
+        }
       }
     } catch (err) {
-      console.error("DB Initialization Error:", err);
-      await this.seedDefaults();
+      console.error("Database initialization error:", err);
+      if (this.baremes.length === 0) {
+        await this.seedDefaultsLocally();
+      }
     }
   }
 
-  async seedDefaults() {
+  /**
+   * Sync all tables from Supabase PostgreSQL
+   */
+  async syncFromSupabase() {
+    const sb = SupabaseManager.getClient();
+    if (!sb) return;
+
     try {
-      // Load official baremes from JSON
+      // 1. Fetch Disciplines
+      const { data: discData, error: discErr } = await sb
+        .from('disciplines')
+        .select('*')
+        .order('nom');
+
+      if (!discErr && discData && discData.length > 0) {
+        this.cachedDisciplines = discData.filter(d => !d.nom.toLowerCase().includes("haies") && d.nom !== "Course 60m / 80m");
+        localStorage.setItem(DB_KEYS.DISCIPLINES, JSON.stringify(this.cachedDisciplines));
+      }
+
+      // 2. Fetch Eleves
+      const { data: elData, error: elErr } = await sb
+        .from('eleves')
+        .select('*')
+        .order('nom');
+
+      if (!elErr && elData) {
+        this.eleves = elData;
+        localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
+      }
+
+      // 3. Fetch Evaluations
+      const { data: evData, error: evErr } = await sb
+        .from('evaluations')
+        .select('*')
+        .order('evaluation_date', { ascending: false });
+
+      if (!evErr && evData) {
+        this.evaluations = evData.map(row => ({
+          id: row.id,
+          eleveId: row.eleve_id,
+          eleveNom: row.eleve_nom,
+          discipline: row.discipline,
+          engin: row.engin,
+          classe: row.classe,
+          genre: row.genre,
+          distance: parseFloat(row.distance),
+          note: parseFloat(row.note),
+          date: row.evaluation_date
+        }));
+        localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
+      }
+
+      // 4. Fetch Baremes
+      const { data: barData, error: barErr } = await sb
+        .from('baremes')
+        .select('*');
+
+      if (!barErr && barData && barData.length > 0) {
+        this.baremes = barData.filter(b => !b.discipline.toLowerCase().includes("haies") && b.discipline !== "Course 60m / 80m");
+        localStorage.setItem(DB_KEYS.BAREMES, JSON.stringify(this.baremes));
+      }
+
+      this.saveLocalAll();
+      console.log(`Supabase Sync complete: ${this.eleves.length} élèves, ${this.evaluations.length} évaluations, ${this.baremes.length} barèmes.`);
+    } catch (e) {
+      console.warn("Failed to complete full sync from Supabase:", e);
+    }
+  }
+
+  /**
+   * Realtime subscriptions for multi-user collaboration
+   */
+  setupRealtime() {
+    if (this.realtimeSubscribed) return;
+    const sb = SupabaseManager.getClient();
+    if (!sb || !sb.channel) return;
+
+    try {
+      sb.channel('public_eps_sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'evaluations' }, payload => {
+          console.log("Realtime evaluation update received:", payload);
+          if (payload.eventType === 'INSERT') {
+            const row = payload.new;
+            const item = {
+              id: row.id,
+              eleveId: row.eleve_id,
+              eleveNom: row.eleve_nom,
+              discipline: row.discipline,
+              engin: row.engin,
+              classe: row.classe,
+              genre: row.genre,
+              distance: parseFloat(row.distance),
+              note: parseFloat(row.note),
+              date: row.evaluation_date
+            };
+            if (!this.evaluations.find(e => e.id === item.id)) {
+              this.evaluations.unshift(item);
+              this.saveLocalAll();
+            }
+          } else if (payload.eventType === 'DELETE') {
+            this.evaluations = this.evaluations.filter(e => e.id !== payload.old.id);
+            this.saveLocalAll();
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'eleves' }, payload => {
+          console.log("Realtime élève update received:", payload);
+          if (payload.eventType === 'INSERT') {
+            if (!this.eleves.find(e => e.id === payload.new.id)) {
+              this.eleves.push(payload.new);
+              this.saveLocalAll();
+            }
+          } else if (payload.eventType === 'DELETE') {
+            this.eleves = this.eleves.filter(e => e.id !== payload.old.id);
+            this.saveLocalAll();
+          }
+        })
+        .subscribe();
+
+      this.realtimeSubscribed = true;
+    } catch (err) {
+      console.warn("Realtime subscription error:", err);
+    }
+  }
+
+  loadFromLocal() {
+    try {
+      this.baremes = (JSON.parse(localStorage.getItem(DB_KEYS.BAREMES) || '[]'))
+        .filter(b => !b.discipline.toLowerCase().includes("haies") && b.discipline !== "Course 60m / 80m");
+      this.eleves = JSON.parse(localStorage.getItem(DB_KEYS.ELEVES) || '[]');
+      this.evaluations = JSON.parse(localStorage.getItem(DB_KEYS.EVALUATIONS) || '[]');
+      this.cachedDisciplines = (JSON.parse(localStorage.getItem(DB_KEYS.DISCIPLINES) || '[]'))
+        .filter(d => !d.nom.toLowerCase().includes("haies") && d.nom !== "Course 60m / 80m");
+    } catch (e) {
+      console.warn("Local storage parse error:", e);
+    }
+  }
+
+  saveLocalAll() {
+    try {
+      localStorage.setItem(DB_KEYS.BAREMES, JSON.stringify(this.baremes));
+      localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
+      localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
+      localStorage.setItem(DB_KEYS.INITIALIZED, 'true');
+    } catch (e) {
+      console.warn("Local storage write error:", e);
+    }
+  }
+
+  async seedDefaultsLocally() {
+    try {
       const res = await fetch('data/default_baremes.json');
       const defaultBaremes = await res.json();
       this.baremes = defaultBaremes;
     } catch (e) {
-      console.warn("Fallback baremes loading:", e);
-      this.baremes = [];
+      console.warn("Fallback baremes loading error:", e);
+    }
+    this.saveLocalAll();
+  }
+
+  // --- DISCIPLINES / ACTIVITÉS ---
+  getDisciplines() {
+    let raw = (this.cachedDisciplines && this.cachedDisciplines.length > 0) ? this.cachedDisciplines : null;
+
+    if (!raw) {
+      const list = [];
+      const seen = new Map();
+
+      (this.baremes || []).forEach(b => {
+        if (!b.discipline) return;
+        if (!seen.has(b.discipline)) {
+          seen.set(b.discipline, new Set());
+        }
+        if (b.engin) {
+          seen.get(b.discipline).add(b.engin);
+        }
+      });
+
+      seen.forEach((enginsSet, nom) => {
+        list.push({
+          id: nom.toLowerCase().replace(/\s+/g, '_').replace('/', '_'),
+          nom: nom,
+          engins: Array.from(enginsSet)
+        });
+      });
+      raw = list;
     }
 
-    // Seed default demo students
-    this.eleves = [
-      { id: "el-1", nom: "KOUASSI", prenom: "Marc", classe: "Troisième", genre: "Garçon" },
-      { id: "el-2", nom: "DIARRASSOUBA", prenom: "Awa", classe: "Quatrième", genre: "Fille" },
-      { id: "el-3", nom: "KONAN", prenom: "Yao Emmanuel", classe: "Seconde", genre: "Garçon" },
-      { id: "el-4", nom: "TRAORE", prenom: "Fatou", classe: "Sixième", genre: "Fille" },
-      { id: "el-5", nom: "BAMBA", prenom: "Sikafê", classe: "Cinquième", genre: "Garçon" },
-      { id: "el-6", nom: "N'GUESSAN", prenom: "Marie-Louise", classe: "Seconde", genre: "Fille" },
-      { id: "el-7", nom: "YAPO", prenom: "Jean-Baptiste", classe: "Terminale", genre: "Garçon" }
-    ];
-
-    // Seed default sample evaluations
-    this.evaluations = [
-      {
-        id: "eval-01",
-        eleveId: "el-1",
-        eleveNom: "KOUASSI Marc",
-        discipline: "Lancer de poids",
-        engin: "4kg",
-        classe: "Troisième",
-        genre: "Garçon",
-        distance: 11.70,
-        note: 18.0,
-        date: new Date(Date.now() - 86400000 * 2).toISOString()
-      },
-      {
-        id: "eval-02",
-        eleveId: "el-2",
-        eleveNom: "DIARRASSOUBA Awa",
-        discipline: "Lancer de poids",
-        engin: "3kg",
-        classe: "Quatrième",
-        genre: "Fille",
-        distance: 7.20,
-        note: 15.0,
-        date: new Date(Date.now() - 86400000 * 1).toISOString()
-      },
-      {
-        id: "eval-03",
-        eleveId: "el-3",
-        eleveNom: "KONAN Yao Emmanuel",
-        discipline: "Lancer de poids",
-        engin: "5kg",
-        classe: "Seconde",
-        genre: "Garçon",
-        distance: 9.65,
-        note: 15.0,
-        date: new Date().toISOString()
-      }
-    ];
-
-    this.saveAll();
-    localStorage.setItem(DB_KEYS.INITIALIZED, 'true');
-  }
-
-  loadAll() {
-    this.baremes = JSON.parse(localStorage.getItem(DB_KEYS.BAREMES) || '[]');
-    this.eleves = JSON.parse(localStorage.getItem(DB_KEYS.ELEVES) || '[]');
-    this.evaluations = JSON.parse(localStorage.getItem(DB_KEYS.EVALUATIONS) || '[]');
-  }
-
-  saveAll() {
-    localStorage.setItem(DB_KEYS.BAREMES, JSON.stringify(this.baremes));
-    localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
-    localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
-  }
-
-  // Dynamic discovery of disciplines from active baremes (No invented disciplines)
-  getDisciplines() {
-    const list = [];
-    const seen = new Map();
-
-    (this.baremes || []).forEach(b => {
-      if (!b.discipline) return;
-      if (!seen.has(b.discipline)) {
-        seen.set(b.discipline, new Set());
-      }
-      if (b.engin) {
-        seen.get(b.discipline).add(b.engin);
-      }
+    const cleaned = (raw || []).filter(d => {
+      const n = (d.nom || '').toLowerCase();
+      return !n.includes("haies") && d.nom !== "Course 60m / 80m";
     });
 
-    seen.forEach((enginsSet, nom) => {
-      list.push({
-        id: nom.toLowerCase().replace(/\s+/g, '_'),
-        nom: nom,
-        engins: Array.from(enginsSet)
-      });
-    });
-
-    return list;
+    return cleaned.length > 0 ? cleaned : [{ id: "poids", nom: "Lancer de poids", engins: ["3kg", "4kg", "5kg"] }];
   }
 
   get disciplines() {
@@ -146,54 +253,97 @@ class EPSDatabase {
   }
 
   // --- BAREMES CRUD ---
-  getBaremes() { return this.baremes; }
-  
-  findBareme(discipline, classe, genre, engin = null) {
-    if (!discipline || !classe || !genre) return null;
-    const disc = discipline.trim().toLowerCase();
-    const cls = classe.trim().toLowerCase();
-    const gnr = genre.trim().toLowerCase();
-    const eng = engin ? engin.trim().toLowerCase() : null;
-
-    if (eng) {
-      // 1. Try exact match with engin
-      const exact = this.baremes.find(b =>
-        b.discipline.trim().toLowerCase() === disc &&
-        b.classe.trim().toLowerCase() === cls &&
-        b.genre.trim().toLowerCase() === gnr &&
-        b.engin && b.engin.trim().toLowerCase() === eng
-      );
-      if (exact) return exact;
-    }
-
-    // 2. Try match where engin is null/empty
-    const noEngin = this.baremes.find(b =>
-      b.discipline.trim().toLowerCase() === disc &&
-      b.classe.trim().toLowerCase() === cls &&
-      b.genre.trim().toLowerCase() === gnr &&
-      !b.engin
-    );
-    if (noEngin) return noEngin;
-
-    // 3. Fallback: match discipline, classe, genre regardless of engin
-    return this.baremes.find(b =>
-      b.discipline.trim().toLowerCase() === disc &&
-      b.classe.trim().toLowerCase() === cls &&
-      b.genre.trim().toLowerCase() === gnr
-    ) || null;
+  getBaremes() {
+    return this.baremes;
   }
 
-  saveBareme(baremeData) {
+  getBaremesForCategory(discipline, classe, genre) {
+    if (!discipline || !classe || !genre) return [];
+    let disc = discipline.trim().toLowerCase();
+    const cls = classe.trim().toLowerCase();
+    const gnr = genre.trim().toLowerCase();
+
+    if (disc.includes("haies")) return [];
+
+    // Harmonisation des alias d'activités
+    if (disc.includes("80m") || disc.includes("80 mètres") || disc.includes("80 metres")) {
+      disc = "course de vitesse de 80m";
+    } else if (disc.includes("60m") || disc.includes("60 mètres") || disc.includes("60 metres")) {
+      disc = "course de vitesse de 60 mètres";
+    } else if (disc.includes("800m") || disc.includes("800 mètres") || disc.includes("800 metres")) {
+      disc = "course 800m";
+    } else if (disc.includes("1000m") || disc.includes("1000 mètres") || disc.includes("1000 metres")) {
+      disc = "course 1000m";
+    }
+
+    const matchesDisc = (bDisc) => {
+      const bd = (bDisc || '').trim().toLowerCase();
+      if (bd === disc) return true;
+      if (disc === "course de vitesse de 80m" && (bd.includes("80m") || bd.includes("80 mètres"))) return true;
+      if (disc === "course de vitesse de 60 mètres" && (bd.includes("60m") || bd.includes("60 mètres"))) return true;
+      if (disc === "course 800m" && (bd.includes("800m") || bd.includes("800 mètres"))) return true;
+      if (disc === "course 1000m" && (bd.includes("1000m") || bd.includes("1000 mètres"))) return true;
+      return false;
+    };
+
+    return (this.baremes || []).filter(b =>
+      matchesDisc(b.discipline) &&
+      (b.classe || '').trim().toLowerCase() === cls &&
+      (b.genre || '').trim().toLowerCase() === gnr
+    );
+  }
+
+  findBareme(discipline, classe, genre, engin = null) {
+    const list = this.getBaremesForCategory(discipline, classe, genre);
+    if (!list || list.length === 0) return null;
+
+    if (engin) {
+      const eng = engin.trim().toLowerCase();
+      const exact = list.find(b => b.engin && b.engin.trim().toLowerCase() === eng);
+      return exact || null;
+    }
+
+    // No engin specified: return bareme without engin if available
+    const noEngin = list.find(b => !b.engin);
+    if (noEngin) return noEngin;
+
+    // If an activity requires engins, but none was passed, return null
+    return null;
+  }
+
+  async saveBareme(baremeData) {
+    if (!baremeData.id) {
+      baremeData.id = 'bar_' + Date.now();
+    }
+
+    // Optimistic local update
     const idx = this.baremes.findIndex(b => b.id === baremeData.id);
     if (idx >= 0) {
       this.baremes[idx] = baremeData;
     } else {
-      if (!baremeData.id) {
-        baremeData.id = 'bar_' + Date.now();
-      }
       this.baremes.push(baremeData);
     }
-    this.saveAll();
+    this.saveLocalAll();
+
+    // Supabase persist
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        const { error } = await sb.from('baremes').upsert({
+          id: baremeData.id,
+          discipline: baremeData.discipline,
+          engin: baremeData.engin || null,
+          classe: baremeData.classe,
+          genre: baremeData.genre,
+          type: baremeData.type || 'distance',
+          grille: baremeData.grille || []
+        });
+        if (error) console.error("Supabase bareme upsert error:", error);
+      } catch (e) {
+        console.warn("Offline fallback for bareme upsert:", e);
+      }
+    }
+
     return baremeData;
   }
 
@@ -203,26 +353,72 @@ class EPSDatabase {
     return this.eleves.filter(e => e.classe === filterClasse);
   }
 
-  addEleve(eleve) {
-    eleve.id = 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+  async addEleve(eleve) {
+    if (!eleve.id) {
+      eleve.id = 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    }
+
+    // Optimistic local update
     this.eleves.push(eleve);
-    this.saveAll();
+    this.saveLocalAll();
+
+    // Supabase persist
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        const { error } = await sb.from('eleves').insert({
+          id: eleve.id,
+          nom: eleve.nom,
+          prenom: eleve.prenom,
+          classe: eleve.classe,
+          genre: eleve.genre
+        });
+        if (error) console.error("Supabase insert eleve error:", error);
+      } catch (e) {
+        console.warn("Offline fallback for eleve insert:", e);
+      }
+    }
+
     return eleve;
   }
 
-  updateEleve(id, updatedData) {
+  async updateEleve(id, updatedData) {
     const idx = this.eleves.findIndex(e => e.id === id);
     if (idx >= 0) {
       this.eleves[idx] = { ...this.eleves[idx], ...updatedData };
-      this.saveAll();
+      this.saveLocalAll();
+
+      const sb = SupabaseManager.getClient();
+      if (sb) {
+        try {
+          await sb.from('eleves').update({
+            nom: updatedData.nom,
+            prenom: updatedData.prenom,
+            classe: updatedData.classe,
+            genre: updatedData.genre
+          }).eq('id', id);
+        } catch (e) {
+          console.warn("Offline update error:", e);
+        }
+      }
+
       return this.eleves[idx];
     }
     return null;
   }
 
-  deleteEleve(id) {
+  async deleteEleve(id) {
     this.eleves = this.eleves.filter(e => e.id !== id);
-    this.saveAll();
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('eleves').delete().eq('id', id);
+      } catch (e) {
+        console.warn("Offline delete error:", e);
+      }
+    }
   }
 
   // --- EVALUATIONS CRUD ---
@@ -230,23 +426,61 @@ class EPSDatabase {
     return this.evaluations.sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
-  addEvaluation(evaluation) {
-    evaluation.id = 'eval_' + Date.now();
-    evaluation.date = new Date().toISOString();
+  async addEvaluation(evaluation) {
+    if (!evaluation.id) {
+      evaluation.id = 'eval_' + Date.now();
+    }
+    if (!evaluation.date) {
+      evaluation.date = new Date().toISOString();
+    }
+
+    // Optimistic local update
     this.evaluations.unshift(evaluation);
-    this.saveAll();
+    this.saveLocalAll();
+
+    // Supabase persist
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        const { error } = await sb.from('evaluations').insert({
+          id: evaluation.id,
+          eleve_id: evaluation.eleveId || null,
+          eleve_nom: evaluation.eleveNom,
+          discipline: evaluation.discipline,
+          engin: evaluation.engin || null,
+          classe: evaluation.classe,
+          genre: evaluation.genre,
+          distance: evaluation.distance,
+          note: evaluation.note,
+          evaluation_date: evaluation.date
+        });
+        if (error) console.error("Supabase insert evaluation error:", error);
+      } catch (e) {
+        console.warn("Offline fallback for evaluation insert:", e);
+      }
+    }
+
     return evaluation;
   }
 
-  deleteEvaluation(id) {
+  async deleteEvaluation(id) {
     this.evaluations = this.evaluations.filter(ev => ev.id !== id);
-    this.saveAll();
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('evaluations').delete().eq('id', id);
+      } catch (e) {
+        console.warn("Offline delete error:", e);
+      }
+    }
   }
 
   // --- EXPORT & IMPORT ---
   exportDatabase() {
     return JSON.stringify({
-      version: '1.0',
+      version: '2.0-fullstack',
       exportedAt: new Date().toISOString(),
       baremes: this.baremes,
       eleves: this.eleves,
@@ -254,24 +488,13 @@ class EPSDatabase {
     }, null, 2);
   }
 
-  importDatabase(jsonString) {
-    try {
-      const data = JSON.parse(jsonString);
-      if (data.baremes) this.baremes = data.baremes;
-      if (data.eleves) this.eleves = data.eleves;
-      if (data.evaluations) this.evaluations = data.evaluations;
-      this.saveAll();
-      return true;
-    } catch (e) {
-      console.error("Import error:", e);
-      return false;
-    }
-  }
-
   async resetToDefaults() {
-    localStorage.removeItem(DB_KEYS.INITIALIZED);
-    localStorage.removeItem(DB_KEYS.BAREMES);
-    await this.seedDefaults();
+    try {
+      await this.seedDefaultsLocally();
+      await this.syncFromSupabase();
+    } catch (e) {
+      console.error("Reset error:", e);
+    }
   }
 }
 

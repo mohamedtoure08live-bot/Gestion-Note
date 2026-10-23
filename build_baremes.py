@@ -226,7 +226,7 @@ baremes.append(create_bareme("bar_poids_2nde_g_5kg", "Lancer de poids", "5kg", "
   {"note": 3, "distanceMin": 2.65}, {"note": 2.5, "distanceMin": 2.50}
 ]));
 
-// Seconde Filles
+
 baremes.append(create_bareme("bar_poids_2nde_f_3kg", "Lancer de poids", "3kg", "Seconde", "Fille", "distance", [
   {"note": 20, "distanceMin": 9.39}, {"note": 19, "distanceMin": 8.86}, {"note": 18, "distanceMin": 8.35},
   {"note": 17, "distanceMin": 7.88}, {"note": 16, "distanceMin": 7.43}, {"note": 15, "distanceMin": 7.00},
@@ -481,31 +481,7 @@ for cls in CLASSES:
         baremes.append(create_bareme(id_str, "Triple saut", None, cls, gnr, "distance", grid))
 
 
-# --- 8. COURSE DE HAIES (ALL 7 CLASSES, GARÇONS & FILLES) ---
-haies_base = {
-  "Sixième_Garçon": {"maxNote": 20, "maxPerf": 10.20, "minNote": 1, "minPerf": 17.00},
-  "Sixième_Fille": {"maxNote": 20, "maxPerf": 12.30, "minNote": 1, "minPerf": 18.00},
-  "Cinquième_Garçon": {"maxNote": 20, "maxPerf": 10.00, "minNote": 1, "minPerf": 16.70},
-  "Cinquième_Fille": {"maxNote": 20, "maxPerf": 12.00, "minNote": 1, "minPerf": 17.70},
-  "Quatrième_Garçon": {"maxNote": 20, "maxPerf": 9.80, "minNote": 1, "minPerf": 16.40},
-  "Quatrième_Fille": {"maxNote": 20, "maxPerf": 11.70, "minNote": 1, "minPerf": 17.40},
-  "Troisième_Garçon": {"maxNote": 20, "maxPerf": 9.50, "minNote": 1, "minPerf": 16.00},
-  "Troisième_Fille": {"maxNote": 20, "maxPerf": 11.40, "minNote": 1, "minPerf": 17.00},
-  "Seconde_Garçon": {"maxNote": 20, "maxPerf": 9.20, "minNote": 1, "minPerf": 15.60},
-  "Seconde_Fille": {"maxNote": 20, "maxPerf": 11.10, "minNote": 1, "minPerf": 16.50},
-  "Première_Garçon": {"maxNote": 20, "maxPerf": 8.90, "minNote": 1, "minPerf": 15.10},
-  "Première_Fille": {"maxNote": 20, "maxPerf": 10.80, "minNote": 1, "minPerf": 16.00},
-  "Terminale_Garçon": {"maxNote": 20, "maxPerf": 8.60, "minNote": 1, "minPerf": 14.60},
-  "Terminale_Fille": {"maxNote": 20, "maxPerf": 10.50, "minNote": 1, "minPerf": 15.50}
-}
-
-for cls in CLASSES:
-    for gnr in GENRES:
-        key = f"{cls}_{gnr}"
-        cfg = haies_base[key]
-        grid = generate_linear_grid(cfg["minNote"], cfg["maxNote"], 1.0, cfg["minPerf"], cfg["maxPerf"])
-        id_str = f"bar_haies_{cls.lower()}_{'g' if gnr == 'Garçon' else 'f'}"
-        baremes.append(create_bareme(id_str, "Course de haies", None, cls, gnr, "temps", grid))
+# Course de haies removed per user instruction
 
 
 # --- 9. NATATION (50m Libre, 50m Brasse, 50m Papillon, 50m Dos) ---

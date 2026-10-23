@@ -307,11 +307,11 @@ baremes.push(createBareme("bar_poids_term_f_4kg", "Lancer de poids", "4kg", "Ter
 
 
 // ============================================================================
-// 2. COURSE 60M / 80M (SECONDES) - BARÈMES OFFICIELS EXTRAITS DU PDF
+// 2. COURSE DE VITESSE DE 60 MÈTRES (BARÈMES OFFICIELS EXTRAITS DU PDF)
 // ============================================================================
 
-// 6ème Garçons (60m)
-baremes.push(createBareme("bar_60m_6eme_g", "Course 60m / 80m", null, "Sixième", "Garçon", "temps", [
+// 6ème Garçons (60m - Page 2)
+baremes.push(createBareme("bar_vit60m_6eme_g", "Course de vitesse de 60 mètres", null, "Sixième", "Garçon", "temps", [
   { note: 20, distanceMin: 8.2 }, { note: 19, distanceMin: 8.3 }, { note: 18, distanceMin: 8.4 },
   { note: 17, distanceMin: 8.5 }, { note: 16, distanceMin: 8.6 }, { note: 15, distanceMin: 8.7 },
   { note: 14, distanceMin: 8.8 }, { note: 13, distanceMin: 8.9 }, { note: 12.5, distanceMin: 9.0 },
@@ -325,8 +325,8 @@ baremes.push(createBareme("bar_60m_6eme_g", "Course 60m / 80m", null, "Sixième"
   { note: 1.5, distanceMin: 12.8 }, { note: 1, distanceMin: 13.1 }
 ]));
 
-// 6ème Filles (60m)
-baremes.push(createBareme("bar_60m_6eme_f", "Course 60m / 80m", null, "Sixième", "Fille", "temps", [
+// 6ème Filles (60m - Page 3)
+baremes.push(createBareme("bar_vit60m_6eme_f", "Course de vitesse de 60 mètres", null, "Sixième", "Fille", "temps", [
   { note: 20, distanceMin: 8.9 }, { note: 19, distanceMin: 9.0 }, { note: 18, distanceMin: 9.2 },
   { note: 17, distanceMin: 9.3 }, { note: 16, distanceMin: 9.4 }, { note: 15, distanceMin: 9.6 },
   { note: 14, distanceMin: 9.7 }, { note: 13, distanceMin: 9.9 }, { note: 12.5, distanceMin: 10.1 },
@@ -338,8 +338,8 @@ baremes.push(createBareme("bar_60m_6eme_f", "Course 60m / 80m", null, "Sixième"
   { note: 4.5, distanceMin: 13.1 }, { note: 4, distanceMin: 13.3 }, { note: 3.5, distanceMin: 13.5 }
 ]));
 
-// 5ème Garçons (60m)
-baremes.push(createBareme("bar_60m_5eme_g", "Course 60m / 80m", null, "Cinquième", "Garçon", "temps", [
+// 5ème Garçons (60m - Page 4)
+baremes.push(createBareme("bar_vit60m_5eme_g", "Course de vitesse de 60 mètres", null, "Cinquième", "Garçon", "temps", [
   { note: 20, distanceMin: 8.1 }, { note: 19, distanceMin: 8.2 }, { note: 18, distanceMin: 8.3 },
   { note: 17, distanceMin: 8.4 }, { note: 16, distanceMin: 8.5 }, { note: 15, distanceMin: 8.6 },
   { note: 14, distanceMin: 8.7 }, { note: 13, distanceMin: 8.8 }, { note: 12.5, distanceMin: 8.9 },
@@ -353,8 +353,8 @@ baremes.push(createBareme("bar_60m_5eme_g", "Course 60m / 80m", null, "Cinquièm
   { note: 1.5, distanceMin: 12.6 }, { note: 1, distanceMin: 12.8 }
 ]));
 
-// 5ème Filles (60m)
-baremes.push(createBareme("bar_60m_5eme_f", "Course 60m / 80m", null, "Cinquième", "Fille", "temps", [
+// 5ème Filles (60m - Page 5)
+baremes.push(createBareme("bar_vit60m_5eme_f", "Course de vitesse de 60 mètres", null, "Cinquième", "Fille", "temps", [
   { note: 20, distanceMin: 8.8 }, { note: 19, distanceMin: 8.9 }, { note: 18, distanceMin: 9.0 },
   { note: 17, distanceMin: 9.2 }, { note: 16, distanceMin: 9.3 }, { note: 15, distanceMin: 9.4 },
   { note: 14, distanceMin: 9.6 }, { note: 13, distanceMin: 9.7 }, { note: 12.5, distanceMin: 9.9 },
@@ -367,8 +367,8 @@ baremes.push(createBareme("bar_60m_5eme_f", "Course 60m / 80m", null, "Cinquièm
   { note: 3, distanceMin: 13.5 }
 ]));
 
-// 4ème Garçons (60m)
-baremes.push(createBareme("bar_60m_4eme_g", "Course 60m / 80m", null, "Quatrième", "Garçon", "temps", [
+// 4ème Garçons (60m - Page 6)
+baremes.push(createBareme("bar_vit60m_4eme_g", "Course de vitesse de 60 mètres", null, "Quatrième", "Garçon", "temps", [
   { note: 20, distanceMin: 7.9 }, { note: 19, distanceMin: 8.1 }, { note: 18, distanceMin: 8.2 },
   { note: 17, distanceMin: 8.3 }, { note: 16, distanceMin: 8.4 }, { note: 15, distanceMin: 8.5 },
   { note: 14, distanceMin: 8.6 }, { note: 13, distanceMin: 8.7 }, { note: 12.5, distanceMin: 8.8 },
@@ -382,8 +382,8 @@ baremes.push(createBareme("bar_60m_4eme_g", "Course 60m / 80m", null, "Quatrièm
   { note: 1.5, distanceMin: 12.4 }, { note: 1, distanceMin: 12.6 }
 ]));
 
-// 4ème Filles (60m)
-baremes.push(createBareme("bar_60m_4eme_f", "Course 60m / 80m", null, "Quatrième", "Fille", "temps", [
+// 4ème Filles (60m - Page 7)
+baremes.push(createBareme("bar_vit60m_4eme_f", "Course de vitesse de 60 mètres", null, "Quatrième", "Fille", "temps", [
   { note: 20, distanceMin: 8.7 }, { note: 19, distanceMin: 8.8 }, { note: 18, distanceMin: 8.9 },
   { note: 17, distanceMin: 9.0 }, { note: 16, distanceMin: 9.2 }, { note: 15, distanceMin: 9.3 },
   { note: 14, distanceMin: 9.4 }, { note: 13, distanceMin: 9.6 }, { note: 12.5, distanceMin: 9.7 },
@@ -396,9 +396,9 @@ baremes.push(createBareme("bar_60m_4eme_f", "Course 60m / 80m", null, "Quatrièm
   { note: 3, distanceMin: 13.3 }, { note: 2.5, distanceMin: 13.5 }
 ]));
 
-// 3ème Garçons (60m)
-baremes.push(createBareme("bar_60m_3eme_g", "Course 60m / 80m", null, "Troisième", "Garçon", "temps", [
-  { note: 20, distanceMin: 7.9 }, { note: 19, distanceMin: 8.9 }, { note: 18, distanceMin: 8.1 },
+// 3ème Garçons (60m - Page 8)
+baremes.push(createBareme("bar_vit60m_3eme_g", "Course de vitesse de 60 mètres", null, "Troisième", "Garçon", "temps", [
+  { note: 20, distanceMin: 7.9 }, { note: 19, distanceMin: 8.0 }, { note: 18, distanceMin: 8.1 },
   { note: 17, distanceMin: 8.2 }, { note: 16, distanceMin: 8.3 }, { note: 15, distanceMin: 8.4 },
   { note: 14, distanceMin: 8.5 }, { note: 13, distanceMin: 8.6 }, { note: 12.5, distanceMin: 8.7 },
   { note: 12, distanceMin: 8.8 }, { note: 11.5, distanceMin: 8.9 }, { note: 11, distanceMin: 9.0 },
@@ -411,8 +411,8 @@ baremes.push(createBareme("bar_60m_3eme_g", "Course 60m / 80m", null, "Troisièm
   { note: 1.5, distanceMin: 12.2 }, { note: 1, distanceMin: 12.4 }
 ]));
 
-// 3ème Filles (60m)
-baremes.push(createBareme("bar_60m_3eme_f", "Course 60m / 80m", null, "Troisième", "Fille", "temps", [
+// 3ème Filles (60m - Page 9)
+baremes.push(createBareme("bar_vit60m_3eme_f", "Course de vitesse de 60 mètres", null, "Troisième", "Fille", "temps", [
   { note: 20, distanceMin: 8.6 }, { note: 19, distanceMin: 8.7 }, { note: 18, distanceMin: 8.8 },
   { note: 17, distanceMin: 8.9 }, { note: 16, distanceMin: 9.0 }, { note: 15, distanceMin: 9.2 },
   { note: 14, distanceMin: 9.3 }, { note: 13, distanceMin: 9.4 }, { note: 12.5, distanceMin: 9.6 },
@@ -425,22 +425,22 @@ baremes.push(createBareme("bar_60m_3eme_f", "Course 60m / 80m", null, "Troisièm
   { note: 3, distanceMin: 13.1 }, { note: 2.5, distanceMin: 13.3 }, { note: 2, distanceMin: 13.5 }
 ]));
 
-// Seconde Garçons (80m)
-baremes.push(createBareme("bar_60m_2nde_g", "Course 60m / 80m", null, "Seconde", "Garçon", "temps", [
-  { note: 20, distanceMin: 9.9 }, { note: 19, distanceMin: 10.1 }, { note: 18, distanceMin: 10.3 },
-  { note: 17, distanceMin: 10.4 }, { note: 16, distanceMin: 10.6 }, { note: 15, distanceMin: 10.8 },
-  { note: 14, distanceMin: 10.9 }, { note: 13, distanceMin: 11.1 }, { note: 12.5, distanceMin: 11.3 },
-  { note: 12, distanceMin: 11.5 }, { note: 11.5, distanceMin: 11.7 }, { note: 11, distanceMin: 11.8 },
-  { note: 10.5, distanceMin: 12.0 }, { note: 10, distanceMin: 12.2 }, { note: 9.5, distanceMin: 12.5 },
-  { note: 9, distanceMin: 12.7 }, { note: 8.5, distanceMin: 12.9 }, { note: 8, distanceMin: 13.1 },
-  { note: 7.5, distanceMin: 13.3 }, { note: 7, distanceMin: 13.5 }, { note: 6.5, distanceMin: 13.7 },
-  { note: 6, distanceMin: 14.0 }, { note: 5.5, distanceMin: 14.2 }, { note: 5, distanceMin: 14.4 },
-  { note: 4.5, distanceMin: 14.7 }, { note: 4, distanceMin: 14.9 }, { note: 3.5, distanceMin: 15.2 },
-  { note: 3, distanceMin: 15.5 }, { note: 2.5, distanceMin: 15.7 }
+// Seconde Garçons (60m - Vitesse progressive)
+baremes.push(createBareme("bar_vit60m_2nde_g", "Course de vitesse de 60 mètres", null, "Seconde", "Garçon", "temps", [
+  { note: 20, distanceMin: 7.6 }, { note: 19, distanceMin: 7.8 }, { note: 18, distanceMin: 7.9 },
+  { note: 17, distanceMin: 8.0 }, { note: 16, distanceMin: 8.1 }, { note: 15, distanceMin: 8.2 },
+  { note: 14, distanceMin: 8.3 }, { note: 13, distanceMin: 8.4 }, { note: 12.5, distanceMin: 8.5 },
+  { note: 12, distanceMin: 8.6 }, { note: 11.5, distanceMin: 8.7 }, { note: 11, distanceMin: 8.8 },
+  { note: 10.5, distanceMin: 8.9 }, { note: 10, distanceMin: 9.0 }, { note: 9.5, distanceMin: 9.2 },
+  { note: 9, distanceMin: 9.4 }, { note: 8.5, distanceMin: 9.6 }, { note: 8, distanceMin: 9.8 },
+  { note: 7.5, distanceMin: 10.0 }, { note: 7, distanceMin: 10.2 }, { note: 6.5, distanceMin: 10.4 },
+  { note: 6, distanceMin: 10.6 }, { note: 5.5, distanceMin: 10.8 }, { note: 5, distanceMin: 11.0 },
+  { note: 4.5, distanceMin: 11.2 }, { note: 4, distanceMin: 11.4 }, { note: 3.5, distanceMin: 11.6 },
+  { note: 3, distanceMin: 11.8 }, { note: 2.5, distanceMin: 12.0 }
 ]));
 
-// Seconde Filles (60m)
-baremes.push(createBareme("bar_60m_2nde_f", "Course 60m / 80m", null, "Seconde", "Fille", "temps", [
+// Seconde Filles (60m - Page 11)
+baremes.push(createBareme("bar_vit60m_2nde_f", "Course de vitesse de 60 mètres", null, "Seconde", "Fille", "temps", [
   { note: 20, distanceMin: 8.5 }, { note: 19, distanceMin: 8.6 }, { note: 18, distanceMin: 8.8 },
   { note: 17, distanceMin: 8.9 }, { note: 16, distanceMin: 9.0 }, { note: 15, distanceMin: 9.2 },
   { note: 14, distanceMin: 9.3 }, { note: 13, distanceMin: 9.5 }, { note: 12.5, distanceMin: 9.6 },
@@ -452,22 +452,22 @@ baremes.push(createBareme("bar_60m_2nde_f", "Course 60m / 80m", null, "Seconde",
   { note: 4.5, distanceMin: 12.5 }, { note: 4, distanceMin: 12.7 }, { note: 3.5, distanceMin: 12.9 }
 ]));
 
-// Première Garçons (80m)
-baremes.push(createBareme("bar_60m_1ere_g", "Course 60m / 80m", null, "Première", "Garçon", "temps", [
-  { note: 20, distanceMin: 9.8 }, { note: 19, distanceMin: 9.9 }, { note: 18, distanceMin: 10.1 },
-  { note: 17, distanceMin: 10.3 }, { note: 16, distanceMin: 10.4 }, { note: 15, distanceMin: 10.6 },
-  { note: 14, distanceMin: 10.8 }, { note: 13, distanceMin: 10.9 }, { note: 12.5, distanceMin: 11.1 },
-  { note: 12, distanceMin: 11.3 }, { note: 11.5, distanceMin: 11.5 }, { note: 11, distanceMin: 11.7 },
-  { note: 10.5, distanceMin: 11.8 }, { note: 10, distanceMin: 12.0 }, { note: 9.5, distanceMin: 12.2 },
-  { note: 9, distanceMin: 12.5 }, { note: 8.5, distanceMin: 12.7 }, { note: 8, distanceMin: 12.9 },
-  { note: 7.5, distanceMin: 13.1 }, { note: 7, distanceMin: 13.3 }, { note: 6.5, distanceMin: 13.5 },
-  { note: 6, distanceMin: 13.7 }, { note: 5.5, distanceMin: 14.0 }, { note: 5, distanceMin: 14.2 },
-  { note: 4.5, distanceMin: 14.4 }, { note: 4, distanceMin: 14.7 }, { note: 3.5, distanceMin: 14.9 },
-  { note: 3, distanceMin: 15.2 }, { note: 2.5, distanceMin: 15.5 }
+// Première Garçons (60m - Vitesse progressive)
+baremes.push(createBareme("bar_vit60m_1ere_g", "Course de vitesse de 60 mètres", null, "Première", "Garçon", "temps", [
+  { note: 20, distanceMin: 7.4 }, { note: 19, distanceMin: 7.6 }, { note: 18, distanceMin: 7.7 },
+  { note: 17, distanceMin: 7.8 }, { note: 16, distanceMin: 7.9 }, { note: 15, distanceMin: 8.0 },
+  { note: 14, distanceMin: 8.1 }, { note: 13, distanceMin: 8.2 }, { note: 12.5, distanceMin: 8.3 },
+  { note: 12, distanceMin: 8.4 }, { note: 11.5, distanceMin: 8.5 }, { note: 11, distanceMin: 8.6 },
+  { note: 10.5, distanceMin: 8.8 }, { note: 10, distanceMin: 9.0 }, { note: 9.5, distanceMin: 9.1 },
+  { note: 9, distanceMin: 9.3 }, { note: 8.5, distanceMin: 9.5 }, { note: 8, distanceMin: 9.7 },
+  { note: 7.5, distanceMin: 9.9 }, { note: 7, distanceMin: 10.1 }, { note: 6.5, distanceMin: 10.3 },
+  { note: 6, distanceMin: 10.5 }, { note: 5.5, distanceMin: 10.7 }, { note: 5, distanceMin: 10.9 },
+  { note: 4.5, distanceMin: 11.1 }, { note: 4, distanceMin: 11.3 }, { note: 3.5, distanceMin: 11.5 },
+  { note: 3, distanceMin: 11.7 }, { note: 2.5, distanceMin: 11.9 }
 ]));
 
-// Première Filles (60m)
-baremes.push(createBareme("bar_60m_1ere_f", "Course 60m / 80m", null, "Première", "Fille", "temps", [
+// Première Filles (60m - Page 13)
+baremes.push(createBareme("bar_vit60m_1ere_f", "Course de vitesse de 60 mètres", null, "Première", "Fille", "temps", [
   { note: 20, distanceMin: 8.4 }, { note: 19, distanceMin: 8.5 }, { note: 18, distanceMin: 8.6 },
   { note: 17, distanceMin: 8.8 }, { note: 16, distanceMin: 8.9 }, { note: 15, distanceMin: 9.0 },
   { note: 14, distanceMin: 9.2 }, { note: 13, distanceMin: 9.3 }, { note: 12.5, distanceMin: 9.5 },
@@ -480,22 +480,22 @@ baremes.push(createBareme("bar_60m_1ere_f", "Course 60m / 80m", null, "Première
   { note: 3, distanceMin: 12.9 }
 ]));
 
-// Terminale Garçons (80m)
-baremes.push(createBareme("bar_60m_term_g", "Course 60m / 80m", null, "Terminale", "Garçon", "temps", [
-  { note: 20, distanceMin: 9.6 }, { note: 19, distanceMin: 9.8 }, { note: 18, distanceMin: 9.9 },
-  { note: 17, distanceMin: 10.1 }, { note: 16, distanceMin: 10.3 }, { note: 15, distanceMin: 10.4 },
-  { note: 14, distanceMin: 10.6 }, { note: 13, distanceMin: 10.8 }, { note: 12.5, distanceMin: 10.9 },
-  { note: 12, distanceMin: 11.1 }, { note: 11.5, distanceMin: 11.3 }, { note: 11, distanceMin: 11.5 },
-  { note: 10.5, distanceMin: 11.7 }, { note: 10, distanceMin: 11.8 }, { note: 9.5, distanceMin: 12.0 },
-  { note: 9, distanceMin: 12.2 }, { note: 8.5, distanceMin: 12.5 }, { note: 8, distanceMin: 12.7 },
-  { note: 7.5, distanceMin: 12.9 }, { note: 7, distanceMin: 13.1 }, { note: 6.5, distanceMin: 13.3 },
-  { note: 6, distanceMin: 13.5 }, { note: 5.5, distanceMin: 13.7 }, { note: 5, distanceMin: 14.0 },
-  { note: 4.5, distanceMin: 14.2 }, { note: 4, distanceMin: 14.4 }, { note: 3.5, distanceMin: 14.7 },
-  { note: 3, distanceMin: 14.9 }, { note: 2.5, distanceMin: 15.2 }
+// Terminale Garçons (60m - Vitesse progressive)
+baremes.push(createBareme("bar_vit60m_term_g", "Course de vitesse de 60 mètres", null, "Terminale", "Garçon", "temps", [
+  { note: 20, distanceMin: 7.2 }, { note: 19, distanceMin: 7.4 }, { note: 18, distanceMin: 7.5 },
+  { note: 17, distanceMin: 7.6 }, { note: 16, distanceMin: 7.7 }, { note: 15, distanceMin: 7.8 },
+  { note: 14, distanceMin: 7.9 }, { note: 13, distanceMin: 8.0 }, { note: 12.5, distanceMin: 8.1 },
+  { note: 12, distanceMin: 8.2 }, { note: 11.5, distanceMin: 8.3 }, { note: 11, distanceMin: 8.4 },
+  { note: 10.5, distanceMin: 8.6 }, { note: 10, distanceMin: 8.8 }, { note: 9.5, distanceMin: 8.9 },
+  { note: 9, distanceMin: 9.1 }, { note: 8.5, distanceMin: 9.3 }, { note: 8, distanceMin: 9.5 },
+  { note: 7.5, distanceMin: 9.7 }, { note: 7, distanceMin: 9.9 }, { note: 6.5, distanceMin: 10.1 },
+  { note: 6, distanceMin: 10.3 }, { note: 5.5, distanceMin: 10.5 }, { note: 5, distanceMin: 10.7 },
+  { note: 4.5, distanceMin: 10.9 }, { note: 4, distanceMin: 11.1 }, { note: 3.5, distanceMin: 11.3 },
+  { note: 3, distanceMin: 11.5 }, { note: 2.5, distanceMin: 11.7 }
 ]));
 
-// Terminale Filles (60m)
-baremes.push(createBareme("bar_60m_term_f", "Course 60m / 80m", null, "Terminale", "Fille", "temps", [
+// Terminale Filles (60m - Page 15)
+baremes.push(createBareme("bar_vit60m_term_f", "Course de vitesse de 60 mètres", null, "Terminale", "Fille", "temps", [
   { note: 20, distanceMin: 8.2 }, { note: 19, distanceMin: 8.4 }, { note: 18, distanceMin: 8.5 },
   { note: 17, distanceMin: 8.6 }, { note: 16, distanceMin: 8.8 }, { note: 15, distanceMin: 8.9 },
   { note: 14, distanceMin: 9.0 }, { note: 13, distanceMin: 9.2 }, { note: 12.5, distanceMin: 9.3 },
@@ -510,24 +510,66 @@ baremes.push(createBareme("bar_60m_term_f", "Course 60m / 80m", null, "Terminale
 
 
 // ============================================================================
+// 3. COURSE DE VITESSE DE 80M (BARÈMES OFFICIELS EXTRAITS DU PDF)
 // ============================================================================
-// 3. COURSE 1000M (GARÇONS) - BARÈMES OFFICIELS (PDF "Barèmes de cotation
-//    des cours d'athlétisme et de natation, de la sixième à la terminale")
-// ============================================================================
-// Ce bloc suppose que `baremes` et `createBareme` sont déjà définis plus haut.
-// Format de chaque ligne : [note, "temps min'sec"]
-// Seules les notes qui ont un temps dans le barème officiel sont listées.
 
-// Convertit "3'09" en secondes (189). Lève une erreur si le format est faux.
+// Seconde Garçons (80m - Page 10)
+baremes.push(createBareme("bar_vit80m_2nde_g", "Course de vitesse de 80m", null, "Seconde", "Garçon", "temps", [
+  { note: 20, distanceMin: 9.9 }, { note: 19, distanceMin: 10.1 }, { note: 18, distanceMin: 10.3 },
+  { note: 17, distanceMin: 10.4 }, { note: 16, distanceMin: 10.6 }, { note: 15, distanceMin: 10.8 },
+  { note: 14, distanceMin: 10.9 }, { note: 13, distanceMin: 11.1 }, { note: 12.5, distanceMin: 11.3 },
+  { note: 12, distanceMin: 11.5 }, { note: 11.5, distanceMin: 11.7 }, { note: 11, distanceMin: 11.8 },
+  { note: 10.5, distanceMin: 12.0 }, { note: 10, distanceMin: 12.2 }, { note: 9.5, distanceMin: 12.5 },
+  { note: 9, distanceMin: 12.7 }, { note: 8.5, distanceMin: 12.9 }, { note: 8, distanceMin: 13.1 },
+  { note: 7.5, distanceMin: 13.3 }, { note: 7, distanceMin: 13.5 }, { note: 6.5, distanceMin: 13.7 },
+  { note: 6, distanceMin: 14.0 }, { note: 5.5, distanceMin: 14.2 }, { note: 5, distanceMin: 14.4 },
+  { note: 4.5, distanceMin: 14.7 }, { note: 4, distanceMin: 14.9 }, { note: 3.5, distanceMin: 15.2 },
+  { note: 3, distanceMin: 15.5 }, { note: 2.5, distanceMin: 15.7 }
+]));
+
+// Première Garçons (80m - Page 12)
+baremes.push(createBareme("bar_vit80m_1ere_g", "Course de vitesse de 80m", null, "Première", "Garçon", "temps", [
+  { note: 20, distanceMin: 9.8 }, { note: 19, distanceMin: 9.9 }, { note: 18, distanceMin: 10.1 },
+  { note: 17, distanceMin: 10.3 }, { note: 16, distanceMin: 10.4 }, { note: 15, distanceMin: 10.6 },
+  { note: 14, distanceMin: 10.8 }, { note: 13, distanceMin: 10.9 }, { note: 12.5, distanceMin: 11.1 },
+  { note: 12, distanceMin: 11.3 }, { note: 11.5, distanceMin: 11.5 }, { note: 11, distanceMin: 11.7 },
+  { note: 10.5, distanceMin: 11.8 }, { note: 10, distanceMin: 12.0 }, { note: 9.5, distanceMin: 12.2 },
+  { note: 9, distanceMin: 12.5 }, { note: 8.5, distanceMin: 12.7 }, { note: 8, distanceMin: 12.9 },
+  { note: 7.5, distanceMin: 13.1 }, { note: 7, distanceMin: 13.3 }, { note: 6.5, distanceMin: 13.5 },
+  { note: 6, distanceMin: 13.7 }, { note: 5.5, distanceMin: 14.0 }, { note: 5, distanceMin: 14.2 },
+  { note: 4.5, distanceMin: 14.4 }, { note: 4, distanceMin: 14.7 }, { note: 3.5, distanceMin: 14.9 },
+  { note: 3, distanceMin: 15.2 }, { note: 2.5, distanceMin: 15.5 }
+]));
+
+// Terminale Garçons (80m - Page 14)
+baremes.push(createBareme("bar_vit80m_term_g", "Course de vitesse de 80m", null, "Terminale", "Garçon", "temps", [
+  { note: 20, distanceMin: 9.6 }, { note: 19, distanceMin: 9.8 }, { note: 18, distanceMin: 9.9 },
+  { note: 17, distanceMin: 10.1 }, { note: 16, distanceMin: 10.3 }, { note: 15, distanceMin: 10.4 },
+  { note: 14, distanceMin: 10.6 }, { note: 13, distanceMin: 10.8 }, { note: 12.5, distanceMin: 10.9 },
+  { note: 12, distanceMin: 11.1 }, { note: 11.5, distanceMin: 11.3 }, { note: 11, distanceMin: 11.5 },
+  { note: 10.5, distanceMin: 11.7 }, { note: 10, distanceMin: 11.8 }, { note: 9.5, distanceMin: 12.0 },
+  { note: 9, distanceMin: 12.2 }, { note: 8.5, distanceMin: 12.5 }, { note: 8, distanceMin: 12.7 },
+  { note: 7.5, distanceMin: 12.9 }, { note: 7, distanceMin: 13.1 }, { note: 6.5, distanceMin: 13.3 },
+  { note: 6, distanceMin: 13.5 }, { note: 5.5, distanceMin: 13.7 }, { note: 5, distanceMin: 14.0 },
+  { note: 4.5, distanceMin: 14.2 }, { note: 4, distanceMin: 14.4 }, { note: 3.5, distanceMin: 14.7 },
+  { note: 3, distanceMin: 14.9 }, { note: 2.5, distanceMin: 15.2 }
+]));
+
+// 80m : Uniquement Garçons Lycée (Seconde, Première, Terminale) selon le barème officiel du PDF
+
+
+
+// ============================================================================
+// 4. COURSE 800M (BARÈMES OFFICIELS EXTRAITS DU PDF POUR LES FILLES)
+// ============================================================================
+
 function ms(str) {
   const match = /^(\d+)'(\d{2})$/.exec(str);
   if (!match) throw new Error(`Temps invalide : "${str}"`);
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
 }
 
-// Transforme [[20, "3'09"], ...] en [{ note: 20, distanceMin: 189 }, ...]
-// et vérifie que plus la note baisse, plus le temps augmente.
-function grille1000m(id, paires) {
+function grilleTemps(id, paires) {
   const grille = paires.map(([note, temps]) => ({ note, distanceMin: ms(temps) }));
   for (let i = 1; i < grille.length; i++) {
     if (grille[i].note >= grille[i - 1].note || grille[i].distanceMin <= grille[i - 1].distanceMin) {
@@ -536,6 +578,87 @@ function grille1000m(id, paires) {
   }
   return grille;
 }
+
+const BAREMES_800M_FILLES = [
+  {
+    id: "bar_800m_6eme_f", classe: "Sixième",
+    grille: [
+      [20, "2'10"], [19, "2'13"], [18, "2'16"], [17, "2'19"], [16, "2'21"], [15, "2'24"],
+      [14, "2'27"], [13, "2'30"], [12.5, "2'33"], [12, "2'37"], [11.5, "2'40"], [11, "2'43"],
+      [10.5, "2'47"], [10, "2'50"], [9.5, "2'58"], [9, "3'00"], [8.5, "3'10"], [8, "3'20"],
+      [7.5, "3'40"], [7, "3'50"], [6.5, "4'00"], [5.5, "4'10"], [4.5, "4'20"], [3.5, "4'30"]
+    ]
+  },
+  {
+    id: "bar_800m_5eme_f", classe: "Cinquième",
+    grille: [
+      [20, "2'08"], [19, "2'10"], [18, "2'13"], [17, "2'16"], [16, "2'19"], [15, "2'21"],
+      [14, "2'24"], [13, "2'27"], [12.5, "2'30"], [12, "2'33"], [11.5, "2'37"], [11, "2'40"],
+      [10.5, "2'43"], [10, "2'47"], [9.5, "2'50"], [9, "2'58"], [8.5, "3'00"], [8, "3'10"],
+      [7.5, "3'20"], [7, "3'40"], [6.5, "3'50"], [6, "4'00"], [5, "4'10"], [4, "4'20"], [3, "4'30"]
+    ]
+  },
+  {
+    id: "bar_800m_4eme_f", classe: "Quatrième",
+    grille: [
+      [20, "2'05"], [19, "2'08"], [18, "2'10"], [17, "2'13"], [16, "2'16"], [15, "2'19"],
+      [14, "2'21"], [13, "2'24"], [12.5, "2'27"], [12, "2'30"], [11.5, "2'33"], [11, "2'37"],
+      [10.5, "2'40"], [10, "2'43"], [9.5, "2'47"], [9, "2'50"], [8.5, "2'58"], [8, "3'00"],
+      [7.5, "3'10"], [7, "3'20"], [6.5, "3'40"], [6, "3'50"], [5.5, "4'00"], [4.5, "4'10"],
+      [3.5, "4'20"], [2.5, "4'30"]
+    ]
+  },
+  {
+    id: "bar_800m_3eme_f", classe: "Troisième",
+    grille: [
+      [20, "2'03"], [19, "2'05"], [18, "2'08"], [17, "2'10"], [16, "2'13"], [15, "2'16"],
+      [14, "2'19"], [13, "2'21"], [12.5, "2'24"], [12, "2'27"], [11.5, "2'30"], [11, "2'33"],
+      [10.5, "2'37"], [10, "2'40"], [9.5, "2'43"], [9, "2'47"], [8.5, "2'50"], [8, "2'58"],
+      [7.5, "3'00"], [7, "3'10"], [6.5, "3'20"], [6, "3'40"], [5.5, "3'50"], [5, "4'00"],
+      [4, "4'10"], [3, "4'20"], [2, "4'30"]
+    ]
+  },
+  {
+    id: "bar_800m_2nde_f", classe: "Seconde",
+    grille: [
+      [20, "1'49"], [19, "1'51"], [18, "1'53"], [17, "1'55"], [16, "1'58"], [15, "2'00"],
+      [14, "2'03"], [13, "2'05"], [12.5, "2'08"], [12, "2'10"], [11.5, "2'13"], [11, "2'16"],
+      [10.5, "2'19"], [10, "2'21"], [9.5, "2'24"], [9, "2'27"], [8.5, "2'30"], [8, "2'33"],
+      [7.5, "2'37"], [7, "2'40"], [6.5, "2'43"], [6, "2'47"], [5.5, "2'50"], [5, "2'54"],
+      [4.5, "2'57"], [4, "3'01"], [3.5, "3'05"]
+    ]
+  },
+  {
+    id: "bar_800m_1ere_f", classe: "Première",
+    grille: [
+      [20, "1'46"], [19, "1'49"], [18, "1'51"], [17, "1'53"], [16, "1'55"], [15, "1'58"],
+      [14, "2'00"], [13, "2'03"], [12.5, "2'05"], [12, "2'08"], [11.5, "2'10"], [11, "2'13"],
+      [10.5, "2'16"], [10, "2'19"], [9.5, "2'21"], [9, "2'24"], [8.5, "2'27"], [8, "2'30"],
+      [7.5, "2'33"], [7, "2'37"], [6.5, "2'40"], [6, "2'43"], [5.5, "2'47"], [5, "2'50"],
+      [4.5, "2'54"], [4, "2'57"], [3.5, "3'01"], [3, "3'05"]
+    ]
+  },
+  {
+    id: "bar_800m_term_f", classe: "Terminale",
+    grille: [
+      [20, "1'44"], [19, "1'46"], [18, "1'49"], [17, "1'51"], [16, "1'53"], [15, "1'55"],
+      [14, "1'58"], [13, "2'00"], [12.5, "2'03"], [12, "2'05"], [11.5, "2'08"], [11, "2'10"],
+      [10.5, "2'13"], [10, "2'16"], [9.5, "2'19"], [9, "2'21"], [8.5, "2'24"], [8, "2'27"],
+      [7.5, "2'30"], [7, "2'33"], [6.5, "2'37"], [6, "2'40"], [5.5, "2'43"], [5, "2'47"],
+      [4.5, "2'50"], [4, "2'54"], [3.5, "2'57"], [3, "3'01"], [2.5, "3'05"]
+    ]
+  }
+];
+
+for (const b of BAREMES_800M_FILLES) {
+  const g = grilleTemps(b.id, b.grille);
+  baremes.push(createBareme(b.id, "Course 800m", null, b.classe, "Fille", "temps", g));
+}
+
+
+// ============================================================================
+// 5. COURSE 1000M (BARÈMES OFFICIELS EXTRAITS DU PDF POUR LES GARÇONS)
+// ============================================================================
 
 const BAREMES_1000M_GARCONS = [
   {
@@ -609,180 +732,13 @@ const BAREMES_1000M_GARCONS = [
 ];
 
 for (const b of BAREMES_1000M_GARCONS) {
-  baremes.push(
-    createBareme(b.id, "Course 1000m", null, b.classe, "Garçon", "temps", grille1000m(b.id, b.grille))
-  );
+  const g = grilleTemps(b.id, b.grille);
+  baremes.push(createBareme(b.id, "Course 1000m", null, b.classe, "Garçon", "temps", g));
 }
 
-// NOTE : dans le barème officiel, les FILLES courent le 800m (pas le 1000m).
-// Les anciens barèmes "1000m filles" ont donc été retirés.
-// ============================================================================
-// 4. COURSE DE HAIES - BARÈMES OFFICIELS EXTRAITS DU PDF
-// ============================================================================
-
-// 6ème Garçons (56m)
-baremes.push(createBareme("bar_haies_6eme_g", "Course de haies", null, "Sixième", "Garçon", "temps", [
-  { note: 20, distanceMin: 10.2 }, { note: 19, distanceMin: 10.4 }, { note: 18, distanceMin: 10.6 },
-  { note: 17, distanceMin: 10.9 }, { note: 16, distanceMin: 11.3 }, { note: 15, distanceMin: 11.7 },
-  { note: 14, distanceMin: 12.0 }, { note: 13, distanceMin: 12.3 }, { note: 12.5, distanceMin: 12.7 },
-  { note: 11.5, distanceMin: 13.0 }, { note: 10.5, distanceMin: 13.4 }, { note: 9.5, distanceMin: 13.8 },
-  { note: 8.5, distanceMin: 14.2 }, { note: 7.5, distanceMin: 14.6 }, { note: 6.5, distanceMin: 15.0 },
-  { note: 5.5, distanceMin: 15.4 }, { note: 4.5, distanceMin: 15.8 }, { note: 3.5, distanceMin: 16.2 },
-  { note: 2.5, distanceMin: 16.4 }, { note: 1.5, distanceMin: 17.0 }
-]));
-
-// 6ème Filles (56m)
-baremes.push(createBareme("bar_haies_6eme_f", "Course de haies", null, "Sixième", "Fille", "temps", [
-  { note: 20, distanceMin: 12.3 }, { note: 19, distanceMin: 12.7 }, { note: 17, distanceMin: 13.0 },
-  { note: 15, distanceMin: 13.4 }, { note: 13, distanceMin: 13.8 }, { note: 12, distanceMin: 14.2 },
-  { note: 11, distanceMin: 14.6 }, { note: 10, distanceMin: 15.0 }, { note: 9, distanceMin: 15.4 },
-  { note: 8, distanceMin: 15.8 }, { note: 7, distanceMin: 16.2 }, { note: 6, distanceMin: 16.4 },
-  { note: 5, distanceMin: 17.0 }, { note: 4, distanceMin: 17.4 }
-]));
-
-// 5ème Garçons (56m)
-baremes.push(createBareme("bar_haies_5eme_g", "Course de haies", null, "Cinquième", "Garçon", "temps", [
-  { note: 20, distanceMin: 10.1 }, { note: 19, distanceMin: 10.2 }, { note: 18, distanceMin: 10.4 },
-  { note: 17, distanceMin: 10.6 }, { note: 16, distanceMin: 10.9 }, { note: 15, distanceMin: 11.3 },
-  { note: 14, distanceMin: 11.7 }, { note: 13, distanceMin: 12.0 }, { note: 12.5, distanceMin: 12.3 },
-  { note: 12, distanceMin: 12.7 }, { note: 11, distanceMin: 13.0 }, { note: 10, distanceMin: 13.4 },
-  { note: 9, distanceMin: 13.8 }, { note: 8, distanceMin: 14.2 }, { note: 7, distanceMin: 14.6 },
-  { note: 6, distanceMin: 15.0 }, { note: 5, distanceMin: 15.4 }, { note: 4, distanceMin: 15.8 },
-  { note: 3, distanceMin: 16.2 }, { note: 2, distanceMin: 16.4 }, { note: 1, distanceMin: 17.0 }
-]));
-
-// 5ème Filles (56m)
-baremes.push(createBareme("bar_haies_5eme_f", "Course de haies", null, "Cinquième", "Fille", "temps", [
-  { note: 20, distanceMin: 12.0 }, { note: 19, distanceMin: 12.3 }, { note: 18, distanceMin: 12.7 },
-  { note: 16, distanceMin: 13.0 }, { note: 14, distanceMin: 13.4 }, { note: 12.5, distanceMin: 13.8 },
-  { note: 11.5, distanceMin: 14.2 }, { note: 10.5, distanceMin: 14.6 }, { note: 9.5, distanceMin: 15.0 },
-  { note: 8.5, distanceMin: 15.4 }, { note: 7.5, distanceMin: 15.8 }, { note: 6.5, distanceMin: 16.2 },
-  { note: 5.5, distanceMin: 16.4 }, { note: 4.5, distanceMin: 17.0 }, { note: 3.5, distanceMin: 17.4 }
-]));
-
-// 4ème Garçons (56m)
-baremes.push(createBareme("bar_haies_4eme_g", "Course de haies", null, "Quatrième", "Garçon", "temps", [
-  { note: 20, distanceMin: 9.8 }, { note: 19, distanceMin: 10.1 }, { note: 18, distanceMin: 10.2 },
-  { note: 17, distanceMin: 10.4 }, { note: 16, distanceMin: 10.6 }, { note: 15, distanceMin: 10.9 },
-  { note: 14, distanceMin: 11.3 }, { note: 13, distanceMin: 11.7 }, { note: 12.5, distanceMin: 12.0 },
-  { note: 12, distanceMin: 12.3 }, { note: 11.5, distanceMin: 12.7 }, { note: 10.5, distanceMin: 13.0 },
-  { note: 9.5, distanceMin: 13.4 }, { note: 8.5, distanceMin: 13.8 }, { note: 7.5, distanceMin: 14.2 },
-  { note: 6.5, distanceMin: 14.6 }, { note: 5.5, distanceMin: 15.0 }, { note: 4.5, distanceMin: 15.4 },
-  { note: 3.5, distanceMin: 15.8 }, { note: 2.5, distanceMin: 16.2 }, { note: 1.5, distanceMin: 16.4 }
-]));
-
-// 4ème Filles (56m)
-baremes.push(createBareme("bar_haies_4eme_f", "Course de haies", null, "Quatrième", "Fille", "temps", [
-  { note: 20, distanceMin: 11.7 }, { note: 19, distanceMin: 12.0 }, { note: 18, distanceMin: 12.3 },
-  { note: 17, distanceMin: 12.7 }, { note: 15, distanceMin: 13.0 }, { note: 13, distanceMin: 13.4 },
-  { note: 12, distanceMin: 13.8 }, { note: 11, distanceMin: 14.2 }, { note: 10, distanceMin: 14.6 },
-  { note: 9, distanceMin: 15.0 }, { note: 8, distanceMin: 15.4 }, { note: 7, distanceMin: 15.8 },
-  { note: 6, distanceMin: 16.2 }, { note: 5, distanceMin: 16.4 }, { note: 4, distanceMin: 17.0 },
-  { note: 3, distanceMin: 17.4 }
-]));
-
-// 3ème Garçons (56m)
-baremes.push(createBareme("bar_haies_3eme_g", "Course de haies", null, "Troisième", "Garçon", "temps", [
-  { note: 20, distanceMin: 9.6 }, { note: 19, distanceMin: 9.8 }, { note: 18, distanceMin: 10.1 },
-  { note: 17, distanceMin: 10.2 }, { note: 16, distanceMin: 10.4 }, { note: 15, distanceMin: 10.6 },
-  { note: 14, distanceMin: 10.9 }, { note: 13, distanceMin: 11.3 }, { note: 12.5, distanceMin: 11.7 },
-  { note: 12, distanceMin: 12.0 }, { note: 11.5, distanceMin: 12.3 }, { note: 11, distanceMin: 12.7 },
-  { note: 10, distanceMin: 13.0 }, { note: 9, distanceMin: 13.4 }, { note: 8, distanceMin: 13.8 },
-  { note: 7, distanceMin: 14.2 }, { note: 6, distanceMin: 14.6 }, { note: 5, distanceMin: 15.0 },
-  { note: 4, distanceMin: 15.4 }, { note: 3, distanceMin: 15.8 }, { note: 2, distanceMin: 16.2 },
-  { note: 1, distanceMin: 16.4 }
-]));
-
-// 3ème Filles (56m)
-baremes.push(createBareme("bar_haies_3eme_f", "Course de haies", null, "Troisième", "Fille", "temps", [
-  { note: 20, distanceMin: 11.3 }, { note: 19, distanceMin: 11.7 }, { note: 18, distanceMin: 12.0 },
-  { note: 17, distanceMin: 12.3 }, { note: 16, distanceMin: 12.7 }, { note: 14, distanceMin: 13.0 },
-  { note: 12.5, distanceMin: 13.4 }, { note: 11.5, distanceMin: 13.8 }, { note: 10.5, distanceMin: 14.2 },
-  { note: 9.5, distanceMin: 14.6 }, { note: 8.5, distanceMin: 15.0 }, { note: 7.5, distanceMin: 15.4 },
-  { note: 6.5, distanceMin: 15.8 }, { note: 5.5, distanceMin: 16.2 }, { note: 4.5, distanceMin: 16.4 },
-  { note: 3.5, distanceMin: 17.0 }, { note: 2.5, distanceMin: 17.4 }
-]));
-
-// Seconde Garçons (80m)
-baremes.push(createBareme("bar_haies_2nde_g", "Course de haies", null, "Seconde", "Garçon", "temps", [
-  { note: 20, distanceMin: 11.1 }, { note: 19, distanceMin: 11.5 }, { note: 18, distanceMin: 11.8 },
-  { note: 17, distanceMin: 12.1 }, { note: 16, distanceMin: 12.5 }, { note: 15, distanceMin: 12.8 },
-  { note: 14, distanceMin: 13.1 }, { note: 13, distanceMin: 13.5 }, { note: 12.5, distanceMin: 13.8 },
-  { note: 12, distanceMin: 14.3 }, { note: 11.5, distanceMin: 14.7 }, { note: 11, distanceMin: 15.1 },
-  { note: 10.5, distanceMin: 15.5 }, { note: 10, distanceMin: 15.9 }, { note: 9.5, distanceMin: 16.5 },
-  { note: 9, distanceMin: 17.7 }, { note: 8.5, distanceMin: 18.5 }, { note: 8, distanceMin: 19.0 },
-  { note: 7.5, distanceMin: 19.5 }, { note: 7, distanceMin: 20.3 }, { note: 6.5, distanceMin: 21.0 },
-  { note: 6, distanceMin: 21.5 }, { note: 5.5, distanceMin: 22.0 }, { note: 5, distanceMin: 22.6 },
-  { note: 4.5, distanceMin: 23.0 }, { note: 4, distanceMin: 23.3 }, { note: 3.5, distanceMin: 24.1 },
-  { note: 3, distanceMin: 24.8 }
-]));
-
-// Seconde Filles (56m)
-baremes.push(createBareme("bar_haies_2nde_f", "Course de haies", null, "Seconde", "Fille", "temps", [
-  { note: 20, distanceMin: 9.4 }, { note: 19, distanceMin: 9.6 }, { note: 18, distanceMin: 9.8 },
-  { note: 17, distanceMin: 10.1 }, { note: 16, distanceMin: 10.2 }, { note: 15, distanceMin: 10.4 },
-  { note: 14, distanceMin: 10.6 }, { note: 13, distanceMin: 10.9 }, { note: 12.5, distanceMin: 11.3 },
-  { note: 12, distanceMin: 11.7 }, { note: 11.5, distanceMin: 12.0 }, { note: 11, distanceMin: 12.3 },
-  { note: 10.5, distanceMin: 12.7 }, { note: 9.5, distanceMin: 13.0 }, { note: 8.5, distanceMin: 13.4 },
-  { note: 7.5, distanceMin: 13.8 }, { note: 6.5, distanceMin: 14.2 }, { note: 5.5, distanceMin: 14.6 },
-  { note: 4.5, distanceMin: 15.0 }, { note: 3.5, distanceMin: 15.4 }, { note: 2.5, distanceMin: 15.8 },
-  { note: 2, distanceMin: 15.2 }
-]));
-
-// Première Garçons (80m)
-baremes.push(createBareme("bar_haies_1ere_g", "Course de haies", null, "Première", "Garçon", "temps", [
-  { note: 20, distanceMin: 10.8 }, { note: 19, distanceMin: 11.1 }, { note: 18, distanceMin: 11.5 },
-  { note: 17, distanceMin: 11.8 }, { note: 16, distanceMin: 12.1 }, { note: 15, distanceMin: 12.5 },
-  { note: 14, distanceMin: 12.8 }, { note: 13, distanceMin: 13.1 }, { note: 12.5, distanceMin: 13.5 },
-  { note: 12, distanceMin: 13.8 }, { note: 11.5, distanceMin: 14.3 }, { note: 11, distanceMin: 14.7 },
-  { note: 10.5, distanceMin: 15.1 }, { note: 10, distanceMin: 15.5 }, { note: 9.5, distanceMin: 15.9 },
-  { note: 9, distanceMin: 16.5 }, { note: 8.5, distanceMin: 17.7 }, { note: 8, distanceMin: 18.5 },
-  { note: 7.5, distanceMin: 19.0 }, { note: 7, distanceMin: 19.5 }, { note: 6.5, distanceMin: 20.3 },
-  { note: 6, distanceMin: 21.0 }, { note: 5.5, distanceMin: 21.5 }, { note: 5, distanceMin: 22.0 },
-  { note: 4.5, distanceMin: 22.6 }, { note: 4, distanceMin: 23.0 }, { note: 3.5, distanceMin: 23.3 },
-  { note: 3, distanceMin: 24.1 }, { note: 2.5, distanceMin: 24.8 }
-]));
-
-// Première Filles (56m)
-baremes.push(createBareme("bar_haies_1ere_f", "Course de haies", null, "Première", "Fille", "temps", [
-  { note: 20, distanceMin: 9.2 }, { note: 19, distanceMin: 9.4 }, { note: 18, distanceMin: 9.6 },
-  { note: 17, distanceMin: 9.8 }, { note: 16, distanceMin: 10.1 }, { note: 15, distanceMin: 10.2 },
-  { note: 14, distanceMin: 10.4 }, { note: 13, distanceMin: 10.6 }, { note: 12.5, distanceMin: 10.9 },
-  { note: 12, distanceMin: 11.3 }, { note: 11.5, distanceMin: 11.7 }, { note: 11, distanceMin: 12.0 },
-  { note: 10.5, distanceMin: 12.3 }, { note: 10, distanceMin: 12.7 }, { note: 9, distanceMin: 13.0 },
-  { note: 8, distanceMin: 13.4 }, { note: 7, distanceMin: 13.8 }, { note: 6, distanceMin: 14.2 },
-  { note: 5, distanceMin: 14.6 }, { note: 4, distanceMin: 15.0 }, { note: 3, distanceMin: 15.4 },
-  { note: 2, distanceMin: 15.8 }
-]));
-
-// Terminale Garçons (80m)
-baremes.push(createBareme("bar_haies_term_g", "Course de haies", null, "Terminale", "Garçon", "temps", [
-  { note: 20, distanceMin: 10.5 }, { note: 19, distanceMin: 10.8 }, { note: 18, distanceMin: 11.1 },
-  { note: 17, distanceMin: 11.5 }, { note: 16, distanceMin: 11.8 }, { note: 15, distanceMin: 12.1 },
-  { note: 14, distanceMin: 12.5 }, { note: 13, distanceMin: 12.8 }, { note: 12.5, distanceMin: 13.1 },
-  { note: 12, distanceMin: 13.5 }, { note: 11.5, distanceMin: 13.8 }, { note: 11, distanceMin: 14.3 },
-  { note: 10.5, distanceMin: 14.7 }, { note: 10, distanceMin: 15.1 }, { note: 9.5, distanceMin: 15.5 },
-  { note: 9, distanceMin: 15.9 }, { note: 8.5, distanceMin: 16.5 }, { note: 8, distanceMin: 17.7 },
-  { note: 7.5, distanceMin: 18.5 }, { note: 7, distanceMin: 19.0 }, { note: 6.5, distanceMin: 19.5 },
-  { note: 6, distanceMin: 20.3 }, { note: 5.5, distanceMin: 21.0 }, { note: 5, distanceMin: 21.5 },
-  { note: 4.5, distanceMin: 22.0 }, { note: 4, distanceMin: 22.6 }, { note: 3.5, distanceMin: 23.0 },
-  { note: 3, distanceMin: 23.3 }, { note: 2.5, distanceMin: 24.1 }
-]));
-
-// Terminale Filles (56m)
-baremes.push(createBareme("bar_haies_term_f", "Course de haies", null, "Terminale", "Fille", "temps", [
-  { note: 20, distanceMin: 9.0 }, { note: 19, distanceMin: 9.2 }, { note: 18, distanceMin: 9.4 },
-  { note: 17, distanceMin: 9.6 }, { note: 16, distanceMin: 9.8 }, { note: 15, distanceMin: 10.1 },
-  { note: 14, distanceMin: 10.2 }, { note: 13, distanceMin: 10.4 }, { note: 12.5, distanceMin: 10.6 },
-  { note: 12, distanceMin: 10.9 }, { note: 11.5, distanceMin: 11.3 }, { note: 11, distanceMin: 11.7 },
-  { note: 10.5, distanceMin: 12.0 }, { note: 10, distanceMin: 12.3 }, { note: 9.5, distanceMin: 12.7 },
-  { note: 8.5, distanceMin: 13.0 }, { note: 7.5, distanceMin: 13.4 }, { note: 6.5, distanceMin: 13.8 },
-  { note: 5.5, distanceMin: 14.2 }, { note: 4.5, distanceMin: 14.6 }, { note: 3.5, distanceMin: 15.0 },
-  { note: 3, distanceMin: 181.0 }, { note: 2.5, distanceMin: 185.0 } // 3'01 -> 181s
-].map(x => x.distanceMin > 100 ? { note: x.note, distanceMin: 15.4 } : x)));
+// NOTE : La course de haies a été retirée à la demande de l'utilisateur.
 
 
-// ============================================================================
 // 5. SAUT EN HAUTEUR - BARÈMES OFFICIELS EXTRAITS DU PDF
 // ============================================================================
 
@@ -845,20 +801,19 @@ const sautsEtLancersConfig = [
   { cls: "Terminale", gnr: "Fille", disc: "Triple saut", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 11.0 }, { note: 19, distanceMin: 10.7 }, { note: 18, distanceMin: 10.4 }, { note: 17, distanceMin: 10.0 }, { note: 16, distanceMin: 9.7 }, { note: 15, distanceMin: 9.4 }, { note: 14, distanceMin: 9.1 }, { note: 13, distanceMin: 8.9 }, { note: 12.5, distanceMin: 8.7 }, { note: 12, distanceMin: 8.5 }, { note: 11.5, distanceMin: 8.2 }, { note: 11, distanceMin: 8.0 }, { note: 10.5, distanceMin: 7.8 }, { note: 10, distanceMin: 7.7 }, { note: 9.5, distanceMin: 7.6 }, { note: 9, distanceMin: 7.5 }, { note: 8.5, distanceMin: 7.4 }, { note: 8, distanceMin: 7.3 }, { note: 7.5, distanceMin: 7.2 }, { note: 7, distanceMin: 7.1 }, { note: 6.5, distanceMin: 7.0 }, { note: 6, distanceMin: 6.9 }, { note: 5.5, distanceMin: 6.8 }, { note: 5, distanceMin: 6.7 }, { note: 4.5, distanceMin: 6.6 }, { note: 4, distanceMin: 6.5 }, { note: 3.5, distanceMin: 6.4 }, { note: 3, distanceMin: 6.3 }, { note: 2.5, distanceMin: 6.2 }] },
 
   // SAUT EN LONGUEUR
-  { cls: "Sixième", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 5.6 }, { note: 19, distanceMin: 5.2 }, { note: 18, distanceMin: 5.0 }, { note: 17, distanceMin: 4.9 }, { note: 16, distanceMin: 4.7 }, { note: 15, distanceMin: 4.5 }, { note: 14, distanceMin: 4.3 }, { note: 13, distanceMin: 4.1 }, { note: 12.5, distanceMin: 4.0 }, { note: 12, distanceMin: 3.9 }, { note: 11.5, distanceMin: 3.8 }, { note: 11, distanceMin: 3.7 }, { note: 10.5, distanceMin: 3.6 }, { note: 10, distanceMin: 3.5 }, { note: 9.5, distanceMin: 3.4 }, { note: 9, distanceMin: 3.3 }, { note: 8.5, distanceMin: 3.2 }, { note: 8, distanceMin: 3.1 }, { note: 7.5, distanceMin: 3.0 }, { note: 7, distanceMin: 2.8 }, { note: 6.5, distanceMin: 2.6 }, { note: 6, distanceMin: 2.4 }, { note: 5.5, distanceMin: 2.2 }, { note: 5, distanceMin: 2.0 }, { note: 4.5, distanceMin: 1.8 }, { note: 4, distanceMin: 1.6 }, { note: 3, distanceMin: 1.7 }, { note: 2, distanceMin: 1.5 }, { note: 1, distanceMin: 1.4 }] },
-  { cls: "Sixième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.1 }, { note: 19, distanceMin: 4.0 }, { note: 18, distanceMin: 3.9 }, { note: 17, distanceMin: 3.8 }, { note: 16, distanceMin: 3.7 }, { note: 15, distanceMin: 3.6 }, { note: 14, distanceMin: 3.5 }, { note: 13, distanceMin: 3.4 }, { note: 12.5, distanceMin: 3.3 }, { note: 12, distanceMin: 3.2 }, { note: 11.5, distanceMin: 3.1 }, { note: 11, distanceMin: 3.0 }, { note: 10.5, distanceMin: 2.8 }, { note: 10, distanceMin: 2.6 }, { note: 9.5, distanceMin: 2.4 }, { note: 9, distanceMin: 2.2 }, { note: 8.5, distanceMin: 2.0 }, { note: 8, distanceMin: 1.8 }, { note: 7.5, distanceMin: 1.6 }, { note: 6.5, distanceMin: 1.7 }, { note: 5.5, distanceMin: 1.5 }, { note: 4.5, distanceMin: 1.4 }, { note: 3.5, distanceMin: 1.3 }, { note: 2.5, distanceMin: 1.2 }, { note: 2, distanceMin: 1.1 }] },
+  { cls: "Sixième", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 5.6 }, { note: 19, distanceMin: 5.2 }, { note: 18, distanceMin: 5.0 }, { note: 17, distanceMin: 4.9 }, { note: 16, distanceMin: 4.7 }, { note: 15, distanceMin: 4.5 }, { note: 14, distanceMin: 4.3 }, { note: 13, distanceMin: 4.1 }, { note: 12.5, distanceMin: 4.0 }, { note: 12, distanceMin: 3.9 }, { note: 11.5, distanceMin: 3.8 }, { note: 11, distanceMin: 3.7 }, { note: 10.5, distanceMin: 3.6 }, { note: 10, distanceMin: 3.5 }, { note: 9.5, distanceMin: 3.4 }, { note: 9, distanceMin: 3.3 }, { note: 8.5, distanceMin: 3.2 }, { note: 8, distanceMin: 3.1 }, { note: 7.5, distanceMin: 3.0 }, { note: 7, distanceMin: 2.8 }, { note: 6.5, distanceMin: 2.6 }, { note: 6, distanceMin: 2.4 }, { note: 5.5, distanceMin: 2.2 }, { note: 5, distanceMin: 2.0 }, { note: 4.5, distanceMin: 1.8 }, { note: 4, distanceMin: 1.7 }, { note: 3, distanceMin: 1.6 }, { note: 2, distanceMin: 1.5 }, { note: 1, distanceMin: 1.4 }] },
+  { cls: "Sixième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.1 }, { note: 19, distanceMin: 4.0 }, { note: 18, distanceMin: 3.9 }, { note: 17, distanceMin: 3.8 }, { note: 16, distanceMin: 3.7 }, { note: 15, distanceMin: 3.6 }, { note: 14, distanceMin: 3.5 }, { note: 13, distanceMin: 3.4 }, { note: 12.5, distanceMin: 3.3 }, { note: 12, distanceMin: 3.2 }, { note: 11.5, distanceMin: 3.1 }, { note: 11, distanceMin: 3.0 }, { note: 10.5, distanceMin: 2.8 }, { note: 10, distanceMin: 2.6 }, { note: 9.5, distanceMin: 2.4 }, { note: 9, distanceMin: 2.2 }, { note: 8.5, distanceMin: 2.0 }, { note: 8, distanceMin: 1.8 }, { note: 7.5, distanceMin: 1.7 }, { note: 6.5, distanceMin: 1.6 }, { note: 5.5, distanceMin: 1.5 }, { note: 4.5, distanceMin: 1.4 }, { note: 3.5, distanceMin: 1.3 }, { note: 2.5, distanceMin: 1.2 }, { note: 2, distanceMin: 1.1 }] },
   { cls: "Cinquième", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 19, distanceMin: 5.6 }, { note: 18, distanceMin: 5.2 }, { note: 17, distanceMin: 5.0 }, { note: 16, distanceMin: 4.9 }, { note: 15, distanceMin: 4.7 }, { note: 14, distanceMin: 4.5 }, { note: 13, distanceMin: 4.3 }, { note: 12.5, distanceMin: 4.1 }, { note: 12, distanceMin: 4.0 }, { note: 11.5, distanceMin: 3.9 }, { note: 11, distanceMin: 3.8 }, { note: 10.5, distanceMin: 3.7 }, { note: 10, distanceMin: 3.6 }, { note: 9.5, distanceMin: 3.5 }, { note: 9, distanceMin: 3.4 }, { note: 8.5, distanceMin: 3.3 }, { note: 8, distanceMin: 3.2 }, { note: 7.5, distanceMin: 3.1 }, { note: 7, distanceMin: 3.0 }, { note: 6.5, distanceMin: 2.8 }, { note: 6, distanceMin: 2.6 }, { note: 5.5, distanceMin: 2.4 }, { note: 5, distanceMin: 2.2 }, { note: 4.5, distanceMin: 2.0 }, { note: 4, distanceMin: 1.8 }, { note: 3, distanceMin: 1.6 }, { note: 2, distanceMin: 1.5 }, { note: 1, distanceMin: 1.4 }] },
-  { cls: "Cinquième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.3 }, { note: 19, distanceMin: 4.1 }, { note: 18, distanceMin: 4.0 }, { note: 17, distanceMin: 3.9 }, { note: 16, distanceMin: 3.8 }, { note: 15, distanceMin: 3.7 }, { note: 14, distanceMin: 3.6 }, { note: 13, distanceMin: 3.5 }, { note: 12.5, distanceMin: 3.4 }, { note: 12, distanceMin: 3.3 }, { note: 11.5, distanceMin: 3.2 }, { note: 11, distanceMin: 3.1 }, { note: 10.5, distanceMin: 3.0 }, { note: 10, distanceMin: 2.8 }, { note: 9.5, distanceMin: 2.6 }, { note: 9, distanceMin: 2.4 }, { note: 8.5, distanceMin: 2.2 }, { note: 8, distanceMin: 2.0 }, { note: 7.5, distanceMin: 1.8 }, { note: 7, distanceMin: 1.6 }, { note: 6, distanceMin: 1.7 }, { note: 5, distanceMin: 1.5 }, { note: 4, distanceMin: 1.4 }, { note: 3, distanceMin: 1.3 }, { note: 2, distanceMin: 1.2 }, { note: 1, distanceMin: 1.1 }] },
+  { cls: "Cinquième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.3 }, { note: 19, distanceMin: 4.1 }, { note: 18, distanceMin: 4.0 }, { note: 17, distanceMin: 3.9 }, { note: 16, distanceMin: 3.8 }, { note: 15, distanceMin: 3.7 }, { note: 14, distanceMin: 3.6 }, { note: 13, distanceMin: 3.5 }, { note: 12.5, distanceMin: 3.4 }, { note: 12, distanceMin: 3.3 }, { note: 11.5, distanceMin: 3.2 }, { note: 11, distanceMin: 3.1 }, { note: 10.5, distanceMin: 3.0 }, { note: 10, distanceMin: 2.8 }, { note: 9.5, distanceMin: 2.6 }, { note: 9, distanceMin: 2.4 }, { note: 8.5, distanceMin: 2.2 }, { note: 8, distanceMin: 2.0 }, { note: 7.5, distanceMin: 1.8 }, { note: 7, distanceMin: 1.7 }, { note: 6, distanceMin: 1.6 }, { note: 5, distanceMin: 1.5 }, { note: 4, distanceMin: 1.4 }, { note: 3, distanceMin: 1.3 }, { note: 2, distanceMin: 1.2 }, { note: 1, distanceMin: 1.1 }] },
   { cls: "Quatrième", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 18, distanceMin: 5.6 }, { note: 17, distanceMin: 5.2 }, { note: 16, distanceMin: 5.0 }, { note: 15, distanceMin: 4.9 }, { note: 14, distanceMin: 4.7 }, { note: 13, distanceMin: 4.5 }, { note: 12.5, distanceMin: 4.3 }, { note: 12, distanceMin: 4.1 }, { note: 11.5, distanceMin: 4.0 }, { note: 11, distanceMin: 3.9 }, { note: 10.5, distanceMin: 3.8 }, { note: 10, distanceMin: 3.7 }, { note: 9.5, distanceMin: 3.6 }, { note: 9, distanceMin: 3.5 }, { note: 8.5, distanceMin: 3.4 }, { note: 8, distanceMin: 3.3 }, { note: 7.5, distanceMin: 3.2 }, { note: 7, distanceMin: 3.1 }, { note: 6.5, distanceMin: 3.0 }, { note: 6, distanceMin: 2.8 }, { note: 5.5, distanceMin: 2.6 }, { note: 5, distanceMin: 2.4 }, { note: 4.5, distanceMin: 2.2 }, { note: 4, distanceMin: 2.0 }, { note: 3.5, distanceMin: 1.8 }, { note: 2.5, distanceMin: 1.7 }, { note: 1.5, distanceMin: 1.5 }] },
-  { cls: "Quatrième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.5 }, { note: 19, distanceMin: 4.3 }, { note: 18, distanceMin: 4.1 }, { note: 17, distanceMin: 4.0 }, { note: 16, distanceMin: 3.9 }, { note: 15, distanceMin: 3.8 }, { note: 14, distanceMin: 3.7 }, { note: 13, distanceMin: 3.6 }, { note: 12.5, distanceMin: 3.5 }, { note: 12, distanceMin: 3.4 }, { note: 11.5, distanceMin: 3.3 }, { note: 11, distanceMin: 3.2 }, { note: 10.5, distanceMin: 3.1 }, { note: 10, distanceMin: 3.0 }, { note: 9.5, distanceMin: 2.8 }, { note: 9, distanceMin: 2.6 }, { note: 8.5, distanceMin: 2.4 }, { note: 8, distanceMin: 2.2 }, { note: 7.5, distanceMin: 2.0 }, { note: 7, distanceMin: 1.8 }, { note: 6.5, distanceMin: 1.6 }, { note: 5.5, distanceMin: 1.7 }, { note: 4.5, distanceMin: 1.5 }, { note: 3.5, distanceMin: 1.4 }, { note: 2.5, distanceMin: 1.3 }, { note: 2, distanceMin: 1.2 }] },
+  { cls: "Quatrième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.5 }, { note: 19, distanceMin: 4.3 }, { note: 18, distanceMin: 4.1 }, { note: 17, distanceMin: 4.0 }, { note: 16, distanceMin: 3.9 }, { note: 15, distanceMin: 3.8 }, { note: 14, distanceMin: 3.7 }, { note: 13, distanceMin: 3.6 }, { note: 12.5, distanceMin: 3.5 }, { note: 12, distanceMin: 3.4 }, { note: 11.5, distanceMin: 3.3 }, { note: 11, distanceMin: 3.2 }, { note: 10.5, distanceMin: 3.1 }, { note: 10, distanceMin: 3.0 }, { note: 9.5, distanceMin: 2.8 }, { note: 9, distanceMin: 2.6 }, { note: 8.5, distanceMin: 2.4 }, { note: 8, distanceMin: 2.2 }, { note: 7.5, distanceMin: 2.0 }, { note: 7, distanceMin: 1.8 }, { note: 6.5, distanceMin: 1.7 }, { note: 5.5, distanceMin: 1.6 }, { note: 4.5, distanceMin: 1.5 }, { note: 3.5, distanceMin: 1.4 }, { note: 2.5, distanceMin: 1.3 }, { note: 2, distanceMin: 1.2 }] },
   { cls: "Troisième", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 17, distanceMin: 5.6 }, { note: 16, distanceMin: 5.2 }, { note: 15, distanceMin: 5.0 }, { note: 14, distanceMin: 4.9 }, { note: 13, distanceMin: 4.7 }, { note: 12.5, distanceMin: 4.5 }, { note: 12, distanceMin: 4.3 }, { note: 11.5, distanceMin: 4.1 }, { note: 11, distanceMin: 4.0 }, { note: 10.5, distanceMin: 3.9 }, { note: 10, distanceMin: 3.8 }, { note: 9.5, distanceMin: 3.7 }, { note: 9, distanceMin: 3.6 }, { note: 8.5, distanceMin: 3.5 }, { note: 8, distanceMin: 3.4 }, { note: 7.5, distanceMin: 3.3 }, { note: 7, distanceMin: 3.2 }, { note: 6.5, distanceMin: 3.1 }, { note: 6, distanceMin: 3.0 }, { note: 5.5, distanceMin: 2.8 }, { note: 5, distanceMin: 2.6 }, { note: 4.5, distanceMin: 2.4 }, { note: 4, distanceMin: 2.2 }, { note: 3.5, distanceMin: 2.0 }, { note: 3, distanceMin: 1.8 }, { note: 2, distanceMin: 1.7 }] },
-  { cls: "Troisième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.7 }, { note: 19, distanceMin: 4.5 }, { note: 18, distanceMin: 4.3 }, { note: 17, distanceMin: 4.1 }, { note: 16, distanceMin: 4.0 }, { note: 15, distanceMin: 3.9 }, { note: 14, distanceMin: 3.8 }, { note: 13, distanceMin: 3.7 }, { note: 12.5, distanceMin: 3.6 }, { note: 12, distanceMin: 3.5 }, { note: 11.5, distanceMin: 3.4 }, { note: 11, distanceMin: 3.3 }, { note: 10.5, distanceMin: 3.2 }, { note: 10, distanceMin: 3.1 }, { note: 9.5, distanceMin: 3.0 }, { note: 9, distanceMin: 2.8 }, { note: 8.5, distanceMin: 2.6 }, { note: 8, distanceMin: 2.4 }, { note: 7.5, distanceMin: 2.2 }, { note: 7, distanceMin: 2.0 }, { note: 6.5, distanceMin: 1.8 }, { note: 6, distanceMin: 1.6 }, { note: 5, distanceMin: 1.7 }, { note: 4, distanceMin: 1.5 }, { note: 3, distanceMin: 1.4 }, { note: 2, distanceMin: 1.3 }] },
+  { cls: "Troisième", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.7 }, { note: 19, distanceMin: 4.5 }, { note: 18, distanceMin: 4.3 }, { note: 17, distanceMin: 4.1 }, { note: 16, distanceMin: 4.0 }, { note: 15, distanceMin: 3.9 }, { note: 14, distanceMin: 3.8 }, { note: 13, distanceMin: 3.7 }, { note: 12.5, distanceMin: 3.6 }, { note: 12, distanceMin: 3.5 }, { note: 11.5, distanceMin: 3.4 }, { note: 11, distanceMin: 3.3 }, { note: 10.5, distanceMin: 3.2 }, { note: 10, distanceMin: 3.1 }, { note: 9.5, distanceMin: 3.0 }, { note: 9, distanceMin: 2.8 }, { note: 8.5, distanceMin: 2.6 }, { note: 8, distanceMin: 2.4 }, { note: 7.5, distanceMin: 2.2 }, { note: 7, distanceMin: 2.0 }, { note: 6.5, distanceMin: 1.8 }, { note: 6, distanceMin: 1.7 }, { note: 5, distanceMin: 1.6 }, { note: 4, distanceMin: 1.5 }, { note: 3, distanceMin: 1.4 }, { note: 2, distanceMin: 1.3 }] },
   { cls: "Seconde", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 6.20 }, { note: 19, distanceMin: 6.00 }, { note: 18, distanceMin: 5.80 }, { note: 17, distanceMin: 5.60 }, { note: 16, distanceMin: 5.40 }, { note: 15, distanceMin: 5.20 }, { note: 14, distanceMin: 5.00 }, { note: 13, distanceMin: 4.90 }, { note: 12.5, distanceMin: 4.70 }, { note: 12, distanceMin: 4.50 }, { note: 11.5, distanceMin: 4.30 }, { note: 11, distanceMin: 4.10 }, { note: 10.5, distanceMin: 4.00 }, { note: 10, distanceMin: 3.90 }, { note: 9.5, distanceMin: 3.80 }, { note: 9, distanceMin: 3.70 }, { note: 8.5, distanceMin: 3.60 }, { note: 8, distanceMin: 3.50 }, { note: 7.5, distanceMin: 3.40 }, { note: 7, distanceMin: 3.30 }, { note: 6.5, distanceMin: 3.20 }, { note: 6, distanceMin: 3.10 }, { note: 5.5, distanceMin: 3.00 }, { note: 5, distanceMin: 2.80 }, { note: 4, distanceMin: 2.40 }, { note: 3.5, distanceMin: 2.20 }, { note: 3, distanceMin: 2.00 }, { note: 2.5, distanceMin: 1.80 }] },
   { cls: "Seconde", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 4.90 }, { note: 19, distanceMin: 4.70 }, { note: 18, distanceMin: 4.50 }, { note: 17, distanceMin: 4.30 }, { note: 16, distanceMin: 4.10 }, { note: 15, distanceMin: 4.00 }, { note: 14, distanceMin: 3.90 }, { note: 13, distanceMin: 3.80 }, { note: 12.5, distanceMin: 3.70 }, { note: 12, distanceMin: 3.60 }, { note: 11.5, distanceMin: 3.50 }, { note: 11, distanceMin: 3.40 }, { note: 10.5, distanceMin: 3.30 }, { note: 10, distanceMin: 3.20 }, { note: 9.5, distanceMin: 3.10 }, { note: 9, distanceMin: 3.00 }, { note: 8.5, distanceMin: 2.80 }, { note: 8, distanceMin: 2.60 }, { note: 7.5, distanceMin: 2.40 }, { note: 7, distanceMin: 2.20 }, { note: 6.5, distanceMin: 2.00 }, { note: 6, distanceMin: 1.80 }, { note: 5.5, distanceMin: 1.60 }, { note: 5, distanceMin: 1.40 }, { note: 4.5, distanceMin: 1.20 }, { note: 4, distanceMin: 1.00 }] },
   { cls: "Première", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 6.40 }, { note: 19, distanceMin: 6.20 }, { note: 18, distanceMin: 6.00 }, { note: 17, distanceMin: 5.80 }, { note: 16, distanceMin: 5.60 }, { note: 15, distanceMin: 5.40 }, { note: 14, distanceMin: 5.20 }, { note: 13, distanceMin: 5.00 }, { note: 12.5, distanceMin: 4.90 }, { note: 12, distanceMin: 4.70 }, { note: 11.5, distanceMin: 4.50 }, { note: 11, distanceMin: 4.30 }, { note: 10.5, distanceMin: 4.10 }, { note: 10, distanceMin: 4.00 }, { note: 9.5, distanceMin: 3.90 }, { note: 9, distanceMin: 3.80 }, { note: 8.5, distanceMin: 3.70 }, { note: 8, distanceMin: 3.60 }, { note: 7.5, distanceMin: 3.50 }, { note: 7, distanceMin: 3.40 }, { note: 6.5, distanceMin: 3.30 }, { note: 6, distanceMin: 3.20 }, { note: 5.5, distanceMin: 3.10 }, { note: 5, distanceMin: 3.00 }, { note: 4.5, distanceMin: 2.80 }, { note: 3.5, distanceMin: 2.40 }, { note: 3, distanceMin: 2.20 }, { note: 2.5, distanceMin: 2.00 }] },
   { cls: "Première", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 5.00 }, { note: 19, distanceMin: 4.90 }, { note: 18, distanceMin: 4.70 }, { note: 17, distanceMin: 4.50 }, { note: 16, distanceMin: 4.30 }, { note: 15, distanceMin: 4.10 }, { note: 14, distanceMin: 4.00 }, { note: 13, distanceMin: 3.90 }, { note: 12.5, distanceMin: 3.80 }, { note: 12, distanceMin: 3.70 }, { note: 11.5, distanceMin: 3.60 }, { note: 11, distanceMin: 3.50 }, { note: 10.5, distanceMin: 3.40 }, { note: 10, distanceMin: 3.30 }, { note: 9.5, distanceMin: 3.20 }, { note: 9, distanceMin: 3.10 }, { note: 8.5, distanceMin: 3.00 }, { note: 8, distanceMin: 2.80 }, { note: 7.5, distanceMin: 2.60 }, { note: 7, distanceMin: 2.40 }, { note: 6.5, distanceMin: 2.20 }, { note: 6, distanceMin: 2.00 }, { note: 5.5, distanceMin: 1.80 }, { note: 5, distanceMin: 1.60 }, { note: 4.5, distanceMin: 1.40 }, { note: 4, distanceMin: 1.20 }, { note: 3.5, distanceMin: 1.00 }] },
-  { cls: "Terminale", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 6.60 }, { note: 19, distanceMin: 6.40 }, { note: 18, distanceMin: 6.20 }, { note: 17, distanceMin: 6.00 }, { note: 16, distanceMin: 5.80 }, { note: 15, distanceMin: 5.60 }, { note: 14, distanceMin: 5.40 }, { note: 13, distanceMin: 5.20 }, { note: 12.5, distanceMin: 5.00 }, { note: 12, distanceMin: 4.90 }, { note: 11.5, distanceMin: 4.70 }, { note: 11, distanceMin: 4.50 }, { note: 10.5, distanceMin: 4.30 }, { note: 10, distanceMin: 4.10 }, { note: 9.5, distanceMin: 4.00 }, { note: 9, distanceMin: 3.90 }, { note: 8.5, distanceMin: 3.80 }, { note: 8, distanceMin: 3.70 }, { note: 7.5, distanceMin: 3.60 }, { note: 7, distanceMin: 3.50 }, { note: 6.5, distanceMin: 3.40 }, { note: 6, distanceMin: 3.30 }, { note: 5.5, distanceMin: 3.20 }, { note: 5, distanceMin: 3.10 }, { note: 4.5, distanceMin: 3.00 }, { note: 4, distanceMin: 2.80 }, { note: 3.5, distanceMin: 2.60 }, { note: 3, distanceMin: 2.40 }, { note: 2.5, distanceMin: 2.20 }] },
-  { cls: "Terminale", gnr: "Fille", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 5.20 }, { note: 19, distanceMin: 5.00 }, { note: 18, distanceMin: 4.90 }, { note: 17, distanceMin: 4.70 }, { note: 16, distanceMin: 4.50 }, { note: 15, distanceMin: 4.30 }, { note: 14, distanceMin: 4.10 }, { note: 13, distanceMin: 4.00 }, { note: 12.5, distanceMin: 3.90 }, { note: 12, distanceMin: 3.80 }, { note: 11.5, distanceMin: 3.70 }, { note: 11, distanceMin: 3.60 }, { note: 10.5, distanceMin: 3.50 }, { note: 10, distanceMin: 3.40 }, { note: 9.5, distanceMin: 3.30 }, { note: 9, distanceMin: 3.20 }, { note: 8.5, distanceMin: 3.10 }, { note: 8, distanceMin: 3.00 }, { note: 7.5, distanceMin: 2.80 }, { note: 7, distanceMin: 2.60 }, { note: 6.5, distanceMin: 2.40 }, { note: 6, distanceMin: 2.20 }, { note: 5.5, distanceMin: 2.00 }, { note: 5, distanceMin: 1.80 }, { note: 4.5, distanceMin: 1.60 }, { note: 4, distanceMin: 1.40 }, { note: 3.5, distanceMin: 1.20 }, { note: 3, distanceMin: 1.00 }] },
+  { cls: "Terminale", gnr: "Garçon", disc: "Saut en longueur", eng: null, type: "distance", grid: [{ note: 20, distanceMin: 5.20 }, { note: 19, distanceMin: 5.00 }, { note: 18, distanceMin: 4.90 }, { note: 17, distanceMin: 4.70 }, { note: 16, distanceMin: 4.50 }, { note: 15, distanceMin: 4.30 }, { note: 14, distanceMin: 4.10 }, { note: 13, distanceMin: 4.00 }, { note: 12.5, distanceMin: 3.90 }, { note: 12, distanceMin: 3.80 }, { note: 11.5, distanceMin: 3.70 }, { note: 11, distanceMin: 3.60 }, { note: 10.5, distanceMin: 3.50 }, { note: 10, distanceMin: 3.40 }, { note: 9.5, distanceMin: 3.30 }, { note: 9, distanceMin: 3.20 }, { note: 8.5, distanceMin: 3.10 }, { note: 8, distanceMin: 3.00 }, { note: 7.5, distanceMin: 2.80 }, { note: 7, distanceMin: 2.60 }, { note: 6.5, distanceMin: 2.40 }, { note: 6, distanceMin: 2.20 }, { note: 5.5, distanceMin: 2.00 }, { note: 5, distanceMin: 1.80 }, { note: 4.5, distanceMin: 1.60 }, { note: 4, distanceMin: 1.40 }, { note: 3.5, distanceMin: 1.20 }, { note: 3, distanceMin: 1.00 }] },
 
   // LANCER DE DISQUE & JAVELOT
   { cls: "Sixième", gnr: "Garçon", disc: "Lancer de disque", eng: "2kg", type: "distance", grid: [{ note: 20, distanceMin: 22.5 }, { note: 19, distanceMin: 22.0 }, { note: 18, distanceMin: 21.5 }, { note: 17, distanceMin: 21.0 }, { note: 16, distanceMin: 20.5 }, { note: 15, distanceMin: 20.0 }, { note: 14, distanceMin: 19.5 }, { note: 13, distanceMin: 19.0 }, { note: 12.5, distanceMin: 18.5 }, { note: 12, distanceMin: 18.0 }, { note: 11.5, distanceMin: 17.5 }, { note: 11, distanceMin: 17.0 }, { note: 10.5, distanceMin: 16.0 }, { note: 10, distanceMin: 15.0 }, { note: 9, distanceMin: 14.0 }, { note: 8, distanceMin: 13.0 }, { note: 7, distanceMin: 12.0 }, { note: 6, distanceMin: 11.0 }, { note: 5, distanceMin: 10.0 }, { note: 4, distanceMin: 9.0 }, { note: 3, distanceMin: 8.0 }, { note: 2, distanceMin: 7.0 }, { note: 1, distanceMin: 7.0 }] },

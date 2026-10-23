@@ -120,9 +120,9 @@ export function renderEleves(container) {
 
         Modal.open(
           "Supprimer l'élève",
-          `<p>Voulez-vous supprimer définitivement <strong>${name}</strong> ?</p>`,
-          () => {
-            db.deleteEleve(id);
+          `<p>Voulez-vous supprimer définitivement <strong>${name}</strong> de Supabase et de l'application ?</p>`,
+          async () => {
+            await db.deleteEleve(id);
             Toast.show(`Élève ${name} supprimé.`, "info");
             renderList();
           }
@@ -131,7 +131,7 @@ export function renderEleves(container) {
     });
   }
 
-  addForm.addEventListener('submit', (e) => {
+  addForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nom = inputNom.value.trim();
     const prenom = inputPrenom.value.trim();
@@ -141,17 +141,33 @@ export function renderEleves(container) {
       return;
     }
 
-    db.addEleve({
-      nom: nom,
-      prenom: prenom,
-      classe: inputClasse.value,
-      genre: inputGenre.value
-    });
+    const submitBtn = addForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Enregistrement...`;
+    }
 
-    Toast.show(`Élève ${nom} ${prenom} ajouté avec succès !`, "success");
-    inputNom.value = '';
-    inputPrenom.value = '';
-    renderList();
+    try {
+      await db.addEleve({
+        nom: nom,
+        prenom: prenom,
+        classe: inputClasse.value,
+        genre: inputGenre.value
+      });
+
+      Toast.show(`Élève ${nom} ${prenom} enregistré dans Supabase !`, "success");
+      inputNom.value = '';
+      inputPrenom.value = '';
+      renderList();
+    } catch (err) {
+      console.error(err);
+      Toast.show("Erreur lors de l'enregistrement de l'élève", "error");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fas fa-user-check"></i> Enregistrer l'Élève`;
+      }
+    }
   });
 
   filterClasse.addEventListener('change', renderList);

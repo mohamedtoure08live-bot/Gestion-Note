@@ -1,0 +1,20 @@
+{
+  "name": "gestion-note-eps",
+  "version": "1.0.0",
+  "description": "Application EPS de calcul et gestion automatique des notes officielles (Lancer de poids, Course, Sauts)",
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 .",
+    "test": "node tests_verification.cjs"
+  },
+  "keywords": [
+    "eps",
+    "notation",
+    "lancer-de-poids",
+    "baremes-officiels",
+    "education"
+  ],
+  "author": "",
+  "license": "ISC"
+}

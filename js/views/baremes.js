@@ -16,7 +16,7 @@ export function renderBaremes(container) {
     disciplinesList.push({ id: "poids", nom: "Lancer de poids", engins: ["3kg", "4kg", "5kg"] });
   }
 
-  let currentDiscipline = disciplinesList[0].nom;
+  let currentDiscipline = disciplinesList.find(d => d.nom === "Lancer de poids") ? "Lancer de poids" : disciplinesList[0].nom;
   let currentEngin = "3kg";
   let currentClasse = "Sixième";
   let currentGenre = "Garçon";
@@ -27,7 +27,7 @@ export function renderBaremes(container) {
         <div class="form-group" style="margin-bottom:0; flex:1.2;">
           <label class="form-label">Discipline</label>
           <select class="form-select" id="filter-discipline">
-            ${disciplinesList.map(d => `<option value="${d.nom}">${d.nom}</option>`).join('')}
+            ${disciplinesList.map(d => `<option value="${d.nom}" ${d.nom === currentDiscipline ? 'selected' : ''}>${d.nom}</option>`).join('')}
           </select>
         </div>
 
@@ -208,7 +208,7 @@ export function renderBaremes(container) {
     el.addEventListener('change', loadActiveBareme);
   });
 
-  btnSave.addEventListener('click', () => {
+  btnSave.addEventListener('click', async () => {
     const rows = tbody.querySelectorAll('tr');
     const newGrille = [];
 
@@ -226,8 +226,20 @@ export function renderBaremes(container) {
 
     activeBareme.grille = newGrille;
     activeBareme.engin = currentEngin;
-    db.saveBareme(activeBareme);
-    Toast.show(`Barème ${currentClasse} ${currentDiscipline} (${currentGenre}) sauvegardé !`, "success");
+
+    btnSave.disabled = true;
+    btnSave.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Enregistrement...`;
+
+    try {
+      await db.saveBareme(activeBareme);
+      Toast.show(`Barème ${currentClasse} ${currentDiscipline} (${currentGenre}) sauvegardé dans Supabase !`, "success");
+    } catch (e) {
+      console.error(e);
+      Toast.show("Erreur lors de la sauvegarde du barème", "error");
+    } finally {
+      btnSave.disabled = false;
+      btnSave.innerHTML = `<i class="fas fa-save"></i> Enregistrer`;
+    }
   });
 
   btnReset.addEventListener('click', () => {

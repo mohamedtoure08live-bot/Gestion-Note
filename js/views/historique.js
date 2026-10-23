@@ -86,10 +86,10 @@ export function renderHistorique(container) {
         const id = e.currentTarget.getAttribute('data-id');
         Modal.open(
           "Supprimer l'évaluation",
-          "<p>Voulez-vous supprimer cette évaluation ?</p>",
-          () => {
-            db.deleteEvaluation(id);
-            Toast.show("Évaluation supprimée.", "info");
+          "<p>Voulez-vous supprimer cette évaluation de Supabase et de l'historique ?</p>",
+          async () => {
+            await db.deleteEvaluation(id);
+            Toast.show("Évaluation supprimée de Supabase.", "info");
             renderHistory();
           }
         );

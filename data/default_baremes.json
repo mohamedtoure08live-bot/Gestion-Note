@@ -2670,8 +2670,8 @@
     ]
   },
   {
-    "id": "bar_60m_6eme_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_6eme_g",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Sixième",
     "genre": "Garçon",
@@ -2808,8 +2808,8 @@
     ]
   },
   {
-    "id": "bar_60m_6eme_f",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_6eme_f",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Sixième",
     "genre": "Fille",
@@ -2926,8 +2926,8 @@
     ]
   },
   {
-    "id": "bar_60m_5eme_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_5eme_g",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Cinquième",
     "genre": "Garçon",
@@ -3064,8 +3064,8 @@
     ]
   },
   {
-    "id": "bar_60m_5eme_f",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_5eme_f",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Cinquième",
     "genre": "Fille",
@@ -3186,8 +3186,8 @@
     ]
   },
   {
-    "id": "bar_60m_4eme_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_4eme_g",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Quatrième",
     "genre": "Garçon",
@@ -3324,8 +3324,8 @@
     ]
   },
   {
-    "id": "bar_60m_4eme_f",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_4eme_f",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Quatrième",
     "genre": "Fille",
@@ -3450,8 +3450,8 @@
     ]
   },
   {
-    "id": "bar_60m_3eme_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_3eme_g",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Troisième",
     "genre": "Garçon",
@@ -3579,7 +3579,7 @@
       },
       {
         "note": 19,
-        "distanceMin": 8.9
+        "distanceMin": 8
       },
       {
         "note": 20,
@@ -3588,8 +3588,8 @@
     ]
   },
   {
-    "id": "bar_60m_3eme_f",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_3eme_f",
+    "discipline": "Course de vitesse de 60 mètres",
     "engin": null,
     "classe": "Troisième",
     "genre": "Fille",
@@ -3718,8 +3718,752 @@
     ]
   },
   {
-    "id": "bar_60m_2nde_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit60m_2nde_g",
+    "discipline": "Course de vitesse de 60 mètres",
+    "engin": null,
+    "classe": "Seconde",
+    "genre": "Garçon",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 2.5,
+        "distanceMin": 12
+      },
+      {
+        "note": 3,
+        "distanceMin": 11.8
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 11.6
+      },
+      {
+        "note": 4,
+        "distanceMin": 11.4
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 11.2
+      },
+      {
+        "note": 5,
+        "distanceMin": 11
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 10.8
+      },
+      {
+        "note": 6,
+        "distanceMin": 10.6
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 10.4
+      },
+      {
+        "note": 7,
+        "distanceMin": 10.2
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 10
+      },
+      {
+        "note": 8,
+        "distanceMin": 9.8
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 9.6
+      },
+      {
+        "note": 9,
+        "distanceMin": 9.4
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 9.2
+      },
+      {
+        "note": 10,
+        "distanceMin": 9
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 8.9
+      },
+      {
+        "note": 11,
+        "distanceMin": 8.8
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 8.7
+      },
+      {
+        "note": 12,
+        "distanceMin": 8.6
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 8.5
+      },
+      {
+        "note": 13,
+        "distanceMin": 8.4
+      },
+      {
+        "note": 14,
+        "distanceMin": 8.3
+      },
+      {
+        "note": 15,
+        "distanceMin": 8.2
+      },
+      {
+        "note": 16,
+        "distanceMin": 8.1
+      },
+      {
+        "note": 17,
+        "distanceMin": 8
+      },
+      {
+        "note": 18,
+        "distanceMin": 7.9
+      },
+      {
+        "note": 19,
+        "distanceMin": 7.8
+      },
+      {
+        "note": 20,
+        "distanceMin": 7.6
+      }
+    ]
+  },
+  {
+    "id": "bar_vit60m_2nde_f",
+    "discipline": "Course de vitesse de 60 mètres",
+    "engin": null,
+    "classe": "Seconde",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 3.5,
+        "distanceMin": 12.9
+      },
+      {
+        "note": 4,
+        "distanceMin": 12.7
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 12.5
+      },
+      {
+        "note": 5,
+        "distanceMin": 12.2
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 12
+      },
+      {
+        "note": 6,
+        "distanceMin": 11.8
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 11.7
+      },
+      {
+        "note": 7,
+        "distanceMin": 11.5
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 11.3
+      },
+      {
+        "note": 8,
+        "distanceMin": 11.1
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 10.9
+      },
+      {
+        "note": 9,
+        "distanceMin": 10.8
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 10.6
+      },
+      {
+        "note": 10,
+        "distanceMin": 10.4
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 10.3
+      },
+      {
+        "note": 11,
+        "distanceMin": 10.1
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 9.9
+      },
+      {
+        "note": 12,
+        "distanceMin": 9.8
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 9.6
+      },
+      {
+        "note": 13,
+        "distanceMin": 9.5
+      },
+      {
+        "note": 14,
+        "distanceMin": 9.3
+      },
+      {
+        "note": 15,
+        "distanceMin": 9.2
+      },
+      {
+        "note": 16,
+        "distanceMin": 9
+      },
+      {
+        "note": 17,
+        "distanceMin": 8.9
+      },
+      {
+        "note": 18,
+        "distanceMin": 8.8
+      },
+      {
+        "note": 19,
+        "distanceMin": 8.6
+      },
+      {
+        "note": 20,
+        "distanceMin": 8.5
+      }
+    ]
+  },
+  {
+    "id": "bar_vit60m_1ere_g",
+    "discipline": "Course de vitesse de 60 mètres",
+    "engin": null,
+    "classe": "Première",
+    "genre": "Garçon",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 2.5,
+        "distanceMin": 11.9
+      },
+      {
+        "note": 3,
+        "distanceMin": 11.7
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 11.5
+      },
+      {
+        "note": 4,
+        "distanceMin": 11.3
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 11.1
+      },
+      {
+        "note": 5,
+        "distanceMin": 10.9
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 10.7
+      },
+      {
+        "note": 6,
+        "distanceMin": 10.5
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 10.3
+      },
+      {
+        "note": 7,
+        "distanceMin": 10.1
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 9.9
+      },
+      {
+        "note": 8,
+        "distanceMin": 9.7
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 9.5
+      },
+      {
+        "note": 9,
+        "distanceMin": 9.3
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 9.1
+      },
+      {
+        "note": 10,
+        "distanceMin": 9
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 8.8
+      },
+      {
+        "note": 11,
+        "distanceMin": 8.6
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 8.5
+      },
+      {
+        "note": 12,
+        "distanceMin": 8.4
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 8.3
+      },
+      {
+        "note": 13,
+        "distanceMin": 8.2
+      },
+      {
+        "note": 14,
+        "distanceMin": 8.1
+      },
+      {
+        "note": 15,
+        "distanceMin": 8
+      },
+      {
+        "note": 16,
+        "distanceMin": 7.9
+      },
+      {
+        "note": 17,
+        "distanceMin": 7.8
+      },
+      {
+        "note": 18,
+        "distanceMin": 7.7
+      },
+      {
+        "note": 19,
+        "distanceMin": 7.6
+      },
+      {
+        "note": 20,
+        "distanceMin": 7.4
+      }
+    ]
+  },
+  {
+    "id": "bar_vit60m_1ere_f",
+    "discipline": "Course de vitesse de 60 mètres",
+    "engin": null,
+    "classe": "Première",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 3,
+        "distanceMin": 12.9
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 12.7
+      },
+      {
+        "note": 4,
+        "distanceMin": 12.5
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 12.2
+      },
+      {
+        "note": 5,
+        "distanceMin": 12
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 11.8
+      },
+      {
+        "note": 6,
+        "distanceMin": 11.7
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 11.5
+      },
+      {
+        "note": 7,
+        "distanceMin": 11.3
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 11.1
+      },
+      {
+        "note": 8,
+        "distanceMin": 10.9
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 10.8
+      },
+      {
+        "note": 9,
+        "distanceMin": 10.6
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 10.4
+      },
+      {
+        "note": 10,
+        "distanceMin": 10.3
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 10.1
+      },
+      {
+        "note": 11,
+        "distanceMin": 9.9
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 9.8
+      },
+      {
+        "note": 12,
+        "distanceMin": 9.6
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 9.5
+      },
+      {
+        "note": 13,
+        "distanceMin": 9.3
+      },
+      {
+        "note": 14,
+        "distanceMin": 9.2
+      },
+      {
+        "note": 15,
+        "distanceMin": 9
+      },
+      {
+        "note": 16,
+        "distanceMin": 8.9
+      },
+      {
+        "note": 17,
+        "distanceMin": 8.8
+      },
+      {
+        "note": 18,
+        "distanceMin": 8.6
+      },
+      {
+        "note": 19,
+        "distanceMin": 8.5
+      },
+      {
+        "note": 20,
+        "distanceMin": 8.4
+      }
+    ]
+  },
+  {
+    "id": "bar_vit60m_term_g",
+    "discipline": "Course de vitesse de 60 mètres",
+    "engin": null,
+    "classe": "Terminale",
+    "genre": "Garçon",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 2.5,
+        "distanceMin": 11.7
+      },
+      {
+        "note": 3,
+        "distanceMin": 11.5
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 11.3
+      },
+      {
+        "note": 4,
+        "distanceMin": 11.1
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 10.9
+      },
+      {
+        "note": 5,
+        "distanceMin": 10.7
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 10.5
+      },
+      {
+        "note": 6,
+        "distanceMin": 10.3
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 10.1
+      },
+      {
+        "note": 7,
+        "distanceMin": 9.9
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 9.7
+      },
+      {
+        "note": 8,
+        "distanceMin": 9.5
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 9.3
+      },
+      {
+        "note": 9,
+        "distanceMin": 9.1
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 8.9
+      },
+      {
+        "note": 10,
+        "distanceMin": 8.8
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 8.6
+      },
+      {
+        "note": 11,
+        "distanceMin": 8.4
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 8.3
+      },
+      {
+        "note": 12,
+        "distanceMin": 8.2
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 8.1
+      },
+      {
+        "note": 13,
+        "distanceMin": 8
+      },
+      {
+        "note": 14,
+        "distanceMin": 7.9
+      },
+      {
+        "note": 15,
+        "distanceMin": 7.8
+      },
+      {
+        "note": 16,
+        "distanceMin": 7.7
+      },
+      {
+        "note": 17,
+        "distanceMin": 7.6
+      },
+      {
+        "note": 18,
+        "distanceMin": 7.5
+      },
+      {
+        "note": 19,
+        "distanceMin": 7.4
+      },
+      {
+        "note": 20,
+        "distanceMin": 7.2
+      }
+    ]
+  },
+  {
+    "id": "bar_vit60m_term_f",
+    "discipline": "Course de vitesse de 60 mètres",
+    "engin": null,
+    "classe": "Terminale",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 2.5,
+        "distanceMin": 12.9
+      },
+      {
+        "note": 3,
+        "distanceMin": 12.7
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 12.5
+      },
+      {
+        "note": 4,
+        "distanceMin": 12.2
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 12
+      },
+      {
+        "note": 5,
+        "distanceMin": 11.8
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 11.7
+      },
+      {
+        "note": 6,
+        "distanceMin": 11.5
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 11.3
+      },
+      {
+        "note": 7,
+        "distanceMin": 11.1
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 10.9
+      },
+      {
+        "note": 8,
+        "distanceMin": 10.8
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 10.6
+      },
+      {
+        "note": 9,
+        "distanceMin": 10.4
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 10.3
+      },
+      {
+        "note": 10,
+        "distanceMin": 10.1
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 9.9
+      },
+      {
+        "note": 11,
+        "distanceMin": 9.8
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 9.6
+      },
+      {
+        "note": 12,
+        "distanceMin": 9.5
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 9.3
+      },
+      {
+        "note": 13,
+        "distanceMin": 9.2
+      },
+      {
+        "note": 14,
+        "distanceMin": 9
+      },
+      {
+        "note": 15,
+        "distanceMin": 8.9
+      },
+      {
+        "note": 16,
+        "distanceMin": 8.8
+      },
+      {
+        "note": 17,
+        "distanceMin": 8.6
+      },
+      {
+        "note": 18,
+        "distanceMin": 8.5
+      },
+      {
+        "note": 19,
+        "distanceMin": 8.4
+      },
+      {
+        "note": 20,
+        "distanceMin": 8.2
+      }
+    ]
+  },
+  {
+    "id": "bar_vit80m_2nde_g",
+    "discipline": "Course de vitesse de 80m",
     "engin": null,
     "classe": "Seconde",
     "genre": "Garçon",
@@ -3844,126 +4588,8 @@
     ]
   },
   {
-    "id": "bar_60m_2nde_f",
-    "discipline": "Course 60m / 80m",
-    "engin": null,
-    "classe": "Seconde",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 3.5,
-        "distanceMin": 12.9
-      },
-      {
-        "note": 4,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 12.5
-      },
-      {
-        "note": 5,
-        "distanceMin": 12.2
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 12
-      },
-      {
-        "note": 6,
-        "distanceMin": 11.8
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 7,
-        "distanceMin": 11.5
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 8,
-        "distanceMin": 11.1
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 9,
-        "distanceMin": 10.8
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 10,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 10.3
-      },
-      {
-        "note": 11,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 9.9
-      },
-      {
-        "note": 12,
-        "distanceMin": 9.8
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 9.6
-      },
-      {
-        "note": 13,
-        "distanceMin": 9.5
-      },
-      {
-        "note": 14,
-        "distanceMin": 9.3
-      },
-      {
-        "note": 15,
-        "distanceMin": 9.2
-      },
-      {
-        "note": 16,
-        "distanceMin": 9
-      },
-      {
-        "note": 17,
-        "distanceMin": 8.9
-      },
-      {
-        "note": 18,
-        "distanceMin": 8.8
-      },
-      {
-        "note": 19,
-        "distanceMin": 8.6
-      },
-      {
-        "note": 20,
-        "distanceMin": 8.5
-      }
-    ]
-  },
-  {
-    "id": "bar_60m_1ere_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit80m_1ere_g",
+    "discipline": "Course de vitesse de 80m",
     "engin": null,
     "classe": "Première",
     "genre": "Garçon",
@@ -4088,130 +4714,8 @@
     ]
   },
   {
-    "id": "bar_60m_1ere_f",
-    "discipline": "Course 60m / 80m",
-    "engin": null,
-    "classe": "Première",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 3,
-        "distanceMin": 12.9
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 4,
-        "distanceMin": 12.5
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 12.2
-      },
-      {
-        "note": 5,
-        "distanceMin": 12
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 11.8
-      },
-      {
-        "note": 6,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 11.5
-      },
-      {
-        "note": 7,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 11.1
-      },
-      {
-        "note": 8,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 10.8
-      },
-      {
-        "note": 9,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 10,
-        "distanceMin": 10.3
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 11,
-        "distanceMin": 9.9
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 9.8
-      },
-      {
-        "note": 12,
-        "distanceMin": 9.6
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 9.5
-      },
-      {
-        "note": 13,
-        "distanceMin": 9.3
-      },
-      {
-        "note": 14,
-        "distanceMin": 9.2
-      },
-      {
-        "note": 15,
-        "distanceMin": 9
-      },
-      {
-        "note": 16,
-        "distanceMin": 8.9
-      },
-      {
-        "note": 17,
-        "distanceMin": 8.8
-      },
-      {
-        "note": 18,
-        "distanceMin": 8.6
-      },
-      {
-        "note": 19,
-        "distanceMin": 8.5
-      },
-      {
-        "note": 20,
-        "distanceMin": 8.4
-      }
-    ]
-  },
-  {
-    "id": "bar_60m_term_g",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_vit80m_term_g",
+    "discipline": "Course de vitesse de 80m",
     "engin": null,
     "classe": "Terminale",
     "genre": "Garçon",
@@ -4336,8 +4840,696 @@
     ]
   },
   {
-    "id": "bar_60m_term_f",
-    "discipline": "Course 60m / 80m",
+    "id": "bar_800m_6eme_f",
+    "discipline": "Course 800m",
+    "engin": null,
+    "classe": "Sixième",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 3.5,
+        "distanceMin": 270
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 260
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 250
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 240
+      },
+      {
+        "note": 7,
+        "distanceMin": 230
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 220
+      },
+      {
+        "note": 8,
+        "distanceMin": 200
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 190
+      },
+      {
+        "note": 9,
+        "distanceMin": 180
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 178
+      },
+      {
+        "note": 10,
+        "distanceMin": 170
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 167
+      },
+      {
+        "note": 11,
+        "distanceMin": 163
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 160
+      },
+      {
+        "note": 12,
+        "distanceMin": 157
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 153
+      },
+      {
+        "note": 13,
+        "distanceMin": 150
+      },
+      {
+        "note": 14,
+        "distanceMin": 147
+      },
+      {
+        "note": 15,
+        "distanceMin": 144
+      },
+      {
+        "note": 16,
+        "distanceMin": 141
+      },
+      {
+        "note": 17,
+        "distanceMin": 139
+      },
+      {
+        "note": 18,
+        "distanceMin": 136
+      },
+      {
+        "note": 19,
+        "distanceMin": 133
+      },
+      {
+        "note": 20,
+        "distanceMin": 130
+      }
+    ]
+  },
+  {
+    "id": "bar_800m_5eme_f",
+    "discipline": "Course 800m",
+    "engin": null,
+    "classe": "Cinquième",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 3,
+        "distanceMin": 270
+      },
+      {
+        "note": 4,
+        "distanceMin": 260
+      },
+      {
+        "note": 5,
+        "distanceMin": 250
+      },
+      {
+        "note": 6,
+        "distanceMin": 240
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 230
+      },
+      {
+        "note": 7,
+        "distanceMin": 220
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 200
+      },
+      {
+        "note": 8,
+        "distanceMin": 190
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 180
+      },
+      {
+        "note": 9,
+        "distanceMin": 178
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 170
+      },
+      {
+        "note": 10,
+        "distanceMin": 167
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 163
+      },
+      {
+        "note": 11,
+        "distanceMin": 160
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 157
+      },
+      {
+        "note": 12,
+        "distanceMin": 153
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 150
+      },
+      {
+        "note": 13,
+        "distanceMin": 147
+      },
+      {
+        "note": 14,
+        "distanceMin": 144
+      },
+      {
+        "note": 15,
+        "distanceMin": 141
+      },
+      {
+        "note": 16,
+        "distanceMin": 139
+      },
+      {
+        "note": 17,
+        "distanceMin": 136
+      },
+      {
+        "note": 18,
+        "distanceMin": 133
+      },
+      {
+        "note": 19,
+        "distanceMin": 130
+      },
+      {
+        "note": 20,
+        "distanceMin": 128
+      }
+    ]
+  },
+  {
+    "id": "bar_800m_4eme_f",
+    "discipline": "Course 800m",
+    "engin": null,
+    "classe": "Quatrième",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 2.5,
+        "distanceMin": 270
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 260
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 250
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 240
+      },
+      {
+        "note": 6,
+        "distanceMin": 230
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 220
+      },
+      {
+        "note": 7,
+        "distanceMin": 200
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 190
+      },
+      {
+        "note": 8,
+        "distanceMin": 180
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 178
+      },
+      {
+        "note": 9,
+        "distanceMin": 170
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 167
+      },
+      {
+        "note": 10,
+        "distanceMin": 163
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 160
+      },
+      {
+        "note": 11,
+        "distanceMin": 157
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 153
+      },
+      {
+        "note": 12,
+        "distanceMin": 150
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 147
+      },
+      {
+        "note": 13,
+        "distanceMin": 144
+      },
+      {
+        "note": 14,
+        "distanceMin": 141
+      },
+      {
+        "note": 15,
+        "distanceMin": 139
+      },
+      {
+        "note": 16,
+        "distanceMin": 136
+      },
+      {
+        "note": 17,
+        "distanceMin": 133
+      },
+      {
+        "note": 18,
+        "distanceMin": 130
+      },
+      {
+        "note": 19,
+        "distanceMin": 128
+      },
+      {
+        "note": 20,
+        "distanceMin": 125
+      }
+    ]
+  },
+  {
+    "id": "bar_800m_3eme_f",
+    "discipline": "Course 800m",
+    "engin": null,
+    "classe": "Troisième",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 2,
+        "distanceMin": 270
+      },
+      {
+        "note": 3,
+        "distanceMin": 260
+      },
+      {
+        "note": 4,
+        "distanceMin": 250
+      },
+      {
+        "note": 5,
+        "distanceMin": 240
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 230
+      },
+      {
+        "note": 6,
+        "distanceMin": 220
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 200
+      },
+      {
+        "note": 7,
+        "distanceMin": 190
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 180
+      },
+      {
+        "note": 8,
+        "distanceMin": 178
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 170
+      },
+      {
+        "note": 9,
+        "distanceMin": 167
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 163
+      },
+      {
+        "note": 10,
+        "distanceMin": 160
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 157
+      },
+      {
+        "note": 11,
+        "distanceMin": 153
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 150
+      },
+      {
+        "note": 12,
+        "distanceMin": 147
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 144
+      },
+      {
+        "note": 13,
+        "distanceMin": 141
+      },
+      {
+        "note": 14,
+        "distanceMin": 139
+      },
+      {
+        "note": 15,
+        "distanceMin": 136
+      },
+      {
+        "note": 16,
+        "distanceMin": 133
+      },
+      {
+        "note": 17,
+        "distanceMin": 130
+      },
+      {
+        "note": 18,
+        "distanceMin": 128
+      },
+      {
+        "note": 19,
+        "distanceMin": 125
+      },
+      {
+        "note": 20,
+        "distanceMin": 123
+      }
+    ]
+  },
+  {
+    "id": "bar_800m_2nde_f",
+    "discipline": "Course 800m",
+    "engin": null,
+    "classe": "Seconde",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 3.5,
+        "distanceMin": 185
+      },
+      {
+        "note": 4,
+        "distanceMin": 181
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 177
+      },
+      {
+        "note": 5,
+        "distanceMin": 174
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 170
+      },
+      {
+        "note": 6,
+        "distanceMin": 167
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 163
+      },
+      {
+        "note": 7,
+        "distanceMin": 160
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 157
+      },
+      {
+        "note": 8,
+        "distanceMin": 153
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 150
+      },
+      {
+        "note": 9,
+        "distanceMin": 147
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 144
+      },
+      {
+        "note": 10,
+        "distanceMin": 141
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 139
+      },
+      {
+        "note": 11,
+        "distanceMin": 136
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 133
+      },
+      {
+        "note": 12,
+        "distanceMin": 130
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 128
+      },
+      {
+        "note": 13,
+        "distanceMin": 125
+      },
+      {
+        "note": 14,
+        "distanceMin": 123
+      },
+      {
+        "note": 15,
+        "distanceMin": 120
+      },
+      {
+        "note": 16,
+        "distanceMin": 118
+      },
+      {
+        "note": 17,
+        "distanceMin": 115
+      },
+      {
+        "note": 18,
+        "distanceMin": 113
+      },
+      {
+        "note": 19,
+        "distanceMin": 111
+      },
+      {
+        "note": 20,
+        "distanceMin": 109
+      }
+    ]
+  },
+  {
+    "id": "bar_800m_1ere_f",
+    "discipline": "Course 800m",
+    "engin": null,
+    "classe": "Première",
+    "genre": "Fille",
+    "type": "temps",
+    "grille": [
+      {
+        "note": 3,
+        "distanceMin": 185
+      },
+      {
+        "note": 3.5,
+        "distanceMin": 181
+      },
+      {
+        "note": 4,
+        "distanceMin": 177
+      },
+      {
+        "note": 4.5,
+        "distanceMin": 174
+      },
+      {
+        "note": 5,
+        "distanceMin": 170
+      },
+      {
+        "note": 5.5,
+        "distanceMin": 167
+      },
+      {
+        "note": 6,
+        "distanceMin": 163
+      },
+      {
+        "note": 6.5,
+        "distanceMin": 160
+      },
+      {
+        "note": 7,
+        "distanceMin": 157
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 153
+      },
+      {
+        "note": 8,
+        "distanceMin": 150
+      },
+      {
+        "note": 8.5,
+        "distanceMin": 147
+      },
+      {
+        "note": 9,
+        "distanceMin": 144
+      },
+      {
+        "note": 9.5,
+        "distanceMin": 141
+      },
+      {
+        "note": 10,
+        "distanceMin": 139
+      },
+      {
+        "note": 10.5,
+        "distanceMin": 136
+      },
+      {
+        "note": 11,
+        "distanceMin": 133
+      },
+      {
+        "note": 11.5,
+        "distanceMin": 130
+      },
+      {
+        "note": 12,
+        "distanceMin": 128
+      },
+      {
+        "note": 12.5,
+        "distanceMin": 125
+      },
+      {
+        "note": 13,
+        "distanceMin": 123
+      },
+      {
+        "note": 14,
+        "distanceMin": 120
+      },
+      {
+        "note": 15,
+        "distanceMin": 118
+      },
+      {
+        "note": 16,
+        "distanceMin": 115
+      },
+      {
+        "note": 17,
+        "distanceMin": 113
+      },
+      {
+        "note": 18,
+        "distanceMin": 111
+      },
+      {
+        "note": 19,
+        "distanceMin": 109
+      },
+      {
+        "note": 20,
+        "distanceMin": 106
+      }
+    ]
+  },
+  {
+    "id": "bar_800m_term_f",
+    "discipline": "Course 800m",
     "engin": null,
     "classe": "Terminale",
     "genre": "Fille",
@@ -4345,119 +5537,119 @@
     "grille": [
       {
         "note": 2.5,
-        "distanceMin": 12.9
+        "distanceMin": 185
       },
       {
         "note": 3,
-        "distanceMin": 12.7
+        "distanceMin": 181
       },
       {
         "note": 3.5,
-        "distanceMin": 12.5
+        "distanceMin": 177
       },
       {
         "note": 4,
-        "distanceMin": 12.2
+        "distanceMin": 174
       },
       {
         "note": 4.5,
-        "distanceMin": 12
+        "distanceMin": 170
       },
       {
         "note": 5,
-        "distanceMin": 11.8
+        "distanceMin": 167
       },
       {
         "note": 5.5,
-        "distanceMin": 11.7
+        "distanceMin": 163
       },
       {
         "note": 6,
-        "distanceMin": 11.5
+        "distanceMin": 160
       },
       {
         "note": 6.5,
-        "distanceMin": 11.3
+        "distanceMin": 157
       },
       {
         "note": 7,
-        "distanceMin": 11.1
+        "distanceMin": 153
       },
       {
         "note": 7.5,
-        "distanceMin": 10.9
+        "distanceMin": 150
       },
       {
         "note": 8,
-        "distanceMin": 10.8
+        "distanceMin": 147
       },
       {
         "note": 8.5,
-        "distanceMin": 10.6
+        "distanceMin": 144
       },
       {
         "note": 9,
-        "distanceMin": 10.4
+        "distanceMin": 141
       },
       {
         "note": 9.5,
-        "distanceMin": 10.3
+        "distanceMin": 139
       },
       {
         "note": 10,
-        "distanceMin": 10.1
+        "distanceMin": 136
       },
       {
         "note": 10.5,
-        "distanceMin": 9.9
+        "distanceMin": 133
       },
       {
         "note": 11,
-        "distanceMin": 9.8
+        "distanceMin": 130
       },
       {
         "note": 11.5,
-        "distanceMin": 9.6
+        "distanceMin": 128
       },
       {
         "note": 12,
-        "distanceMin": 9.5
+        "distanceMin": 125
       },
       {
         "note": 12.5,
-        "distanceMin": 9.3
+        "distanceMin": 123
       },
       {
         "note": 13,
-        "distanceMin": 9.2
+        "distanceMin": 120
       },
       {
         "note": 14,
-        "distanceMin": 9
+        "distanceMin": 118
       },
       {
         "note": 15,
-        "distanceMin": 8.9
+        "distanceMin": 115
       },
       {
         "note": 16,
-        "distanceMin": 8.8
+        "distanceMin": 113
       },
       {
         "note": 17,
-        "distanceMin": 8.6
+        "distanceMin": 111
       },
       {
         "note": 18,
-        "distanceMin": 8.5
+        "distanceMin": 109
       },
       {
         "note": 19,
-        "distanceMin": 8.4
+        "distanceMin": 106
       },
       {
         "note": 20,
-        "distanceMin": 8.2
+        "distanceMin": 104
       }
     ]
   },
@@ -4564,96 +5756,6 @@
       {
         "note": 20,
         "distanceMin": 189
-      }
-    ]
-  },
-  {
-    "id": "bar_1000m_6eme_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Sixième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 460
-      },
-      {
-        "note": 2,
-        "distanceMin": 430
-      },
-      {
-        "note": 3,
-        "distanceMin": 400
-      },
-      {
-        "note": 4,
-        "distanceMin": 370
-      },
-      {
-        "note": 5,
-        "distanceMin": 350
-      },
-      {
-        "note": 6,
-        "distanceMin": 330
-      },
-      {
-        "note": 7,
-        "distanceMin": 315
-      },
-      {
-        "note": 8,
-        "distanceMin": 300
-      },
-      {
-        "note": 9,
-        "distanceMin": 285
-      },
-      {
-        "note": 10,
-        "distanceMin": 275
-      },
-      {
-        "note": 11,
-        "distanceMin": 265
-      },
-      {
-        "note": 12,
-        "distanceMin": 255
-      },
-      {
-        "note": 13,
-        "distanceMin": 245
-      },
-      {
-        "note": 14,
-        "distanceMin": 240
-      },
-      {
-        "note": 15,
-        "distanceMin": 235
-      },
-      {
-        "note": 16,
-        "distanceMin": 230
-      },
-      {
-        "note": 17,
-        "distanceMin": 225
-      },
-      {
-        "note": 18,
-        "distanceMin": 220
-      },
-      {
-        "note": 19,
-        "distanceMin": 215
-      },
-      {
-        "note": 20,
-        "distanceMin": 210
       }
     ]
   },
@@ -4768,96 +5870,6 @@
     ]
   },
   {
-    "id": "bar_1000m_5eme_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Cinquième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 455
-      },
-      {
-        "note": 2,
-        "distanceMin": 425
-      },
-      {
-        "note": 3,
-        "distanceMin": 395
-      },
-      {
-        "note": 4,
-        "distanceMin": 240
-      },
-      {
-        "note": 5,
-        "distanceMin": 345
-      },
-      {
-        "note": 6,
-        "distanceMin": 325
-      },
-      {
-        "note": 7,
-        "distanceMin": 310
-      },
-      {
-        "note": 8,
-        "distanceMin": 295
-      },
-      {
-        "note": 9,
-        "distanceMin": 280
-      },
-      {
-        "note": 10,
-        "distanceMin": 270
-      },
-      {
-        "note": 11,
-        "distanceMin": 240
-      },
-      {
-        "note": 12,
-        "distanceMin": 250
-      },
-      {
-        "note": 13,
-        "distanceMin": 240
-      },
-      {
-        "note": 14,
-        "distanceMin": 235
-      },
-      {
-        "note": 15,
-        "distanceMin": 230
-      },
-      {
-        "note": 16,
-        "distanceMin": 225
-      },
-      {
-        "note": 17,
-        "distanceMin": 220
-      },
-      {
-        "note": 18,
-        "distanceMin": 215
-      },
-      {
-        "note": 19,
-        "distanceMin": 210
-      },
-      {
-        "note": 20,
-        "distanceMin": 205
-      }
-    ]
-  },
-  {
     "id": "bar_1000m_4eme_g",
     "discipline": "Course 1000m",
     "engin": null,
@@ -4968,96 +5980,6 @@
     ]
   },
   {
-    "id": "bar_1000m_4eme_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Quatrième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 448
-      },
-      {
-        "note": 2,
-        "distanceMin": 418
-      },
-      {
-        "note": 3,
-        "distanceMin": 388
-      },
-      {
-        "note": 4,
-        "distanceMin": 358
-      },
-      {
-        "note": 5,
-        "distanceMin": 338
-      },
-      {
-        "note": 6,
-        "distanceMin": 318
-      },
-      {
-        "note": 7,
-        "distanceMin": 303
-      },
-      {
-        "note": 8,
-        "distanceMin": 288
-      },
-      {
-        "note": 9,
-        "distanceMin": 273
-      },
-      {
-        "note": 10,
-        "distanceMin": 263
-      },
-      {
-        "note": 11,
-        "distanceMin": 253
-      },
-      {
-        "note": 12,
-        "distanceMin": 243
-      },
-      {
-        "note": 13,
-        "distanceMin": 233
-      },
-      {
-        "note": 14,
-        "distanceMin": 228
-      },
-      {
-        "note": 15,
-        "distanceMin": 223
-      },
-      {
-        "note": 16,
-        "distanceMin": 218
-      },
-      {
-        "note": 17,
-        "distanceMin": 213
-      },
-      {
-        "note": 18,
-        "distanceMin": 208
-      },
-      {
-        "note": 19,
-        "distanceMin": 203
-      },
-      {
-        "note": 20,
-        "distanceMin": 198
-      }
-    ]
-  },
-  {
     "id": "bar_1000m_3eme_g",
     "discipline": "Course 1000m",
     "engin": null,
@@ -5092,6 +6014,10 @@
       {
         "note": 7,
         "distanceMin": 265
+      },
+      {
+        "note": 7.5,
+        "distanceMin": 260
       },
       {
         "note": 8,
@@ -5164,96 +6090,6 @@
       {
         "note": 20,
         "distanceMin": 177
-      }
-    ]
-  },
-  {
-    "id": "bar_1000m_3eme_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Troisième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 442
-      },
-      {
-        "note": 2,
-        "distanceMin": 412
-      },
-      {
-        "note": 3,
-        "distanceMin": 382
-      },
-      {
-        "note": 4,
-        "distanceMin": 352
-      },
-      {
-        "note": 5,
-        "distanceMin": 332
-      },
-      {
-        "note": 6,
-        "distanceMin": 312
-      },
-      {
-        "note": 7,
-        "distanceMin": 297
-      },
-      {
-        "note": 8,
-        "distanceMin": 282
-      },
-      {
-        "note": 9,
-        "distanceMin": 267
-      },
-      {
-        "note": 10,
-        "distanceMin": 257
-      },
-      {
-        "note": 11,
-        "distanceMin": 247
-      },
-      {
-        "note": 12,
-        "distanceMin": 237
-      },
-      {
-        "note": 13,
-        "distanceMin": 227
-      },
-      {
-        "note": 14,
-        "distanceMin": 222
-      },
-      {
-        "note": 15,
-        "distanceMin": 217
-      },
-      {
-        "note": 16,
-        "distanceMin": 212
-      },
-      {
-        "note": 17,
-        "distanceMin": 207
-      },
-      {
-        "note": 18,
-        "distanceMin": 202
-      },
-      {
-        "note": 19,
-        "distanceMin": 197
-      },
-      {
-        "note": 20,
-        "distanceMin": 192
       }
     ]
   },
@@ -5376,96 +6212,6 @@
       {
         "note": 20,
         "distanceMin": 172
-      }
-    ]
-  },
-  {
-    "id": "bar_1000m_2nde_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Seconde",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 436
-      },
-      {
-        "note": 2,
-        "distanceMin": 406
-      },
-      {
-        "note": 3,
-        "distanceMin": 376
-      },
-      {
-        "note": 4,
-        "distanceMin": 346
-      },
-      {
-        "note": 5,
-        "distanceMin": 326
-      },
-      {
-        "note": 6,
-        "distanceMin": 306
-      },
-      {
-        "note": 7,
-        "distanceMin": 291
-      },
-      {
-        "note": 8,
-        "distanceMin": 276
-      },
-      {
-        "note": 9,
-        "distanceMin": 261
-      },
-      {
-        "note": 10,
-        "distanceMin": 251
-      },
-      {
-        "note": 11,
-        "distanceMin": 241
-      },
-      {
-        "note": 12,
-        "distanceMin": 231
-      },
-      {
-        "note": 13,
-        "distanceMin": 221
-      },
-      {
-        "note": 14,
-        "distanceMin": 216
-      },
-      {
-        "note": 15,
-        "distanceMin": 211
-      },
-      {
-        "note": 16,
-        "distanceMin": 206
-      },
-      {
-        "note": 17,
-        "distanceMin": 201
-      },
-      {
-        "note": 18,
-        "distanceMin": 196
-      },
-      {
-        "note": 19,
-        "distanceMin": 191
-      },
-      {
-        "note": 20,
-        "distanceMin": 186
       }
     ]
   },
@@ -5596,96 +6342,6 @@
     ]
   },
   {
-    "id": "bar_1000m_1ere_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Première",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 430
-      },
-      {
-        "note": 2,
-        "distanceMin": 400
-      },
-      {
-        "note": 3,
-        "distanceMin": 370
-      },
-      {
-        "note": 4,
-        "distanceMin": 340
-      },
-      {
-        "note": 5,
-        "distanceMin": 320
-      },
-      {
-        "note": 6,
-        "distanceMin": 300
-      },
-      {
-        "note": 7,
-        "distanceMin": 285
-      },
-      {
-        "note": 8,
-        "distanceMin": 270
-      },
-      {
-        "note": 9,
-        "distanceMin": 255
-      },
-      {
-        "note": 10,
-        "distanceMin": 245
-      },
-      {
-        "note": 11,
-        "distanceMin": 235
-      },
-      {
-        "note": 12,
-        "distanceMin": 225
-      },
-      {
-        "note": 13,
-        "distanceMin": 215
-      },
-      {
-        "note": 14,
-        "distanceMin": 210
-      },
-      {
-        "note": 15,
-        "distanceMin": 205
-      },
-      {
-        "note": 16,
-        "distanceMin": 200
-      },
-      {
-        "note": 17,
-        "distanceMin": 195
-      },
-      {
-        "note": 18,
-        "distanceMin": 190
-      },
-      {
-        "note": 19,
-        "distanceMin": 185
-      },
-      {
-        "note": 20,
-        "distanceMin": 180
-      }
-    ]
-  },
-  {
     "id": "bar_1000m_term_g",
     "discipline": "Course 1000m",
     "engin": null,
@@ -5808,1432 +6464,6 @@
       {
         "note": 20,
         "distanceMin": 165
-      }
-    ]
-  },
-  {
-    "id": "bar_1000m_term_f",
-    "discipline": "Course 1000m",
-    "engin": null,
-    "classe": "Terminale",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 425
-      },
-      {
-        "note": 2,
-        "distanceMin": 395
-      },
-      {
-        "note": 3,
-        "distanceMin": 365
-      },
-      {
-        "note": 4,
-        "distanceMin": 335
-      },
-      {
-        "note": 5,
-        "distanceMin": 315
-      },
-      {
-        "note": 6,
-        "distanceMin": 295
-      },
-      {
-        "note": 7,
-        "distanceMin": 280
-      },
-      {
-        "note": 8,
-        "distanceMin": 265
-      },
-      {
-        "note": 9,
-        "distanceMin": 250
-      },
-      {
-        "note": 10,
-        "distanceMin": 240
-      },
-      {
-        "note": 11,
-        "distanceMin": 230
-      },
-      {
-        "note": 12,
-        "distanceMin": 220
-      },
-      {
-        "note": 13,
-        "distanceMin": 210
-      },
-      {
-        "note": 14,
-        "distanceMin": 205
-      },
-      {
-        "note": 15,
-        "distanceMin": 200
-      },
-      {
-        "note": 16,
-        "distanceMin": 195
-      },
-      {
-        "note": 17,
-        "distanceMin": 190
-      },
-      {
-        "note": 18,
-        "distanceMin": 185
-      },
-      {
-        "note": 19,
-        "distanceMin": 180
-      },
-      {
-        "note": 20,
-        "distanceMin": 175
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_6eme_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Sixième",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1.5,
-        "distanceMin": 17
-      },
-      {
-        "note": 2.5,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 15
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 13
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 13,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 14,
-        "distanceMin": 12
-      },
-      {
-        "note": 15,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 16,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 17,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 18,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 19,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 20,
-        "distanceMin": 10.2
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_6eme_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Sixième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 4,
-        "distanceMin": 17.4
-      },
-      {
-        "note": 5,
-        "distanceMin": 17
-      },
-      {
-        "note": 6,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 7,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 8,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 9,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 10,
-        "distanceMin": 15
-      },
-      {
-        "note": 11,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 12,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 13,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 15,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 17,
-        "distanceMin": 13
-      },
-      {
-        "note": 19,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 20,
-        "distanceMin": 12.3
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_5eme_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Cinquième",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 17
-      },
-      {
-        "note": 2,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 3,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 4,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 6,
-        "distanceMin": 15
-      },
-      {
-        "note": 7,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 8,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 9,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 10,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 11,
-        "distanceMin": 13
-      },
-      {
-        "note": 12,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 13,
-        "distanceMin": 12
-      },
-      {
-        "note": 14,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 15,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 16,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 17,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 18,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 19,
-        "distanceMin": 10.2
-      },
-      {
-        "note": 20,
-        "distanceMin": 10.1
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_5eme_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Cinquième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 3.5,
-        "distanceMin": 17.4
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 17
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 15
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 14,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 16,
-        "distanceMin": 13
-      },
-      {
-        "note": 18,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 19,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 20,
-        "distanceMin": 12
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_4eme_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Quatrième",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1.5,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 2.5,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 15
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 13
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 12,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 12
-      },
-      {
-        "note": 13,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 14,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 15,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 16,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 17,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 18,
-        "distanceMin": 10.2
-      },
-      {
-        "note": 19,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 20,
-        "distanceMin": 9.8
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_4eme_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Quatrième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 3,
-        "distanceMin": 17.4
-      },
-      {
-        "note": 4,
-        "distanceMin": 17
-      },
-      {
-        "note": 5,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 6,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 7,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 8,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 9,
-        "distanceMin": 15
-      },
-      {
-        "note": 10,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 11,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 12,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 13,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 15,
-        "distanceMin": 13
-      },
-      {
-        "note": 17,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 18,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 19,
-        "distanceMin": 12
-      },
-      {
-        "note": 20,
-        "distanceMin": 11.7
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_3eme_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Troisième",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 1,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 2,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 3,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 4,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 5,
-        "distanceMin": 15
-      },
-      {
-        "note": 6,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 7,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 8,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 9,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 10,
-        "distanceMin": 13
-      },
-      {
-        "note": 11,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 12,
-        "distanceMin": 12
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 13,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 14,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 15,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 16,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 17,
-        "distanceMin": 10.2
-      },
-      {
-        "note": 18,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 19,
-        "distanceMin": 9.8
-      },
-      {
-        "note": 20,
-        "distanceMin": 9.6
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_3eme_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Troisième",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 2.5,
-        "distanceMin": 17.4
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 17
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 16.4
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 16.2
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 15
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 14,
-        "distanceMin": 13
-      },
-      {
-        "note": 16,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 17,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 18,
-        "distanceMin": 12
-      },
-      {
-        "note": 19,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 20,
-        "distanceMin": 11.3
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_2nde_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Seconde",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 3,
-        "distanceMin": 24.8
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 24.1
-      },
-      {
-        "note": 4,
-        "distanceMin": 23.3
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 23
-      },
-      {
-        "note": 5,
-        "distanceMin": 22.6
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 22
-      },
-      {
-        "note": 6,
-        "distanceMin": 21.5
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 21
-      },
-      {
-        "note": 7,
-        "distanceMin": 20.3
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 19.5
-      },
-      {
-        "note": 8,
-        "distanceMin": 19
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 18.5
-      },
-      {
-        "note": 9,
-        "distanceMin": 17.7
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 16.5
-      },
-      {
-        "note": 10,
-        "distanceMin": 15.9
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 15.5
-      },
-      {
-        "note": 11,
-        "distanceMin": 15.1
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 14.7
-      },
-      {
-        "note": 12,
-        "distanceMin": 14.3
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 13,
-        "distanceMin": 13.5
-      },
-      {
-        "note": 14,
-        "distanceMin": 13.1
-      },
-      {
-        "note": 15,
-        "distanceMin": 12.8
-      },
-      {
-        "note": 16,
-        "distanceMin": 12.5
-      },
-      {
-        "note": 17,
-        "distanceMin": 12.1
-      },
-      {
-        "note": 18,
-        "distanceMin": 11.8
-      },
-      {
-        "note": 19,
-        "distanceMin": 11.5
-      },
-      {
-        "note": 20,
-        "distanceMin": 11.1
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_2nde_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Seconde",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 2,
-        "distanceMin": 15.2
-      },
-      {
-        "note": 2.5,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 15
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 13
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 11,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 12
-      },
-      {
-        "note": 12,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 13,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 14,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 15,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 16,
-        "distanceMin": 10.2
-      },
-      {
-        "note": 17,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 18,
-        "distanceMin": 9.8
-      },
-      {
-        "note": 19,
-        "distanceMin": 9.6
-      },
-      {
-        "note": 20,
-        "distanceMin": 9.4
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_1ere_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Première",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 2.5,
-        "distanceMin": 24.8
-      },
-      {
-        "note": 3,
-        "distanceMin": 24.1
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 23.3
-      },
-      {
-        "note": 4,
-        "distanceMin": 23
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 22.6
-      },
-      {
-        "note": 5,
-        "distanceMin": 22
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 21.5
-      },
-      {
-        "note": 6,
-        "distanceMin": 21
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 20.3
-      },
-      {
-        "note": 7,
-        "distanceMin": 19.5
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 19
-      },
-      {
-        "note": 8,
-        "distanceMin": 18.5
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 17.7
-      },
-      {
-        "note": 9,
-        "distanceMin": 16.5
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 15.9
-      },
-      {
-        "note": 10,
-        "distanceMin": 15.5
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 15.1
-      },
-      {
-        "note": 11,
-        "distanceMin": 14.7
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 14.3
-      },
-      {
-        "note": 12,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 13.5
-      },
-      {
-        "note": 13,
-        "distanceMin": 13.1
-      },
-      {
-        "note": 14,
-        "distanceMin": 12.8
-      },
-      {
-        "note": 15,
-        "distanceMin": 12.5
-      },
-      {
-        "note": 16,
-        "distanceMin": 12.1
-      },
-      {
-        "note": 17,
-        "distanceMin": 11.8
-      },
-      {
-        "note": 18,
-        "distanceMin": 11.5
-      },
-      {
-        "note": 19,
-        "distanceMin": 11.1
-      },
-      {
-        "note": 20,
-        "distanceMin": 10.8
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_1ere_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Première",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 2,
-        "distanceMin": 15.8
-      },
-      {
-        "note": 3,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 4,
-        "distanceMin": 15
-      },
-      {
-        "note": 5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 6,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 7,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 8,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 9,
-        "distanceMin": 13
-      },
-      {
-        "note": 10,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 11,
-        "distanceMin": 12
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 12,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 13,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 14,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 15,
-        "distanceMin": 10.2
-      },
-      {
-        "note": 16,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 17,
-        "distanceMin": 9.8
-      },
-      {
-        "note": 18,
-        "distanceMin": 9.6
-      },
-      {
-        "note": 19,
-        "distanceMin": 9.4
-      },
-      {
-        "note": 20,
-        "distanceMin": 9.2
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_term_g",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Terminale",
-    "genre": "Garçon",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 2.5,
-        "distanceMin": 24.1
-      },
-      {
-        "note": 3,
-        "distanceMin": 23.3
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 23
-      },
-      {
-        "note": 4,
-        "distanceMin": 22.6
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 22
-      },
-      {
-        "note": 5,
-        "distanceMin": 21.5
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 21
-      },
-      {
-        "note": 6,
-        "distanceMin": 20.3
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 19.5
-      },
-      {
-        "note": 7,
-        "distanceMin": 19
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 18.5
-      },
-      {
-        "note": 8,
-        "distanceMin": 17.7
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 16.5
-      },
-      {
-        "note": 9,
-        "distanceMin": 15.9
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 15.5
-      },
-      {
-        "note": 10,
-        "distanceMin": 15.1
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 14.7
-      },
-      {
-        "note": 11,
-        "distanceMin": 14.3
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 12,
-        "distanceMin": 13.5
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 13.1
-      },
-      {
-        "note": 13,
-        "distanceMin": 12.8
-      },
-      {
-        "note": 14,
-        "distanceMin": 12.5
-      },
-      {
-        "note": 15,
-        "distanceMin": 12.1
-      },
-      {
-        "note": 16,
-        "distanceMin": 11.8
-      },
-      {
-        "note": 17,
-        "distanceMin": 11.5
-      },
-      {
-        "note": 18,
-        "distanceMin": 11.1
-      },
-      {
-        "note": 19,
-        "distanceMin": 10.8
-      },
-      {
-        "note": 20,
-        "distanceMin": 10.5
-      }
-    ]
-  },
-  {
-    "id": "bar_haies_term_f",
-    "discipline": "Course de haies",
-    "engin": null,
-    "classe": "Terminale",
-    "genre": "Fille",
-    "type": "temps",
-    "grille": [
-      {
-        "note": 2.5,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 3,
-        "distanceMin": 15.4
-      },
-      {
-        "note": 3.5,
-        "distanceMin": 15
-      },
-      {
-        "note": 4.5,
-        "distanceMin": 14.6
-      },
-      {
-        "note": 5.5,
-        "distanceMin": 14.2
-      },
-      {
-        "note": 6.5,
-        "distanceMin": 13.8
-      },
-      {
-        "note": 7.5,
-        "distanceMin": 13.4
-      },
-      {
-        "note": 8.5,
-        "distanceMin": 13
-      },
-      {
-        "note": 9.5,
-        "distanceMin": 12.7
-      },
-      {
-        "note": 10,
-        "distanceMin": 12.3
-      },
-      {
-        "note": 10.5,
-        "distanceMin": 12
-      },
-      {
-        "note": 11,
-        "distanceMin": 11.7
-      },
-      {
-        "note": 11.5,
-        "distanceMin": 11.3
-      },
-      {
-        "note": 12,
-        "distanceMin": 10.9
-      },
-      {
-        "note": 12.5,
-        "distanceMin": 10.6
-      },
-      {
-        "note": 13,
-        "distanceMin": 10.4
-      },
-      {
-        "note": 14,
-        "distanceMin": 10.2
-      },
-      {
-        "note": 15,
-        "distanceMin": 10.1
-      },
-      {
-        "note": 16,
-        "distanceMin": 9.8
-      },
-      {
-        "note": 17,
-        "distanceMin": 9.6
-      },
-      {
-        "note": 18,
-        "distanceMin": 9.4
-      },
-      {
-        "note": 19,
-        "distanceMin": 9.2
-      },
-      {
-        "note": 20,
-        "distanceMin": 9
       }
     ]
   },
@@ -9943,11 +9173,11 @@
       },
       {
         "note": 3,
-        "distanceMin": 1.7
+        "distanceMin": 1.6
       },
       {
         "note": 4,
-        "distanceMin": 1.6
+        "distanceMin": 1.7
       },
       {
         "note": 4.5,
@@ -10081,11 +9311,11 @@
       },
       {
         "note": 6.5,
-        "distanceMin": 1.7
+        "distanceMin": 1.6
       },
       {
         "note": 7.5,
-        "distanceMin": 1.6
+        "distanceMin": 1.7
       },
       {
         "note": 8,
@@ -10313,11 +9543,11 @@
       },
       {
         "note": 6,
-        "distanceMin": 1.7
+        "distanceMin": 1.6
       },
       {
         "note": 7,
-        "distanceMin": 1.6
+        "distanceMin": 1.7
       },
       {
         "note": 7.5,
@@ -10541,11 +9771,11 @@
       },
       {
         "note": 5.5,
-        "distanceMin": 1.7
+        "distanceMin": 1.6
       },
       {
         "note": 6.5,
-        "distanceMin": 1.6
+        "distanceMin": 1.7
       },
       {
         "note": 7,
@@ -10765,11 +9995,11 @@
       },
       {
         "note": 5,
-        "distanceMin": 1.7
+        "distanceMin": 1.6
       },
       {
         "note": 6,
-        "distanceMin": 1.6
+        "distanceMin": 1.7
       },
       {
         "note": 6.5,

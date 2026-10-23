@@ -84,6 +84,73 @@ export class EPSEngine {
   }
 
   /**
+   * Validate that the activity and apparatus weight match the official reference scale
+   * @param {string} discipline 
+   * @param {string} classe 
+   * @param {string} genre 
+   * @param {string} [engin=null]
+   * @returns {Object} { valid, errorType, message, allowedEngins, bareme }
+   */
+  static validateInput(discipline, classe, genre, engin = null) {
+    if (!discipline || !classe || !genre) {
+      return {
+        valid: false,
+        errorType: 'missing_fields',
+        message: "Veuillez renseigner l'activité, la classe et le genre de l'élève.",
+        allowedEngins: []
+      };
+    }
+
+    const baremesCategory = db.getBaremesForCategory(discipline, classe, genre);
+    if (!baremesCategory || baremesCategory.length === 0) {
+      return {
+        valid: false,
+        errorType: 'activity_incompatible',
+        message: "Erreur de saisie : cette activité n’est pas autorisée pour le sexe et la classe sélectionnés selon le barème officiel. Veuillez vérifier votre sélection.",
+        allowedEngins: []
+      };
+    }
+
+    const allowedEngins = [...new Set(baremesCategory.map(b => b.engin).filter(Boolean))];
+    if (allowedEngins.length > 0) {
+      if (!engin || typeof engin !== 'string' || engin.trim() === '') {
+        const enginsFormatted = allowedEngins.map(e => e.replace(/(\d+)\s*(k?g)/i, '$1 $2')).join(' ou ');
+        return {
+          valid: false,
+          errorType: 'engin_required',
+          message: `Veuillez sélectionner un engin réglementaire pour cette catégorie (${enginsFormatted}).`,
+          allowedEngins: allowedEngins
+        };
+      }
+
+      const cleanEng = engin.trim().toLowerCase();
+      const match = allowedEngins.find(e => e.trim().toLowerCase() === cleanEng);
+      if (!match) {
+        const enginsFormatted = allowedEngins.map(e => e.replace(/(\d+)\s*(k?g)/i, '$1 $2')).join(' ou ');
+        return {
+          valid: false,
+          errorType: 'engin_incompatible',
+          message: `Erreur de saisie : le poids de l’engin sélectionné ne correspond pas au barème de cette classe et de ce sexe. Pour cette catégorie, utilisez un engin de ${enginsFormatted}.`,
+          allowedEngins: allowedEngins
+        };
+      }
+
+      const bareme = baremesCategory.find(b => b.engin && b.engin.trim().toLowerCase() === cleanEng);
+      return {
+        valid: true,
+        bareme: bareme,
+        allowedEngins: allowedEngins
+      };
+    }
+
+    return {
+      valid: true,
+      bareme: baremesCategory[0],
+      allowedEngins: []
+    };
+  }
+
+  /**
    * Calculate grade for a given performance
    * @param {string} discipline 
    * @param {string} classe 
@@ -91,27 +158,49 @@ export class EPSEngine {
    * @param {number|string} performance 
    * @param {string} [engin=null]
    * @param {string} [mode="interpolation"] - 'interpolation' (exact proportional) or 'palier' (lower tier)
-   * @returns {Object} { note, noteExacte, notePalier, appreciation, baremeFound, engin, detail }
+   * @returns {Object} { valid, note, noteExacte, notePalier, appreciation, baremeFound, engin, detail, error }
    */
   static calculateGrade(discipline, classe, genre, performance, engin = null, mode = "interpolation") {
-    const perfNum = EPSEngine.parsePerformance(performance);
-    if (isNaN(perfNum) || perfNum <= 0) {
+    // 1. Mandatory Input Validation against official scale
+    const validation = EPSEngine.validateInput(discipline, classe, genre, engin);
+    if (!validation.valid) {
       return {
-        note: 0,
-        noteExacte: 0,
-        notePalier: 0,
-        appreciation: "Performance non valide",
+        valid: false,
+        note: null,
+        noteExacte: null,
+        notePalier: null,
+        appreciation: "Saisie Invalide",
         baremeFound: false,
-        detail: "Veuillez saisir une valeur de performance valide (ex: 3'07'' ou 187)."
+        errorType: validation.errorType,
+        error: validation.message,
+        detail: validation.message,
+        allowedEngins: validation.allowedEngins || []
       };
     }
 
-    const bareme = db.findBareme(discipline, classe, genre, engin);
+    // 2. Performance Parsing
+    const perfNum = EPSEngine.parsePerformance(performance);
+    if (isNaN(perfNum) || perfNum <= 0) {
+      return {
+        valid: true,
+        note: null,
+        noteExacte: null,
+        notePalier: null,
+        appreciation: "Performance non valide",
+        baremeFound: true,
+        baremeId: validation.bareme ? validation.bareme.id : null,
+        engin: validation.bareme ? validation.bareme.engin : engin,
+        detail: "Veuillez saisir une valeur de performance valide (ex: 3'07'' ou 11.70)."
+      };
+    }
+
+    const bareme = validation.bareme;
     if (!bareme || !bareme.grille || bareme.grille.length === 0) {
       return {
-        note: 0,
-        noteExacte: 0,
-        notePalier: 0,
+        valid: false,
+        note: null,
+        noteExacte: null,
+        notePalier: null,
         appreciation: "Barème introuvable",
         baremeFound: false,
         detail: `Aucun barème trouvé pour ${discipline} (${classe} - ${genre}${engin ? ' - ' + engin : ''}).`
@@ -212,6 +301,7 @@ export class EPSEngine {
     const finalNote = mode === "palier" ? palierNote : exactNote;
 
     return {
+      valid: true,
       note: finalNote,
       noteExacte: exactNote,
       notePalier: palierNote,
