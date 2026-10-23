@@ -1,7 +1,7 @@
 /**
  * Notation View Controller (js/views/notation.js)
  * Real-time grading module connected to Teacher Classes, official scales,
- * auto-advancing student evaluation roster, and strict regulatory validation.
+ * autonomous individual grading without required student roster, and strict regulatory validation.
  */
 
 import { db } from '../db.js';
@@ -11,52 +11,56 @@ import { Toast } from '../components.js';
 export function renderNotation(container) {
   const currentProf = db.getCurrentProfesseur();
   const myClasses = db.getClasses();
-  const officialNiveaux = ["Sixième", "Cinquième", "Quatrième", "Troisième", "Seconde", "Première", "Terminale"];
+  const officialNiveaux = EPSEngine.OFFICIAL_LEVELS;
   const disciplinesList = db.getDisciplines();
 
-  // Selected class: either first class of teacher or default level
-  let selectedClasseId = myClasses.length > 0 ? myClasses[0].id : "Troisième";
+  // Selected class: either first class of teacher or default official level
+  let selectedClasseId = "Troisième";
+  if (myClasses.length > 0) {
+    selectedClasseId = myClasses[0].id;
+  }
 
   container.innerHTML = `
     <div class="notation-wrapper">
       <!-- Form Panel -->
       <div class="card notation-card">
         <div class="card-header" style="justify-content:space-between; align-items:center;">
-          <h3 class="card-title"><i class="fas fa-stopwatch"></i> Saisie de la Performance</h3>
+          <h3 class="card-title"><i class="fas fa-stopwatch"></i> Saisie de la Performance & Calcul</h3>
           <span style="font-size: 0.8rem; color: var(--text-muted);">Professeur : <strong>${currentProf.nom}</strong></span>
         </div>
 
         <!-- Active Class Banner Indicator -->
         <div id="active-class-banner" style="margin: 0 0 18px 0; background: var(--primary-light); color: var(--primary); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(79, 70, 229, 0.2);">
           <div>
-            <i class="fas fa-users-rectangle"></i> Classe active : 
-            <strong id="banner-class-name">-</strong> 
-            (Niveau barème : <strong id="banner-class-level">-</strong>)
+            <i class="fas fa-layer-group"></i> Barème officiel : 
+            <strong id="banner-class-level">Troisième</strong>
+            <span id="banner-class-name-container" style="color: var(--text-muted); font-size: 0.82rem; margin-left: 6px;"></span>
           </div>
-          <span class="badge" id="banner-class-count" style="background: #ffffff; color: var(--primary); font-weight:700;">0 élèves</span>
+          <span class="badge" id="banner-class-count" style="background: #ffffff; color: var(--primary); font-weight:700;">Calcul direct autonome</span>
         </div>
 
         <form id="notation-form">
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Classe à évaluer <span style="color:red;">*</span></label>
+              <label class="form-label">Classe ou Niveau officiel <span style="color:red;">*</span></label>
               <select class="form-select" id="select-classe">
+                <optgroup label="Niveaux standards (Calcul direct)">
+                  ${officialNiveaux.map(n => `<option value="${n}" ${n === selectedClasseId ? 'selected' : ''}>${n}</option>`).join('')}
+                </optgroup>
                 ${myClasses.length > 0 ? `
-                  <optgroup label="Vos classes (Mes classes)">
+                  <optgroup label="Vos classes configurées">
                     ${myClasses.map(c => `<option value="${c.id}" ${c.id === selectedClasseId ? 'selected' : ''}>${c.nom} (${c.niveau})</option>`).join('')}
                   </optgroup>
                 ` : ''}
-                <optgroup label="Niveaux standards">
-                  ${officialNiveaux.map(n => `<option value="${n}" ${n === selectedClasseId ? 'selected' : ''}>${n}</option>`).join('')}
-                </optgroup>
               </select>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Sélectionner l'Élève <span style="color:red;">*</span></label>
+              <label class="form-label">Élève évalué <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Optionnel pour le calcul)</span></label>
               <select class="form-select" id="select-eleve">
-                <option value="">-- Choisir un élève --</option>
+                <option value="">-- Mode direct (Sans liste d'élèves) --</option>
               </select>
+              <input type="text" id="input-eleve-nom-libre" class="form-control" placeholder="Nom ou prénom de l'élève (optionnel)" style="margin-top: 6px; font-size: 0.85rem;" />
             </div>
           </div>
 
@@ -150,6 +154,7 @@ export function renderNotation(container) {
   // DOM references
   const selectClasse = container.querySelector('#select-classe');
   const selectEleve = container.querySelector('#select-eleve');
+  const inputEleveNomLibre = container.querySelector('#input-eleve-nom-libre');
   const selectDiscipline = container.querySelector('#select-discipline');
   const groupEngin = container.querySelector('#group-select-engin');
   const selectEngin = container.querySelector('#select-engin');
@@ -162,8 +167,8 @@ export function renderNotation(container) {
   const validationAlert = container.querySelector('#validation-error-alert');
   const validationMsg = container.querySelector('#validation-error-msg');
 
-  const bannerClassName = container.querySelector('#banner-class-name');
   const bannerClassLevel = container.querySelector('#banner-class-level');
+  const bannerClassNameContainer = container.querySelector('#banner-class-name-container');
   const bannerClassCount = container.querySelector('#banner-class-count');
 
   const scoreVal = container.querySelector('#score-val');
@@ -183,20 +188,22 @@ export function renderNotation(container) {
       return {
         id: clsObj.id,
         nom: clsObj.nom,
-        niveau: clsObj.niveau || (EPSEngine.OFFICIAL_LEVELS.includes(clsObj.nom) ? clsObj.nom : 'Troisième')
+        niveau: clsObj.niveau || EPSEngine.normalizeNiveau(clsObj.nom)
       };
     }
     // Fallback: standard niveau string
+    const normalized = EPSEngine.normalizeNiveau(val);
     return {
       id: null,
-      nom: val || 'Troisième',
-      niveau: val || 'Troisième'
+      nom: val || normalized,
+      niveau: normalized
     };
   }
 
   function updateEnginsList() {
     const disciplineNom = selectDiscipline.value;
-    const discObj = disciplinesList.find(d => d.nom === disciplineNom);
+    const availableDisciplines = db.getDisciplines();
+    const discObj = availableDisciplines.find(d => d.nom === disciplineNom);
     let engins = (discObj && discObj.engins && discObj.engins.length > 0) ? discObj.engins : [];
 
     if (engins.length === 0) {
@@ -245,23 +252,38 @@ export function renderNotation(container) {
     const classInfo = getActiveClasseInfo();
     
     // Update active class banner indicator
-    bannerClassName.textContent = classInfo.nom;
     bannerClassLevel.textContent = classInfo.niveau;
+    if (bannerClassNameContainer) {
+      if (classInfo.id) {
+        bannerClassNameContainer.textContent = `· Classe : ${classInfo.nom}`;
+      } else {
+        bannerClassNameContainer.textContent = `· Barème officiel direct`;
+      }
+    }
 
-    // Filter students STRICTLY belonging to this class
+    // Filter students belonging to this class (if created)
     const classStudents = db.getEleves(classInfo.id || classInfo.niveau);
-    bannerClassCount.textContent = `${classStudents.length} élève${classStudents.length > 1 ? 's' : ''}`;
-
-    selectEleve.innerHTML = '<option value="">-- Choisir un élève --</option>';
-    classStudents.forEach(e => {
-      // Check if already evaluated in this discipline
-      const isEvaluated = db.getEvaluations().some(ev => (ev.eleveId === e.id || ev.eleveNom === `${e.nom} ${e.prenom}`) && ev.discipline === selectDiscipline.value);
-      selectEleve.innerHTML += `
-        <option value="${e.id}" data-genre="${e.genre}">
-          ${e.nom} ${e.prenom} (${e.genre}) ${isEvaluated ? '✓' : ''}
-        </option>
-      `;
-    });
+    if (classStudents.length > 0) {
+      bannerClassCount.textContent = `${classStudents.length} élève${classStudents.length > 1 ? 's' : ''}`;
+      selectEleve.innerHTML = '<option value="">-- Calcul direct (Sans élève spécifique) --</option>';
+      classStudents.forEach(e => {
+        const isEvaluated = db.getEvaluations().some(ev => (ev.eleveId === e.id || ev.eleveNom === `${e.nom} ${e.prenom}`) && ev.discipline === selectDiscipline.value);
+        selectEleve.innerHTML += `
+          <option value="${e.id}" data-genre="${e.genre}">
+            ${e.nom} ${e.prenom} (${e.genre}) ${isEvaluated ? '✓' : ''}
+          </option>
+        `;
+      });
+      if (inputEleveNomLibre) {
+        inputEleveNomLibre.style.display = selectEleve.value === '' ? 'block' : 'none';
+      }
+    } else {
+      bannerClassCount.textContent = `Calcul direct autonome`;
+      selectEleve.innerHTML = '<option value="">-- Mode direct (Sans liste d\'élèves) --</option>';
+      if (inputEleveNomLibre) {
+        inputEleveNomLibre.style.display = 'block';
+      }
+    }
   }
 
   function updateLiveScore() {
@@ -273,7 +295,7 @@ export function renderNotation(container) {
     const mode = selectMode.value;
     const rawVal = inputDistance.value.trim();
 
-    // If a student is explicitly selected, his/her actual gender prevails
+    // If an existing student is explicitly selected, his/her actual gender prevails
     const eleveId = selectEleve.value;
     if (eleveId) {
       const eleveObj = db.getEleveById(eleveId);
@@ -406,53 +428,72 @@ export function renderNotation(container) {
   selectEleve.addEventListener('change', () => {
     const val = selectEleve.value;
     if (val) {
+      if (inputEleveNomLibre) inputEleveNomLibre.style.display = 'none';
       const el = db.getEleveById(val);
       if (el) {
         selectGenre.value = el.genre;
         updateEnginsList();
       }
+    } else {
+      if (inputEleveNomLibre) inputEleveNomLibre.style.display = 'block';
     }
     updateLiveScore();
   });
+
+  if (inputEleveNomLibre) {
+    inputEleveNomLibre.addEventListener('input', () => {
+      // Freeform student name typed
+    });
+  }
 
   inputDistance.addEventListener('input', () => {
     updateLiveScore();
   });
 
-  // Save evaluation button
+  // Save evaluation button (autonomous or student-linked)
   btnSave.addEventListener('click', async () => {
-    const eleveId = selectEleve.value;
     const rawVal = inputDistance.value.trim();
 
-    if (!eleveId) {
-      Toast.show("Veuillez sélectionner un élève dans la liste.", "error");
-      selectEleve.focus();
-      return;
-    }
     if (!rawVal) {
-      Toast.show("Veuillez saisir une performance valide.", "error");
+      Toast.show("Veuillez saisir une performance valide avant d'enregistrer.", "error");
       inputDistance.focus();
-      return;
-    }
-
-    const eleveObj = db.getEleveById(eleveId);
-    if (!eleveObj) {
-      Toast.show("Élève introuvable.", "error");
       return;
     }
 
     const classInfo = getActiveClasseInfo();
     const officialNiveau = classInfo.niveau;
+    let genre = selectGenre.value;
+    let eleveNom = "";
+    let studentIdToSave = null;
+
+    const eleveId = selectEleve.value;
+    if (eleveId) {
+      const eleveObj = db.getEleveById(eleveId);
+      if (eleveObj) {
+        studentIdToSave = eleveObj.id;
+        eleveNom = `${eleveObj.nom} ${eleveObj.prenom}`;
+        genre = eleveObj.genre;
+      }
+    }
+
+    if (!eleveNom) {
+      const nomLibre = inputEleveNomLibre ? (inputEleveNomLibre.value || '').trim() : '';
+      if (nomLibre) {
+        eleveNom = nomLibre;
+      } else {
+        eleveNom = `Élève (${genre} - ${officialNiveau})`;
+      }
+    }
 
     // Validate inputs
-    const validation = EPSEngine.validateInput(selectDiscipline.value, officialNiveau, eleveObj.genre, selectEngin.value || null);
+    const validation = EPSEngine.validateInput(selectDiscipline.value, officialNiveau, genre, selectEngin.value || null);
     if (!validation.valid) {
       Toast.show(validation.message, "error");
       return;
     }
 
     const perfNum = EPSEngine.parsePerformance(rawVal);
-    const result = EPSEngine.calculateGrade(selectDiscipline.value, officialNiveau, eleveObj.genre, rawVal, selectEngin.value || null, selectMode.value);
+    const result = EPSEngine.calculateGrade(selectDiscipline.value, officialNiveau, genre, rawVal, selectEngin.value || null, selectMode.value);
 
     if (!result.valid || result.note === null || !result.baremeFound) {
       Toast.show(result.error || "Impossible d'enregistrer : saisie non conforme", "error");
@@ -467,12 +508,12 @@ export function renderNotation(container) {
       const perfFormatted = EPSEngine.formatPerformance(perfNum, isTime, selectDiscipline.value);
 
       await db.addEvaluation({
-        eleveId: eleveObj.id,
-        eleveNom: `${eleveObj.nom} ${eleveObj.prenom}`,
+        eleveId: studentIdToSave,
+        eleveNom: eleveNom,
         classeId: classInfo.id,
         classeNom: classInfo.nom,
         classe: officialNiveau,
-        genre: eleveObj.genre,
+        genre: genre,
         discipline: selectDiscipline.value,
         engin: result.engin || selectEngin.value || null,
         distance: perfNum,
@@ -483,23 +524,26 @@ export function renderNotation(container) {
         professeurId: db.getCurrentProfesseur().id
       });
 
-      Toast.show(`Note de ${result.note}/20 enregistrée avec succès pour ${eleveObj.nom} !`, "success");
+      Toast.show(`Note de ${result.note}/20 enregistrée avec succès pour ${eleveNom} !`, "success");
       inputDistance.value = '';
+      if (inputEleveNomLibre) inputEleveNomLibre.value = '';
 
-      // Update student list checkmarks and auto-advance to next student
+      // Update student list checkmarks and auto-advance to next student if in a roster
       updateEleveList();
 
-      const options = Array.from(selectEleve.options).filter(opt => opt.value !== '');
-      const currentIndex = options.findIndex(opt => opt.value === eleveId);
-      if (currentIndex >= 0 && currentIndex < options.length - 1) {
-        selectEleve.value = options[currentIndex + 1].value;
-        const nextEl = db.getEleveById(selectEleve.value);
-        if (nextEl) {
-          selectGenre.value = nextEl.genre;
-          updateEnginsList();
+      if (eleveId) {
+        const options = Array.from(selectEleve.options).filter(opt => opt.value !== '');
+        const currentIndex = options.findIndex(opt => opt.value === eleveId);
+        if (currentIndex >= 0 && currentIndex < options.length - 1) {
+          selectEleve.value = options[currentIndex + 1].value;
+          const nextEl = db.getEleveById(selectEleve.value);
+          if (nextEl) {
+            selectGenre.value = nextEl.genre;
+            updateEnginsList();
+          }
+        } else {
+          selectEleve.value = '';
         }
-      } else {
-        selectEleve.value = '';
       }
 
       updateLiveScore();
@@ -517,4 +561,16 @@ export function renderNotation(container) {
   updateEnginsList();
   updateEleveList();
   updateLiveScore();
+
+  // Listen to background updates
+  window.addEventListener('eps:prof-changed', () => {
+    updateEnginsList();
+    updateEleveList();
+    updateLiveScore();
+  });
+  window.addEventListener('eps:db-synced', () => {
+    updateEnginsList();
+    updateEleveList();
+    updateLiveScore();
+  });
 }

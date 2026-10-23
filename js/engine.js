@@ -7,6 +7,38 @@
 import { db } from './db.js';
 
 export class EPSEngine {
+  static OFFICIAL_LEVELS = [
+    "Sixième",
+    "Cinquième",
+    "Quatrième",
+    "Troisième",
+    "Seconde",
+    "Première",
+    "Terminale"
+  ];
+
+  static OFFICIAL_DISCIPLINES = [
+    "Lancer de poids",
+    "Course 1000m",
+    "Course 800m",
+    "Course de vitesse de 60 mètres",
+    "Saut en hauteur",
+    "Saut en longueur"
+  ];
+
+  static normalizeNiveau(input) {
+    if (!input) return "Troisième";
+    const s = String(input).trim().toLowerCase();
+    if (s.includes("6") || s.includes("six")) return "Sixième";
+    if (s.includes("5") || s.includes("cinq")) return "Cinquième";
+    if (s.includes("4") || s.includes("quat")) return "Quatrième";
+    if (s.includes("3") || s.includes("trois")) return "Troisième";
+    if (s.includes("2") || s.includes("sec")) return "Seconde";
+    if (s.includes("1") || s.includes("prem")) return "Première";
+    if (s.includes("term") || s.includes("tle")) return "Terminale";
+    const match = EPSEngine.OFFICIAL_LEVELS.find(l => l.toLowerCase() === s);
+    return match || "Troisième";
+  }
   /**
    * Helper to parse performance strings (ex: "3'09", "8''2", "11.70", or raw number) into numeric value
    * @param {string|number} raw 

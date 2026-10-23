@@ -83,7 +83,7 @@ class EPSDatabase {
         const fetchedClasses = clsData.map(row => ({
           id: row.id,
           nom: row.nom,
-          niveau: row.niveau || row.cycle || (EPSEngine.OFFICIAL_LEVELS.includes(row.nom) ? row.nom : 'Troisième'),
+          niveau: row.niveau || row.cycle || EPSEngine.normalizeNiveau(row.nom),
           anneeScolaire: row.annee_scolaire || '2026-2027',
           description: row.description || '',
           professeurId: row.professeur_id || 'prof_default',
