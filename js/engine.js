@@ -84,6 +84,60 @@ export class EPSEngine {
   }
 
   /**
+   * Determine whether an activity is timed (running/swimming) or distance/height
+   * @param {string} discipline 
+   * @returns {boolean}
+   */
+  static isTimeDiscipline(discipline) {
+    if (!discipline) return false;
+    const d = discipline.toLowerCase();
+    return d.includes("course") || d.includes("vitesse") || d.includes("natation") || d.includes("chrono") || d.includes("1000m") || d.includes("800m") || d.includes("60m") || d.includes("80m") || d.includes("50m");
+  }
+
+  /**
+   * Get the measurement unit of a discipline
+   * @param {string} discipline 
+   * @param {boolean} short - whether to return abbreviated unit (e.g. 'm', 's', 'min:sec')
+   * @returns {string}
+   */
+  static getDisciplineUnit(discipline, short = false) {
+    if (!discipline) return short ? "m" : "mètres";
+    const d = discipline.toLowerCase();
+    if (d.includes("1000m") || d.includes("800m")) return short ? "min:sec" : "min'sec''";
+    if (EPSEngine.isTimeDiscipline(discipline)) return short ? "s" : "secondes";
+    return short ? "m" : "mètres";
+  }
+
+  /**
+   * Compares two performance values for a given discipline.
+   * Returns:
+   *  > 0 if candidate is strictly BETTER than reference
+   *  < 0 if candidate is strictly WORSE than reference
+   *  = 0 if identical
+   * @param {string} discipline 
+   * @param {number} candidate 
+   * @param {number} reference 
+   * @returns {number}
+   */
+  static comparePerformances(discipline, candidate, reference) {
+    const isTime = EPSEngine.isTimeDiscipline(discipline);
+    if (isTime) {
+      // In timed races, smaller time is better: candidate < reference => reference - candidate > 0
+      return reference - candidate;
+    } else {
+      // In throws / jumps, greater distance/height is better: candidate > reference => candidate - reference > 0
+      return candidate - reference;
+    }
+  }
+
+  /**
+   * Returns true if candidate performance is strictly better than reference
+   */
+  static isBetterPerformance(discipline, candidate, reference) {
+    return EPSEngine.comparePerformances(discipline, candidate, reference) > 0;
+  }
+
+  /**
    * Validate that the activity and apparatus weight match the official reference scale
    * @param {string} discipline 
    * @param {string} classe 

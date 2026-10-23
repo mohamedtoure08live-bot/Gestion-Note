@@ -1,24 +1,31 @@
 /**
  * EPS Database Manager (js/db.js)
  * Full Stack Supabase integration with PostgreSQL cloud persistence,
- * optimistic local caching, and offline resiliency.
+ * optimistic local caching, multi-professeur data isolation, and classes management.
  */
 
 import { SupabaseManager } from './supabaseClient.js';
+import { EPSEngine } from './engine.js';
 
 const DB_KEYS = {
   BAREMES: 'eps_baremes_v12',
-  ELEVES: 'eps_eleves_v1',
-  EVALUATIONS: 'eps_evaluations_v1',
+  ELEVES: 'eps_eleves_v2',
+  CLASSES: 'eps_classes_v2',
+  EVALUATIONS: 'eps_evaluations_v2',
   DISCIPLINES: 'eps_disciplines_v2',
-  INITIALIZED: 'eps_init_status_v12'
+  PROFESSEURS: 'eps_professeurs_v2',
+  CURRENT_PROF: 'eps_current_prof_id_v2',
+  INITIALIZED: 'eps_init_status_v13'
 };
 
 class EPSDatabase {
   constructor() {
     this.baremes = [];
+    this.classes = [];
     this.eleves = [];
     this.evaluations = [];
+    this.professeurs = [];
+    this.currentProfesseurId = 'prof_default';
     this.cachedDisciplines = [];
     this.isOnline = false;
     this.realtimeSubscribed = false;
@@ -67,25 +74,40 @@ class EPSDatabase {
     if (!sb) return;
 
     try {
-      // 1. Fetch Disciplines
-      const { data: discData, error: discErr } = await sb
-        .from('disciplines')
-        .select('*')
-        .order('nom');
+      // 1. Fetch Classes
+      const { data: clsData, error: clsErr } = await sb
+        .from('classes')
+        .select('*');
 
-      if (!discErr && discData && discData.length > 0) {
-        this.cachedDisciplines = discData.filter(d => !d.nom.toLowerCase().includes("haies") && d.nom !== "Course 60m / 80m");
-        localStorage.setItem(DB_KEYS.DISCIPLINES, JSON.stringify(this.cachedDisciplines));
+      if (!clsErr && clsData && clsData.length > 0) {
+        this.classes = clsData.map(row => ({
+          id: row.id,
+          nom: row.nom,
+          niveau: row.niveau || row.cycle || (EPSEngine.OFFICIAL_LEVELS.includes(row.nom) ? row.nom : 'Troisième'),
+          anneeScolaire: row.annee_scolaire || '2026-2027',
+          description: row.description || '',
+          professeurId: row.professeur_id || 'prof_default',
+          createdAt: row.created_at || new Date().toISOString()
+        }));
+        localStorage.setItem(DB_KEYS.CLASSES, JSON.stringify(this.classes));
       }
 
       // 2. Fetch Eleves
       const { data: elData, error: elErr } = await sb
         .from('eleves')
-        .select('*')
-        .order('nom');
+        .select('*');
 
-      if (!elErr && elData) {
-        this.eleves = elData;
+      if (!elErr && elData && elData.length > 0) {
+        this.eleves = elData.map(row => ({
+          id: row.id,
+          nom: row.nom,
+          prenom: row.prenom,
+          genre: row.genre,
+          classe: row.classe,
+          classeId: row.classe_id || null,
+          matricule: row.matricule || '',
+          professeurId: row.professeur_id || 'prof_default'
+        }));
         localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
       }
 
@@ -95,7 +117,7 @@ class EPSDatabase {
         .select('*')
         .order('evaluation_date', { ascending: false });
 
-      if (!evErr && evData) {
+      if (!evErr && evData && evData.length > 0) {
         this.evaluations = evData.map(row => ({
           id: row.id,
           eleveId: row.eleve_id,
@@ -103,10 +125,12 @@ class EPSDatabase {
           discipline: row.discipline,
           engin: row.engin,
           classe: row.classe,
+          classeId: row.classe_id || null,
           genre: row.genre,
           distance: parseFloat(row.distance),
           note: parseFloat(row.note),
-          date: row.evaluation_date
+          date: row.evaluation_date,
+          professeurId: row.professeur_id || 'prof_default'
         }));
         localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
       }
@@ -122,7 +146,7 @@ class EPSDatabase {
       }
 
       this.saveLocalAll();
-      console.log(`Supabase Sync complete: ${this.eleves.length} élèves, ${this.evaluations.length} évaluations, ${this.baremes.length} barèmes.`);
+      console.log(`Supabase Sync complete: ${this.classes.length} classes, ${this.eleves.length} élèves, ${this.evaluations.length} évaluations, ${this.baremes.length} barèmes.`);
     } catch (e) {
       console.warn("Failed to complete full sync from Supabase:", e);
     }
@@ -139,7 +163,6 @@ class EPSDatabase {
     try {
       sb.channel('public_eps_sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'evaluations' }, payload => {
-          console.log("Realtime evaluation update received:", payload);
           if (payload.eventType === 'INSERT') {
             const row = payload.new;
             const item = {
@@ -149,10 +172,12 @@ class EPSDatabase {
               discipline: row.discipline,
               engin: row.engin,
               classe: row.classe,
+              classeId: row.classe_id || null,
               genre: row.genre,
               distance: parseFloat(row.distance),
               note: parseFloat(row.note),
-              date: row.evaluation_date
+              date: row.evaluation_date,
+              professeurId: row.professeur_id || 'prof_default'
             };
             if (!this.evaluations.find(e => e.id === item.id)) {
               this.evaluations.unshift(item);
@@ -163,8 +188,18 @@ class EPSDatabase {
             this.saveLocalAll();
           }
         })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, payload => {
+          if (payload.eventType === 'INSERT') {
+            if (!this.classes.find(c => c.id === payload.new.id)) {
+              this.classes.push(payload.new);
+              this.saveLocalAll();
+            }
+          } else if (payload.eventType === 'DELETE') {
+            this.classes = this.classes.filter(c => c.id !== payload.old.id);
+            this.saveLocalAll();
+          }
+        })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'eleves' }, payload => {
-          console.log("Realtime élève update received:", payload);
           if (payload.eventType === 'INSERT') {
             if (!this.eleves.find(e => e.id === payload.new.id)) {
               this.eleves.push(payload.new);
@@ -187,10 +222,71 @@ class EPSDatabase {
     try {
       this.baremes = (JSON.parse(localStorage.getItem(DB_KEYS.BAREMES) || '[]'))
         .filter(b => !b.discipline.toLowerCase().includes("haies") && b.discipline !== "Course 60m / 80m");
-      this.eleves = JSON.parse(localStorage.getItem(DB_KEYS.ELEVES) || '[]');
-      this.evaluations = JSON.parse(localStorage.getItem(DB_KEYS.EVALUATIONS) || '[]');
+      
       this.cachedDisciplines = (JSON.parse(localStorage.getItem(DB_KEYS.DISCIPLINES) || '[]'))
         .filter(d => !d.nom.toLowerCase().includes("haies") && d.nom !== "Course 60m / 80m");
+
+      // Load Professeurs
+      this.professeurs = JSON.parse(localStorage.getItem(DB_KEYS.PROFESSEURS) || '[]');
+      if (this.professeurs.length === 0) {
+        this.professeurs = [
+          { id: 'prof_default', nom: 'M. Soro', prenom: 'Abdoulaye', email: 'soro.eps@education.ci', etablissement: 'Lycée Moderne', role: 'Enseignant EPS' },
+          { id: 'prof_toure', nom: 'Mme Touré', prenom: 'Aminata', email: 'toure.eps@education.ci', etablissement: 'Collège de Cocody', role: 'Enseignante EPS' }
+        ];
+      }
+      this.currentProfesseurId = localStorage.getItem(DB_KEYS.CURRENT_PROF) || 'prof_default';
+
+      // Load Classes
+      this.classes = JSON.parse(localStorage.getItem(DB_KEYS.CLASSES) || '[]');
+      if (this.classes.length === 0) {
+        // Seed initial teacher classes
+        this.classes = [
+          { id: 'cls_3eA', nom: '3e A', niveau: 'Troisième', anneeScolaire: '2026-2027', description: 'Classe de 3ème section A', professeurId: 'prof_default', createdAt: new Date().toISOString() },
+          { id: 'cls_6e1', nom: '6e 1', niveau: 'Sixième', anneeScolaire: '2026-2027', description: 'Classe de 6ème groupe 1', professeurId: 'prof_default', createdAt: new Date().toISOString() },
+          { id: 'cls_2ndeB', nom: '2nde B', niveau: 'Seconde', anneeScolaire: '2026-2027', description: 'Seconde scientifique B', professeurId: 'prof_default', createdAt: new Date().toISOString() }
+        ];
+      }
+
+      // Load Eleves (with backward compatibility)
+      let storedEleves = JSON.parse(localStorage.getItem(DB_KEYS.ELEVES) || '[]');
+      if (storedEleves.length === 0) {
+        // Try fallback from v1 key
+        storedEleves = JSON.parse(localStorage.getItem('eps_eleves_v1') || '[]');
+      }
+      
+      this.eleves = storedEleves.map(el => {
+        let cid = el.classeId;
+        let cNom = el.classeNom;
+        if (!cid) {
+          const matchCls = this.classes.find(c => c.niveau === el.classe);
+          if (matchCls) {
+            cid = matchCls.id;
+            cNom = matchCls.nom;
+          }
+        }
+        return {
+          id: el.id,
+          nom: el.nom,
+          prenom: el.prenom,
+          genre: el.genre,
+          classe: el.classe,
+          classeId: cid || null,
+          classeNom: cNom || el.classe,
+          matricule: el.matricule || '',
+          professeurId: el.professeurId || 'prof_default'
+        };
+      });
+
+      // Load Evaluations (with backward compatibility)
+      let storedEvals = JSON.parse(localStorage.getItem(DB_KEYS.EVALUATIONS) || '[]');
+      if (storedEvals.length === 0) {
+        storedEvals = JSON.parse(localStorage.getItem('eps_evaluations_v1') || '[]');
+      }
+      this.evaluations = storedEvals.map(ev => ({
+        ...ev,
+        professeurId: ev.professeurId || 'prof_default'
+      }));
+
     } catch (e) {
       console.warn("Local storage parse error:", e);
     }
@@ -199,8 +295,11 @@ class EPSDatabase {
   saveLocalAll() {
     try {
       localStorage.setItem(DB_KEYS.BAREMES, JSON.stringify(this.baremes));
+      localStorage.setItem(DB_KEYS.CLASSES, JSON.stringify(this.classes));
       localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
       localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
+      localStorage.setItem(DB_KEYS.PROFESSEURS, JSON.stringify(this.professeurs));
+      localStorage.setItem(DB_KEYS.CURRENT_PROF, this.currentProfesseurId);
       localStorage.setItem(DB_KEYS.INITIALIZED, 'true');
     } catch (e) {
       console.warn("Local storage write error:", e);
@@ -216,6 +315,373 @@ class EPSDatabase {
       console.warn("Fallback baremes loading error:", e);
     }
     this.saveLocalAll();
+  }
+
+  // --- PROFESSEURS / MULTI-UTILISATEUR ---
+  getProfesseurs() {
+    return this.professeurs;
+  }
+
+  getCurrentProfesseur() {
+    const prof = this.professeurs.find(p => p.id === this.currentProfesseurId);
+    return prof || this.professeurs[0] || { id: 'prof_default', nom: 'M. Soro', prenom: 'Abdoulaye' };
+  }
+
+  setCurrentProfesseur(id) {
+    const p = this.professeurs.find(prof => prof.id === id);
+    if (p) {
+      this.currentProfesseurId = p.id;
+      localStorage.setItem(DB_KEYS.CURRENT_PROF, p.id);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('eps:prof-changed', { detail: { prof: p } }));
+      }
+      return p;
+    }
+    return null;
+  }
+
+  addProfesseur(data) {
+    const newProf = {
+      id: 'prof_' + Date.now(),
+      nom: (data.nom || '').trim(),
+      prenom: (data.prenom || '').trim(),
+      email: (data.email || '').trim(),
+      etablissement: (data.etablissement || 'Établissement Scolaire').trim(),
+      role: 'Enseignant EPS',
+      createdAt: new Date().toISOString()
+    };
+    this.professeurs.push(newProf);
+    this.saveLocalAll();
+    return newProf;
+  }
+
+  // --- CLASSES CRUD (« Mes classes ») ---
+  getClasses(profId = null) {
+    const targetProf = profId || this.currentProfesseurId;
+    return this.classes.filter(c => c.professeurId === targetProf || (!c.professeurId && targetProf === 'prof_default'));
+  }
+
+  getClassById(id) {
+    return this.classes.find(c => c.id === id) || null;
+  }
+
+  async addClass(classeData) {
+    const activeProfId = classeData.professeurId || this.currentProfesseurId;
+    const newClass = {
+      id: classeData.id || 'cls_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      nom: (classeData.nom || '').trim(),
+      niveau: classeData.niveau || 'Troisième',
+      anneeScolaire: classeData.anneeScolaire || '2026-2027',
+      description: classeData.description || '',
+      professeurId: activeProfId,
+      createdAt: new Date().toISOString()
+    };
+
+    this.classes.push(newClass);
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('classes').insert({
+          id: newClass.id,
+          nom: newClass.nom,
+          niveau: newClass.niveau,
+          annee_scolaire: newClass.anneeScolaire,
+          description: newClass.description,
+          professeur_id: newClass.professeurId
+        });
+      } catch (e) {
+        console.warn("Supabase insert classe notice:", e);
+      }
+    }
+
+    return newClass;
+  }
+
+  async updateClass(id, updatedData) {
+    const idx = this.classes.findIndex(c => c.id === id);
+    if (idx < 0) return null;
+
+    // Security check: teacher authorization
+    const cls = this.classes[idx];
+    if (cls.professeurId && cls.professeurId !== this.currentProfesseurId) {
+      throw new Error("Accès refusé : vous n'êtes pas autorisé à modifier cette classe.");
+    }
+
+    this.classes[idx] = { ...this.classes[idx], ...updatedData };
+    
+    // Propagate class name / niveau to attached students
+    if (updatedData.nom || updatedData.niveau) {
+      this.eleves.forEach(el => {
+        if (el.classeId === id) {
+          if (updatedData.nom) el.classeNom = updatedData.nom;
+          if (updatedData.niveau) el.classe = updatedData.niveau;
+        }
+      });
+    }
+
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('classes').update({
+          nom: this.classes[idx].nom,
+          niveau: this.classes[idx].niveau,
+          annee_scolaire: this.classes[idx].anneeScolaire,
+          description: this.classes[idx].description
+        }).eq('id', id);
+      } catch (e) {
+        console.warn("Supabase update classe notice:", e);
+      }
+    }
+
+    return this.classes[idx];
+  }
+
+  async deleteClass(id) {
+    const idx = this.classes.findIndex(c => c.id === id);
+    if (idx < 0) return false;
+
+    // Security check
+    if (this.classes[idx].professeurId && this.classes[idx].professeurId !== this.currentProfesseurId) {
+      throw new Error("Accès refusé : vous n'êtes pas autorisé à supprimer cette classe.");
+    }
+
+    // Safely delete class; unbind students without deleting them or historical evaluations
+    this.classes.splice(idx, 1);
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('classes').delete().eq('id', id);
+      } catch (e) {
+        console.warn("Supabase delete classe notice:", e);
+      }
+    }
+
+    return true;
+  }
+
+  // --- ELEVES CRUD ---
+  getEleves(filterClasse = null, profId = null) {
+    const targetProf = profId || this.currentProfesseurId;
+    let list = this.eleves.filter(e => e.professeurId === targetProf || (!e.professeurId && targetProf === 'prof_default'));
+
+    if (filterClasse && filterClasse !== 'ALL') {
+      list = list.filter(e =>
+        e.classeId === filterClasse ||
+        e.classeNom === filterClasse ||
+        e.classe === filterClasse
+      );
+    }
+    return list;
+  }
+
+  getEleveById(id) {
+    return this.eleves.find(e => e.id === id) || null;
+  }
+
+  async addEleve(eleve) {
+    if (!eleve.id) {
+      eleve.id = 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    }
+    if (!eleve.professeurId) {
+      eleve.professeurId = this.currentProfesseurId;
+    }
+    
+    // Resolve official niveau and classeNom if classeId provided
+    if (eleve.classeId) {
+      const cls = this.getClassById(eleve.classeId);
+      if (cls) {
+        eleve.classeNom = cls.nom;
+        eleve.classe = cls.niveau;
+      }
+    }
+
+    this.eleves.push(eleve);
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('eleves').insert({
+          id: eleve.id,
+          nom: eleve.nom,
+          prenom: eleve.prenom,
+          classe: eleve.classe,
+          genre: eleve.genre,
+          classe_id: eleve.classeId || null,
+          professeur_id: eleve.professeurId,
+          matricule: eleve.matricule || null
+        });
+      } catch (e) {
+        console.warn("Supabase insert eleve notice:", e);
+      }
+    }
+
+    return eleve;
+  }
+
+  /**
+   * Batch insert students with duplicate checking
+   * @param {Array} elevesList 
+   * @param {string} classeId 
+   * @returns {Object} { added, duplicates, errors }
+   */
+  async addElevesBatch(elevesList, classeId) {
+    const targetClass = this.getClassById(classeId);
+    if (!targetClass) {
+      throw new Error("Classe introuvable pour l'importation.");
+    }
+
+    const added = [];
+    const duplicates = [];
+    const errors = [];
+
+    const existingInClass = this.getEleves(classeId, targetClass.professeurId);
+
+    for (const raw of elevesList) {
+      const nom = (raw.nom || '').trim().toUpperCase();
+      const prenom = (raw.prenom || '').trim();
+      let genre = (raw.genre || '').trim();
+
+      // Normalize gender (Garçon / Fille / M / F)
+      const gLower = genre.toLowerCase();
+      if (gLower.startsWith('m') || gLower === 'garcon' || gLower === 'garçon') {
+        genre = 'Garçon';
+      } else if (gLower.startsWith('f') || gLower === 'fille') {
+        genre = 'Fille';
+      }
+
+      if (!nom || !prenom) {
+        errors.push({ raw, reason: "Nom ou prénom manquant." });
+        continue;
+      }
+
+      if (genre !== 'Garçon' && genre !== 'Fille') {
+        errors.push({ raw, reason: `Genre invalide (${raw.genre || 'non renseigné'}). Utilisez 'Garçon' ou 'Fille'.` });
+        continue;
+      }
+
+      // Duplicate check: matching matricule (if provided) OR matching Nom and Prénom in this class
+      const isDup = existingInClass.some(e => {
+        if (raw.matricule && e.matricule && e.matricule.trim().toLowerCase() === raw.matricule.trim().toLowerCase()) {
+          return true;
+        }
+        return e.nom.toUpperCase() === nom && e.prenom.toLowerCase() === prenom.toLowerCase();
+      });
+
+      if (isDup) {
+        duplicates.push({ nom, prenom, matricule: raw.matricule || '', reason: "Déjà inscrit dans cette classe ou matricule identique." });
+        continue;
+      }
+
+      const newStudent = {
+        id: 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        nom: nom,
+        prenom: prenom,
+        genre: genre,
+        matricule: (raw.matricule || '').trim(),
+        classeId: targetClass.id,
+        classeNom: targetClass.nom,
+        classe: targetClass.niveau,
+        professeurId: targetClass.professeurId || this.currentProfesseurId,
+        createdAt: new Date().toISOString()
+      };
+
+      this.eleves.push(newStudent);
+      added.push(newStudent);
+      existingInClass.push(newStudent);
+    }
+
+    this.saveLocalAll();
+
+    // Supabase batch insert
+    const sb = SupabaseManager.getClient();
+    if (sb && added.length > 0) {
+      try {
+        await sb.from('eleves').insert(added.map(e => ({
+          id: e.id,
+          nom: e.nom,
+          prenom: e.prenom,
+          classe: e.classe,
+          genre: e.genre,
+          classe_id: e.classeId,
+          professeur_id: e.professeurId,
+          matricule: e.matricule || null
+        })));
+      } catch (e) {
+        console.warn("Supabase batch insert notice:", e);
+      }
+    }
+
+    return { added, duplicates, errors };
+  }
+
+  async updateEleve(id, updatedData) {
+    const idx = this.eleves.findIndex(e => e.id === id);
+    if (idx < 0) return null;
+
+    // Security check
+    if (this.eleves[idx].professeurId && this.eleves[idx].professeurId !== this.currentProfesseurId) {
+      throw new Error("Accès refusé : vous n'êtes pas autorisé à modifier cet élève.");
+    }
+
+    if (updatedData.classeId && updatedData.classeId !== this.eleves[idx].classeId) {
+      const cls = this.getClassById(updatedData.classeId);
+      if (cls) {
+        updatedData.classeNom = cls.nom;
+        updatedData.classe = cls.niveau;
+      }
+    }
+
+    this.eleves[idx] = { ...this.eleves[idx], ...updatedData };
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('eleves').update({
+          nom: this.eleves[idx].nom,
+          prenom: this.eleves[idx].prenom,
+          classe: this.eleves[idx].classe,
+          genre: this.eleves[idx].genre,
+          classe_id: this.eleves[idx].classeId || null,
+          matricule: this.eleves[idx].matricule || null
+        }).eq('id', id);
+      } catch (e) {
+        console.warn("Supabase update eleve notice:", e);
+      }
+    }
+
+    return this.eleves[idx];
+  }
+
+  async deleteEleve(id) {
+    const idx = this.eleves.findIndex(e => e.id === id);
+    if (idx < 0) return false;
+
+    // Security check
+    if (this.eleves[idx].professeurId && this.eleves[idx].professeurId !== this.currentProfesseurId) {
+      throw new Error("Accès refusé : vous n'êtes pas autorisé à supprimer cet élève.");
+    }
+
+    // Safely remove student from class roster while keeping historical evaluation records intact
+    this.eleves.splice(idx, 1);
+    this.saveLocalAll();
+
+    const sb = SupabaseManager.getClient();
+    if (sb) {
+      try {
+        await sb.from('eleves').delete().eq('id', id);
+      } catch (e) {
+        console.warn("Supabase delete eleve notice:", e);
+      }
+    }
+    return true;
   }
 
   // --- DISCIPLINES / ACTIVITÉS ---
@@ -309,11 +775,9 @@ class EPSDatabase {
       return exact || null;
     }
 
-    // No engin specified: return bareme without engin if available
     const noEngin = list.find(b => !b.engin);
     if (noEngin) return noEngin;
 
-    // If an activity requires engins, but none was passed, return null
     return null;
   }
 
@@ -322,7 +786,6 @@ class EPSDatabase {
       baremeData.id = 'bar_' + Date.now();
     }
 
-    // Optimistic local update
     const idx = this.baremes.findIndex(b => b.id === baremeData.id);
     if (idx >= 0) {
       this.baremes[idx] = baremeData;
@@ -331,11 +794,10 @@ class EPSDatabase {
     }
     this.saveLocalAll();
 
-    // Supabase persist
     const sb = SupabaseManager.getClient();
     if (sb) {
       try {
-        const { error } = await sb.from('baremes').upsert({
+        await sb.from('baremes').upsert({
           id: baremeData.id,
           discipline: baremeData.discipline,
           engin: baremeData.engin || null,
@@ -344,7 +806,6 @@ class EPSDatabase {
           type: baremeData.type || 'distance',
           grille: baremeData.grille || []
         });
-        if (error) console.error("Supabase bareme upsert error:", error);
       } catch (e) {
         console.warn("Offline fallback for bareme upsert:", e);
       }
@@ -353,102 +814,54 @@ class EPSDatabase {
     return baremeData;
   }
 
-  // --- ELEVES CRUD ---
-  getEleves(filterClasse = null) {
-    if (!filterClasse || filterClasse === 'ALL') return this.eleves;
-    return this.eleves.filter(e => e.classe === filterClasse);
-  }
-
-  async addEleve(eleve) {
-    if (!eleve.id) {
-      eleve.id = 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-    }
-
-    // Optimistic local update
-    this.eleves.push(eleve);
-    this.saveLocalAll();
-
-    // Supabase persist
-    const sb = SupabaseManager.getClient();
-    if (sb) {
-      try {
-        const { error } = await sb.from('eleves').insert({
-          id: eleve.id,
-          nom: eleve.nom,
-          prenom: eleve.prenom,
-          classe: eleve.classe,
-          genre: eleve.genre
-        });
-        if (error) console.error("Supabase insert eleve error:", error);
-      } catch (e) {
-        console.warn("Offline fallback for eleve insert:", e);
-      }
-    }
-
-    return eleve;
-  }
-
-  async updateEleve(id, updatedData) {
-    const idx = this.eleves.findIndex(e => e.id === id);
-    if (idx >= 0) {
-      this.eleves[idx] = { ...this.eleves[idx], ...updatedData };
-      this.saveLocalAll();
-
-      const sb = SupabaseManager.getClient();
-      if (sb) {
-        try {
-          await sb.from('eleves').update({
-            nom: updatedData.nom,
-            prenom: updatedData.prenom,
-            classe: updatedData.classe,
-            genre: updatedData.genre
-          }).eq('id', id);
-        } catch (e) {
-          console.warn("Offline update error:", e);
-        }
-      }
-
-      return this.eleves[idx];
-    }
-    return null;
-  }
-
-  async deleteEleve(id) {
-    this.eleves = this.eleves.filter(e => e.id !== id);
-    this.saveLocalAll();
-
-    const sb = SupabaseManager.getClient();
-    if (sb) {
-      try {
-        await sb.from('eleves').delete().eq('id', id);
-      } catch (e) {
-        console.warn("Offline delete error:", e);
-      }
-    }
-  }
-
   // --- EVALUATIONS CRUD ---
-  getEvaluations() {
-    return this.evaluations.sort((a, b) => new Date(b.date) - new Date(a.date));
+  getEvaluations(filterDiscipline = null, filterClasse = null, profId = null) {
+    const targetProf = profId || this.currentProfesseurId;
+    let list = this.evaluations.filter(ev => ev.professeurId === targetProf || (!ev.professeurId && targetProf === 'prof_default'));
+
+    if (filterDiscipline && filterDiscipline !== 'ALL') {
+      const discTarget = filterDiscipline.trim().toLowerCase();
+      list = list.filter(ev => (ev.discipline || '').trim().toLowerCase() === discTarget);
+    }
+
+    if (filterClasse && filterClasse !== 'ALL') {
+      list = list.filter(ev =>
+        ev.classeId === filterClasse ||
+        ev.classeNom === filterClasse ||
+        ev.classe === filterClasse
+      );
+    }
+
+    return list.sort((a, b) => new Date(b.date) - new Date(a.date));
   }
 
   async addEvaluation(evaluation) {
     if (!evaluation.id) {
-      evaluation.id = 'eval_' + Date.now();
+      evaluation.id = 'eval_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
     }
     if (!evaluation.date) {
       evaluation.date = new Date().toISOString();
     }
+    if (!evaluation.professeurId) {
+      evaluation.professeurId = this.currentProfesseurId;
+    }
+    if (evaluation.distance === undefined && evaluation.performance !== undefined) {
+      evaluation.distance = evaluation.performance;
+    }
 
-    // Optimistic local update
+    // Format performance with proper unit if not present
+    if (!evaluation.performanceFormatted) {
+      const isTime = EPSEngine.isTimeDiscipline(evaluation.discipline);
+      evaluation.performanceFormatted = EPSEngine.formatPerformance(evaluation.distance, isTime, evaluation.discipline);
+    }
+
     this.evaluations.unshift(evaluation);
     this.saveLocalAll();
 
-    // Supabase persist
     const sb = SupabaseManager.getClient();
     if (sb) {
       try {
-        const { error } = await sb.from('evaluations').insert({
+        await sb.from('evaluations').insert({
           id: evaluation.id,
           eleve_id: evaluation.eleveId || null,
           eleve_nom: evaluation.eleveNom,
@@ -458,11 +871,12 @@ class EPSDatabase {
           genre: evaluation.genre,
           distance: evaluation.distance,
           note: evaluation.note,
-          evaluation_date: evaluation.date
+          evaluation_date: evaluation.date,
+          professeur_id: evaluation.professeurId,
+          classe_id: evaluation.classeId || null
         });
-        if (error) console.error("Supabase insert evaluation error:", error);
       } catch (e) {
-        console.warn("Offline fallback for evaluation insert:", e);
+        console.warn("Supabase insert evaluation notice:", e);
       }
     }
 
@@ -470,7 +884,15 @@ class EPSDatabase {
   }
 
   async deleteEvaluation(id) {
-    this.evaluations = this.evaluations.filter(ev => ev.id !== id);
+    const idx = this.evaluations.findIndex(ev => ev.id === id);
+    if (idx < 0) return false;
+
+    // Security check
+    if (this.evaluations[idx].professeurId && this.evaluations[idx].professeurId !== this.currentProfesseurId) {
+      throw new Error("Accès refusé : vous n'êtes pas autorisé à supprimer cette évaluation.");
+    }
+
+    this.evaluations.splice(idx, 1);
     this.saveLocalAll();
 
     const sb = SupabaseManager.getClient();
@@ -478,19 +900,22 @@ class EPSDatabase {
       try {
         await sb.from('evaluations').delete().eq('id', id);
       } catch (e) {
-        console.warn("Offline delete error:", e);
+        console.warn("Offline delete notice:", e);
       }
     }
+    return true;
   }
 
   // --- EXPORT & IMPORT ---
   exportDatabase() {
     return JSON.stringify({
-      version: '2.0-fullstack',
+      version: '3.0-multi-prof',
       exportedAt: new Date().toISOString(),
-      baremes: this.baremes,
+      professeurs: this.professeurs,
+      classes: this.classes,
       eleves: this.eleves,
-      evaluations: this.evaluations
+      evaluations: this.evaluations,
+      baremes: this.baremes
     }, null, 2);
   }
 

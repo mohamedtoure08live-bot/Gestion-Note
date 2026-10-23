@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npx serve -l 3000 .",
     "start": "npx serve -l 3000 .",
-    "test": "node tests_verification.cjs"
+    "test": "node tests_verification.cjs && node tests_mission_amelioration.cjs"
   },
   "keywords": [
     "eps",

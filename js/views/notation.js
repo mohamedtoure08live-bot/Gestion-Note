@@ -1,6 +1,7 @@
 /**
  * Notation View Controller (js/views/notation.js)
- * Real-time grading module with exact linear interpolation & engin weight selection.
+ * Real-time grading module connected to Teacher Classes, official scales,
+ * auto-advancing student evaluation roster, and strict regulatory validation.
  */
 
 import { db } from '../db.js';
@@ -8,25 +9,60 @@ import { EPSEngine } from '../engine.js';
 import { Toast } from '../components.js';
 
 export function renderNotation(container) {
-  const eleves = db.getEleves();
-  const classes = ["Sixième", "Cinquième", "Quatrième", "Troisième", "Seconde", "Première", "Terminale"];
+  const currentProf = db.getCurrentProfesseur();
+  const myClasses = db.getClasses();
+  const officialNiveaux = ["Sixième", "Cinquième", "Quatrième", "Troisième", "Seconde", "Première", "Terminale"];
   const disciplinesList = db.getDisciplines();
-  if (disciplinesList.length === 0) {
-    disciplinesList.push({ id: "poids", nom: "Lancer de poids", engins: ["3kg", "4kg", "5kg"] });
-  }
+
+  // Selected class: either first class of teacher or default level
+  let selectedClasseId = myClasses.length > 0 ? myClasses[0].id : "Troisième";
 
   container.innerHTML = `
     <div class="notation-wrapper">
       <!-- Form Panel -->
       <div class="card notation-card">
-        <div class="card-header">
+        <div class="card-header" style="justify-content:space-between; align-items:center;">
           <h3 class="card-title"><i class="fas fa-stopwatch"></i> Saisie de la Performance</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Professeur : <strong>${currentProf.nom}</strong></span>
+        </div>
+
+        <!-- Active Class Banner Indicator -->
+        <div id="active-class-banner" style="margin: 0 0 18px 0; background: var(--primary-light); color: var(--primary); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(79, 70, 229, 0.2);">
+          <div>
+            <i class="fas fa-users-rectangle"></i> Classe active : 
+            <strong id="banner-class-name">-</strong> 
+            (Niveau barème : <strong id="banner-class-level">-</strong>)
+          </div>
+          <span class="badge" id="banner-class-count" style="background: #ffffff; color: var(--primary); font-weight:700;">0 élèves</span>
         </div>
 
         <form id="notation-form">
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Activité</label>
+              <label class="form-label">Classe à évaluer <span style="color:red;">*</span></label>
+              <select class="form-select" id="select-classe">
+                ${myClasses.length > 0 ? `
+                  <optgroup label="Vos classes (Mes classes)">
+                    ${myClasses.map(c => `<option value="${c.id}" ${c.id === selectedClasseId ? 'selected' : ''}>${c.nom} (${c.niveau})</option>`).join('')}
+                  </optgroup>
+                ` : ''}
+                <optgroup label="Niveaux standards">
+                  ${officialNiveaux.map(n => `<option value="${n}" ${n === selectedClasseId ? 'selected' : ''}>${n}</option>`).join('')}
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sélectionner l'Élève <span style="color:red;">*</span></label>
+              <select class="form-select" id="select-eleve">
+                <option value="">-- Choisir un élève --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Activité Sportive</label>
               <select class="form-select" id="select-discipline">
                 ${disciplinesList.map(d => `<option value="${d.nom}" ${d.nom === 'Lancer de poids' ? 'selected' : ''}>${d.nom}</option>`).join('')}
               </select>
@@ -36,13 +72,6 @@ export function renderNotation(container) {
               <label class="form-label">Poids de l'Engin</label>
               <select class="form-select" id="select-engin">
                 <!-- Dynamically filled -->
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Classe</label>
-              <select class="form-select" id="select-classe">
-                ${classes.map(c => `<option value="${c}">${c}</option>`).join('')}
               </select>
             </div>
 
@@ -61,13 +90,6 @@ export function renderNotation(container) {
               <select class="form-select" id="select-mode-calcul">
                 <option value="interpolation" selected>Interpolation Linéaire Exacte (Proportionnelle)</option>
                 <option value="palier">Palier Strict (Note Inférieure)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Sélectionner l'Élève</label>
-              <select class="form-select" id="select-eleve">
-                <option value="">-- Choisir un élève --</option>
               </select>
             </div>
           </div>
@@ -117,19 +139,23 @@ export function renderNotation(container) {
   `;
 
   // DOM references
+  const selectClasse = container.querySelector('#select-classe');
+  const selectEleve = container.querySelector('#select-eleve');
   const selectDiscipline = container.querySelector('#select-discipline');
   const groupEngin = container.querySelector('#group-select-engin');
   const selectEngin = container.querySelector('#select-engin');
-  const selectClasse = container.querySelector('#select-classe');
   const selectGenre = container.querySelector('#select-genre');
   const selectMode = container.querySelector('#select-mode-calcul');
-  const selectEleve = container.querySelector('#select-eleve');
   const labelPerformance = container.querySelector('#label-performance');
   const inputDistance = container.querySelector('#input-distance');
   const unitBadge = container.querySelector('#unit-badge');
   const btnSave = container.querySelector('#btn-save-eval');
   const validationAlert = container.querySelector('#validation-error-alert');
   const validationMsg = container.querySelector('#validation-error-msg');
+
+  const bannerClassName = container.querySelector('#banner-class-name');
+  const bannerClassLevel = container.querySelector('#banner-class-level');
+  const bannerClassCount = container.querySelector('#banner-class-count');
 
   const scoreVal = container.querySelector('#score-val');
   const scoreApprec = container.querySelector('#score-apprec');
@@ -138,12 +164,30 @@ export function renderNotation(container) {
   const scoreDetailPalier = container.querySelector('#score-detail-palier');
   const scoreCircle = container.querySelector('#score-circle');
 
+  // Helper: get current active class object and resolved official niveau
+  function getActiveClasseInfo() {
+    const val = selectClasse.value;
+    const clsObj = db.getClassById(val);
+    if (clsObj) {
+      return {
+        id: clsObj.id,
+        nom: clsObj.nom,
+        niveau: clsObj.niveau
+      };
+    }
+    // Fallback: standard niveau string
+    return {
+      id: null,
+      nom: val,
+      niveau: val
+    };
+  }
+
   function updateEnginsList() {
     const disciplineNom = selectDiscipline.value;
     const discObj = disciplinesList.find(d => d.nom === disciplineNom);
     let engins = (discObj && discObj.engins && discObj.engins.length > 0) ? discObj.engins : [];
 
-    // Fallbacks pour engins connus si la discipline en utilise
     if (engins.length === 0) {
       const lower = disciplineNom.toLowerCase();
       if (lower.includes("poids")) engins = ["3kg", "4kg", "5kg"];
@@ -155,7 +199,22 @@ export function renderNotation(container) {
       groupEngin.style.display = 'block';
       const prevVal = selectEngin.value;
       selectEngin.innerHTML = engins.map(e => `<option value="${e}">${e}</option>`).join('');
-      if (prevVal && engins.includes(prevVal)) {
+      
+      // Auto-select standard engine according to class level and gender
+      const { niveau } = getActiveClasseInfo();
+      const genre = selectGenre.value;
+      if (disciplineNom.toLowerCase().includes("poids")) {
+        if (genre === 'Fille') {
+          if (engins.includes("3kg")) selectEngin.value = "3kg";
+          else if (engins.includes("4kg")) selectEngin.value = "4kg";
+        } else {
+          if ((niveau === "Seconde" || niveau === "Première" || niveau === "Terminale") && engins.includes("5kg")) {
+            selectEngin.value = "5kg";
+          } else if (engins.includes("4kg")) {
+            selectEngin.value = "4kg";
+          }
+        }
+      } else if (prevVal && engins.includes(prevVal)) {
         selectEngin.value = prevVal;
       }
     } else {
@@ -163,7 +222,7 @@ export function renderNotation(container) {
       selectEngin.innerHTML = '';
     }
 
-    const isTime = disciplineNom.toLowerCase().includes("course") || disciplineNom.toLowerCase().includes("natation");
+    const isTime = EPSEngine.isTimeDiscipline(disciplineNom);
     const isLongRun = disciplineNom.toLowerCase().includes("1000m") || disciplineNom.toLowerCase().includes("800m");
     
     labelPerformance.textContent = isTime ? "Temps / Chrono Réalisé" : "Distance / Hauteur Réalisée";
@@ -172,45 +231,57 @@ export function renderNotation(container) {
   }
 
   function updateEleveList() {
-    const allEleves = db.getEleves();
-    const selectedClasse = selectClasse.value;
-    const selectedGenre = selectGenre.value;
-    const filtered = allEleves.filter(e => e.classe === selectedClasse && e.genre === selectedGenre);
+    const classInfo = getActiveClasseInfo();
+    
+    // Update active class banner indicator
+    bannerClassName.textContent = classInfo.nom;
+    bannerClassLevel.textContent = classInfo.niveau;
+
+    // Filter students STRICTLY belonging to this class
+    const classStudents = db.getEleves(classInfo.id || classInfo.niveau);
+    bannerClassCount.textContent = `${classStudents.length} élève${classStudents.length > 1 ? 's' : ''}`;
 
     selectEleve.innerHTML = '<option value="">-- Choisir un élève --</option>';
-    filtered.forEach(e => {
-      selectEleve.innerHTML += `<option value="${e.id}">${e.nom} ${e.prenom}</option>`;
+    classStudents.forEach(e => {
+      // Check if already evaluated in this discipline
+      const isEvaluated = db.getEvaluations().some(ev => (ev.eleveId === e.id || ev.eleveNom === `${e.nom} ${e.prenom}`) && ev.discipline === selectDiscipline.value);
+      selectEleve.innerHTML += `
+        <option value="${e.id}" data-genre="${e.genre}">
+          ${e.nom} ${e.prenom} (${e.genre}) ${isEvaluated ? '✓' : ''}
+        </option>
+      `;
     });
   }
 
   function updateLiveScore() {
     const discipline = selectDiscipline.value;
     const engin = selectEngin.value || null;
-    let classe = selectClasse.value;
+    const classInfo = getActiveClasseInfo();
+    const classe = classInfo.niveau;
     let genre = selectGenre.value;
     const mode = selectMode.value;
     const rawVal = inputDistance.value.trim();
 
-    // Si un élève est expressément sélectionné, son sexe et sa classe réels font foi
+    // If a student is explicitly selected, his/her actual gender prevails
     const eleveId = selectEleve.value;
     if (eleveId) {
-      const allEleves = db.getEleves();
-      const eleveObj = allEleves.find(e => e.id === eleveId);
+      const eleveObj = db.getEleveById(eleveId);
       if (eleveObj) {
-        classe = eleveObj.classe;
         genre = eleveObj.genre;
+        if (selectGenre.value !== genre) {
+          selectGenre.value = genre;
+          updateEnginsList();
+        }
       }
     }
 
-    // 1. Contrôle de saisie strict avant tout calcul
+    // 1. Strict input validation
     const validation = EPSEngine.validateInput(discipline, classe, genre, engin);
 
     if (!validation.valid) {
-      // Afficher message d'erreur explicite
       validationAlert.style.display = 'block';
       validationMsg.textContent = validation.message;
 
-      // Bloquer le calcul : aucune note produite
       scoreVal.textContent = "--";
       scoreCircle.style.borderColor = "var(--accent-rose)";
       scoreApprec.textContent = validation.errorType === 'engin_incompatible' ? "Poids Incompatible" : "Activité Non Autorisée";
@@ -225,7 +296,7 @@ export function renderNotation(container) {
       return;
     }
 
-    // Saisie valide : cacher l'alerte d'erreur
+    // Input is valid
     validationAlert.style.display = 'none';
     validationMsg.textContent = '';
     btnSave.disabled = false;
@@ -238,93 +309,119 @@ export function renderNotation(container) {
       scoreApprec.style.background = "rgba(255,255,255,0.1)";
       scoreDetailExact.innerHTML = "Note Exacte (Interpolée) : <strong>-</strong>";
       scoreDetailPalier.innerHTML = "Note Palier Strict : <strong>-</strong>";
-      scoreDetail.textContent = `Barème conforme (${validation.bareme.discipline}${validation.bareme.engin ? ' - ' + validation.bareme.engin : ''})`;
+      scoreDetail.textContent = `Barème officiel actif : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}`;
       scoreCircle.style.borderColor = "var(--primary)";
       return;
     }
 
-    // Calcul de la note avec le moteur officiel
     const result = EPSEngine.calculateGrade(discipline, classe, genre, rawVal, engin, mode);
 
-    if (!result.valid || result.note === null) {
-      scoreVal.textContent = "--";
-      scoreApprec.textContent = result.appreciation || "Performance Invalide";
-      scoreApprec.style.background = "var(--accent-rose)";
-      scoreCircle.style.borderColor = "var(--accent-rose)";
-      scoreDetailExact.innerHTML = `Note Exacte (Interpolée) : <strong style="color:#f87171;">-</strong>`;
-      scoreDetailPalier.innerHTML = `Note Palier Strict : <strong style="color:#f87171;">-</strong>`;
-      scoreDetail.textContent = result.detail;
-      return;
-    }
+    if (result.valid && result.note !== null) {
+      const displayNote = (mode === 'interpolation') ? Number(result.noteExacte).toFixed(2) : result.notePalier;
+      scoreVal.textContent = displayNote;
+      scoreApprec.textContent = result.appreciation;
 
-    scoreVal.textContent = typeof result.note === 'number' ? result.note.toFixed(result.note % 1 === 0 ? 0 : 2) : result.note;
-    scoreApprec.textContent = result.appreciation;
-    
-    scoreDetailExact.innerHTML = `Note Exacte (Interpolée) : <strong style="color:#38bdf8;">${result.noteExacte} / 20</strong>`;
-    scoreDetailPalier.innerHTML = `Note Palier Strict : <strong style="color:#facc15;">${result.notePalier} / 20</strong>`;
-    scoreDetail.textContent = result.detail + (result.engin ? ` (Engin: ${result.engin})` : '');
+      if (result.note >= 14) {
+        scoreCircle.style.borderColor = "var(--accent-emerald)";
+        scoreApprec.style.background = "var(--accent-emerald)";
+      } else if (result.note >= 10) {
+        scoreCircle.style.borderColor = "var(--accent-amber)";
+        scoreApprec.style.background = "var(--accent-amber)";
+      } else {
+        scoreCircle.style.borderColor = "var(--accent-rose)";
+        scoreApprec.style.background = "var(--accent-rose)";
+      }
 
-    if (result.note >= 14) {
-      scoreCircle.style.borderColor = "var(--accent-emerald)";
-      scoreApprec.style.background = "var(--accent-emerald)";
-    } else if (result.note >= 10) {
-      scoreCircle.style.borderColor = "var(--accent-amber)";
-      scoreApprec.style.background = "var(--accent-amber)";
+      scoreDetailExact.innerHTML = `Note Exacte (Interpolée) : <strong style="color: #4ade80;">${Number(result.noteExacte).toFixed(2)} / 20</strong>`;
+      scoreDetailPalier.innerHTML = `Note Palier Strict : <strong style="color: #60a5fa;">${result.notePalier} / 20</strong>`;
+      scoreDetail.textContent = `Barème officiel : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}`;
     } else {
-      scoreCircle.style.borderColor = "var(--accent-rose)";
+      scoreVal.textContent = "--";
+      scoreApprec.textContent = result.appreciation || "Performance non valide";
       scoreApprec.style.background = "var(--accent-rose)";
+      scoreCircle.style.borderColor = "var(--accent-rose)";
+      scoreDetailExact.innerHTML = "Note Exacte (Interpolée) : <strong>-</strong>";
+      scoreDetailPalier.innerHTML = "Note Palier Strict : <strong>-</strong>";
+      scoreDetail.textContent = result.detail || "Saisie hors barème";
     }
   }
 
-  // Bind Events
-  selectDiscipline.addEventListener('change', () => { updateEnginsList(); updateLiveScore(); });
-  selectClasse.addEventListener('change', () => { updateEleveList(); updateLiveScore(); });
-  selectGenre.addEventListener('change', () => { updateEleveList(); updateLiveScore(); });
-  selectEngin.addEventListener('change', updateLiveScore);
-  selectMode.addEventListener('change', updateLiveScore);
+  // --- EVENT LISTENERS ---
+  selectClasse.addEventListener('change', () => {
+    updateEleveList();
+    updateEnginsList();
+    updateLiveScore();
+  });
+
+  selectDiscipline.addEventListener('change', () => {
+    updateEnginsList();
+    updateEleveList();
+    updateLiveScore();
+  });
+
+  selectEngin.addEventListener('change', () => {
+    updateLiveScore();
+  });
+
+  selectGenre.addEventListener('change', () => {
+    updateEnginsList();
+    updateLiveScore();
+  });
+
+  selectMode.addEventListener('change', () => {
+    updateLiveScore();
+  });
+
   selectEleve.addEventListener('change', () => {
-    const eleveId = selectEleve.value;
-    if (eleveId) {
-      const allEleves = db.getEleves();
-      const eleveObj = allEleves.find(e => e.id === eleveId);
-      if (eleveObj) {
-        if (selectClasse.value !== eleveObj.classe) selectClasse.value = eleveObj.classe;
-        if (selectGenre.value !== eleveObj.genre) selectGenre.value = eleveObj.genre;
+    const val = selectEleve.value;
+    if (val) {
+      const el = db.getEleveById(val);
+      if (el) {
+        selectGenre.value = el.genre;
+        updateEnginsList();
       }
     }
     updateLiveScore();
   });
-  inputDistance.addEventListener('input', updateLiveScore);
 
+  inputDistance.addEventListener('input', () => {
+    updateLiveScore();
+  });
+
+  // Save evaluation button
   btnSave.addEventListener('click', async () => {
     const eleveId = selectEleve.value;
     const rawVal = inputDistance.value.trim();
 
     if (!eleveId) {
-      Toast.show("Veuillez sélectionner un élève", "error");
+      Toast.show("Veuillez sélectionner un élève dans la liste.", "error");
+      selectEleve.focus();
       return;
     }
     if (!rawVal) {
-      Toast.show("Veuillez saisir une performance valide", "error");
+      Toast.show("Veuillez saisir une performance valide.", "error");
+      inputDistance.focus();
       return;
     }
 
-    const allEleves = db.getEleves();
-    const eleveObj = allEleves.find(e => e.id === eleveId);
+    const eleveObj = db.getEleveById(eleveId);
     if (!eleveObj) {
-      Toast.show("Élève non trouvé", "error");
+      Toast.show("Élève introuvable.", "error");
       return;
     }
 
-    // Validation préalable stricte
-    const validation = EPSEngine.validateInput(selectDiscipline.value, eleveObj.classe, eleveObj.genre, selectEngin.value || null);
+    const classInfo = getActiveClasseInfo();
+    const officialNiveau = classInfo.niveau;
+
+    // Validate inputs
+    const validation = EPSEngine.validateInput(selectDiscipline.value, officialNiveau, eleveObj.genre, selectEngin.value || null);
     if (!validation.valid) {
       Toast.show(validation.message, "error");
       return;
     }
 
     const perfNum = EPSEngine.parsePerformance(rawVal);
-    const result = EPSEngine.calculateGrade(selectDiscipline.value, eleveObj.classe, eleveObj.genre, rawVal, selectEngin.value || null, selectMode.value);
+    const result = EPSEngine.calculateGrade(selectDiscipline.value, officialNiveau, eleveObj.genre, rawVal, selectEngin.value || null, selectMode.value);
 
     if (!result.valid || result.note === null || !result.baremeFound) {
       Toast.show(result.error || "Impossible d'enregistrer : saisie non conforme", "error");
@@ -335,32 +432,57 @@ export function renderNotation(container) {
     btnSave.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Enregistrement...`;
 
     try {
+      const isTime = EPSEngine.isTimeDiscipline(selectDiscipline.value);
+      const perfFormatted = EPSEngine.formatPerformance(perfNum, isTime, selectDiscipline.value);
+
       await db.addEvaluation({
         eleveId: eleveObj.id,
         eleveNom: `${eleveObj.nom} ${eleveObj.prenom}`,
+        classeId: classInfo.id,
+        classeNom: classInfo.nom,
+        classe: officialNiveau,
+        genre: eleveObj.genre,
         discipline: selectDiscipline.value,
         engin: result.engin || selectEngin.value || null,
-        classe: eleveObj.classe,
-        genre: eleveObj.genre,
         distance: perfNum,
+        performanceFormatted: perfFormatted,
         note: result.note,
         noteExacte: result.noteExacte,
-        notePalier: result.notePalier
+        notePalier: result.notePalier,
+        professeurId: db.getCurrentProfesseur().id
       });
 
-      Toast.show(`Note de ${result.note}/20 enregistrée pour ${eleveObj.nom} dans Supabase !`, "success");
+      Toast.show(`Note de ${result.note}/20 enregistrée avec succès pour ${eleveObj.nom} !`, "success");
       inputDistance.value = '';
+
+      // Update student list checkmarks and auto-advance to next student
+      updateEleveList();
+
+      const options = Array.from(selectEleve.options).filter(opt => opt.value !== '');
+      const currentIndex = options.findIndex(opt => opt.value === eleveId);
+      if (currentIndex >= 0 && currentIndex < options.length - 1) {
+        selectEleve.value = options[currentIndex + 1].value;
+        const nextEl = db.getEleveById(selectEleve.value);
+        if (nextEl) {
+          selectGenre.value = nextEl.genre;
+          updateEnginsList();
+        }
+      } else {
+        selectEleve.value = '';
+      }
+
       updateLiveScore();
+      inputDistance.focus();
     } catch (err) {
       console.error(err);
-      Toast.show("Erreur lors de l'enregistrement", "error");
+      Toast.show("Erreur lors de l'enregistrement de l'évaluation.", "error");
     } finally {
       btnSave.disabled = false;
       btnSave.innerHTML = `<i class="fas fa-check-circle"></i> Enregistrer la Note`;
     }
   });
 
-  // Init
+  // Initial setup
   updateEnginsList();
   updateEleveList();
   updateLiveScore();

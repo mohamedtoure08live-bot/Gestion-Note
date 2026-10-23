@@ -16,7 +16,8 @@ const appRoutes = {
   'dashboard': { title: 'Tableau de Bord Analytics', render: renderDashboard },
   'notation': { title: 'Évaluation & Calcul de Note', render: renderNotation },
   'baremes': { title: 'Gestion des Barèmes Officiels', render: renderBaremes },
-  'eleves': { title: 'Répertoire des Élèves', render: renderEleves },
+  'classes': { title: 'Mes classes & Répertoire des Élèves', render: renderEleves },
+  'eleves': { title: 'Mes classes & Répertoire des Élèves', render: renderEleves },
   'historique': { title: 'Historique des Évaluations', render: renderHistorique }
 };
 
@@ -123,7 +124,9 @@ class App {
     // Update Active Nav Class in App Sidebar
     document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
       const href = item.getAttribute('href').replace('#', '');
-      if (href === routeKey) {
+      const isMatch = href === routeKey || 
+                      ((href === 'classes' || href === 'eleves') && (routeKey === 'classes' || routeKey === 'eleves'));
+      if (isMatch) {
         item.classList.add('active');
       } else {
         item.classList.remove('active');
