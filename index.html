@@ -4,15 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EPS Notation - Evaluation Lancer de Poids Officiel</title>
+  <title>GHIM PRO | EPS Notation & Barèmes</title>
   <meta name="description"
-    content="Application de notation EPS officielle et automatique du lancer de poids pour les professeurs.">
+    content="Découvrez GHIM PRO, une application dédiée à la notation des performances sportives et à la structuration de l'évaluation en EPS.">
 
-  <!-- Google Fonts -->
+  <!-- Open Graph / Meta Réseaux Sociaux -->
+  <meta property="og:title" content="GHIM PRO | EPS Notation & Barèmes">
+  <meta property="og:description"
+    content="Découvrez GHIM PRO, une application dédiée à la notation des performances sportives et à la structuration de l'évaluation en EPS.">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts : Inter, Outfit, Plus Jakarta Sans, Space Grotesk, IBM Plex Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet">
 
   <!-- FontAwesome Icons CDN -->
@@ -22,13 +28,25 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/views.css">
+  <link rel="stylesheet" href="css/landing.css">
+
   <!-- Supabase Client SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-  <div id="app-layout">
+  <!-- =========================================================================
+       PUBLIC SHOWCASE / LANDING PAGE VIEW
+       ========================================================================= -->
+  <div id="landing-container">
+    <!-- Rendered dynamically by js/views/landing.js -->
+  </div>
+
+  <!-- =========================================================================
+       EXISTING OPERATIONAL APPLICATION FRAMEWORK
+       ========================================================================= -->
+  <div id="app-layout" style="display: none;">
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -62,6 +80,13 @@
           <i class="fas fa-clock-rotate-left"></i>
           <span>Historique</span>
         </a>
+        
+        <div style="margin: 20px 14px 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;">
+          <a href="#landing" class="nav-item" style="color: #60a5fa;">
+            <i class="fas fa-globe"></i>
+            <span>Vitrine Publique</span>
+          </a>
+        </div>
       </nav>
 
       <div class="sidebar-footer">
@@ -81,7 +106,10 @@
           <h1 id="page-title">Tableau de Bord Analytics</h1>
         </div>
 
-        <div class="header-actions">
+        <div class="header-actions" style="display:flex; align-items:center; gap: 12px;">
+          <a href="#landing" class="btn btn-sm btn-secondary" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
+            <i class="fas fa-house"></i> <span>Vitrine</span>
+          </a>
           <span class="badge badge-note-high" id="cloud-status-badge"
             style="padding: 6px 14px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fas fa-cloud"></i>

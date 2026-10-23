@@ -51,6 +51,12 @@ class EPSDatabase {
         await this.seedDefaultsLocally();
       }
     }
+
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('eps:db-ready', { detail: { baremesCount: this.baremes.length } }));
+      }
+    } catch (e) {}
   }
 
   /**
