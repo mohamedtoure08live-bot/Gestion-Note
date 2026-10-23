@@ -80,7 +80,7 @@ class EPSDatabase {
         .select('*');
 
       if (!clsErr && clsData && clsData.length > 0) {
-        this.classes = clsData.map(row => ({
+        const fetchedClasses = clsData.map(row => ({
           id: row.id,
           nom: row.nom,
           niveau: row.niveau || row.cycle || (EPSEngine.OFFICIAL_LEVELS.includes(row.nom) ? row.nom : 'Troisième'),
@@ -89,6 +89,10 @@ class EPSDatabase {
           professeurId: row.professeur_id || 'prof_default',
           createdAt: row.created_at || new Date().toISOString()
         }));
+        
+        // Preserve any custom classes not yet in cloud
+        const existingCustom = this.classes.filter(c => !fetchedClasses.some(f => f.id === c.id));
+        this.classes = [...fetchedClasses, ...existingCustom];
         localStorage.setItem(DB_KEYS.CLASSES, JSON.stringify(this.classes));
       }
 
@@ -98,7 +102,7 @@ class EPSDatabase {
         .select('*');
 
       if (!elErr && elData && elData.length > 0) {
-        this.eleves = elData.map(row => ({
+        const fetchedEleves = elData.map(row => ({
           id: row.id,
           nom: row.nom,
           prenom: row.prenom,
@@ -108,6 +112,9 @@ class EPSDatabase {
           matricule: row.matricule || '',
           professeurId: row.professeur_id || 'prof_default'
         }));
+        
+        const existingCustom = this.eleves.filter(e => !fetchedEleves.some(f => f.id === e.id));
+        this.eleves = [...fetchedEleves, ...existingCustom];
         localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
       }
 
@@ -118,20 +125,26 @@ class EPSDatabase {
         .order('evaluation_date', { ascending: false });
 
       if (!evErr && evData && evData.length > 0) {
-        this.evaluations = evData.map(row => ({
-          id: row.id,
-          eleveId: row.eleve_id,
-          eleveNom: row.eleve_nom,
-          discipline: row.discipline,
-          engin: row.engin,
-          classe: row.classe,
-          classeId: row.classe_id || null,
-          genre: row.genre,
-          distance: parseFloat(row.distance),
-          note: parseFloat(row.note),
-          date: row.evaluation_date,
-          professeurId: row.professeur_id || 'prof_default'
-        }));
+        this.evaluations = evData.map(row => {
+          const disc = this.normalizeDisciplineName(row.discipline);
+          const isTime = EPSEngine.isTimeDiscipline(disc);
+          const distNum = parseFloat(row.distance);
+          return {
+            id: row.id,
+            eleveId: row.eleve_id,
+            eleveNom: row.eleve_nom,
+            discipline: disc,
+            engin: row.engin,
+            classe: row.classe,
+            classeId: row.classe_id || null,
+            genre: row.genre,
+            distance: distNum,
+            note: parseFloat(row.note),
+            date: row.evaluation_date,
+            professeurId: row.professeur_id || 'prof_default',
+            performanceFormatted: EPSEngine.formatPerformance(distNum, isTime, disc)
+          };
+        });
         localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
       }
 
@@ -147,6 +160,10 @@ class EPSDatabase {
 
       this.saveLocalAll();
       console.log(`Supabase Sync complete: ${this.classes.length} classes, ${this.eleves.length} élèves, ${this.evaluations.length} évaluations, ${this.baremes.length} barèmes.`);
+      
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('eps:db-synced', { detail: { count: this.evaluations.length } }));
+      }
     } catch (e) {
       console.warn("Failed to complete full sync from Supabase:", e);
     }
@@ -165,27 +182,37 @@ class EPSDatabase {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'evaluations' }, payload => {
           if (payload.eventType === 'INSERT') {
             const row = payload.new;
+            const disc = this.normalizeDisciplineName(row.discipline);
+            const isTime = EPSEngine.isTimeDiscipline(disc);
+            const distNum = parseFloat(row.distance);
             const item = {
               id: row.id,
               eleveId: row.eleve_id,
               eleveNom: row.eleve_nom,
-              discipline: row.discipline,
+              discipline: disc,
               engin: row.engin,
               classe: row.classe,
               classeId: row.classe_id || null,
               genre: row.genre,
-              distance: parseFloat(row.distance),
+              distance: distNum,
               note: parseFloat(row.note),
               date: row.evaluation_date,
-              professeurId: row.professeur_id || 'prof_default'
+              professeurId: row.professeur_id || 'prof_default',
+              performanceFormatted: EPSEngine.formatPerformance(distNum, isTime, disc)
             };
             if (!this.evaluations.find(e => e.id === item.id)) {
               this.evaluations.unshift(item);
               this.saveLocalAll();
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('eps:db-synced', { detail: { newEval: item } }));
+              }
             }
           } else if (payload.eventType === 'DELETE') {
             this.evaluations = this.evaluations.filter(e => e.id !== payload.old.id);
             this.saveLocalAll();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('eps:db-synced'));
+            }
           }
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, payload => {
@@ -284,6 +311,7 @@ class EPSDatabase {
       }
       this.evaluations = storedEvals.map(ev => ({
         ...ev,
+        discipline: this.normalizeDisciplineName(ev.discipline),
         professeurId: ev.professeurId || 'prof_default'
       }));
 
@@ -308,9 +336,16 @@ class EPSDatabase {
 
   async seedDefaultsLocally() {
     try {
-      const res = await fetch('data/default_baremes.json');
-      const defaultBaremes = await res.json();
-      this.baremes = defaultBaremes;
+      if (typeof window !== 'undefined' && window.location && typeof fetch === 'function') {
+        const res = await fetch('data/default_baremes.json');
+        const defaultBaremes = await res.json();
+        this.baremes = defaultBaremes;
+      } else {
+        try {
+          const fs = await import('fs');
+          this.baremes = JSON.parse(fs.readFileSync('./data/default_baremes.json', 'utf8'));
+        } catch (efs) {}
+      }
     } catch (e) {
       console.warn("Fallback baremes loading error:", e);
     }
@@ -386,10 +421,7 @@ class EPSDatabase {
         await sb.from('classes').insert({
           id: newClass.id,
           nom: newClass.nom,
-          niveau: newClass.niveau,
-          annee_scolaire: newClass.anneeScolaire,
-          description: newClass.description,
-          professeur_id: newClass.professeurId
+          ordre: 10
         });
       } catch (e) {
         console.warn("Supabase insert classe notice:", e);
@@ -427,10 +459,7 @@ class EPSDatabase {
     if (sb) {
       try {
         await sb.from('classes').update({
-          nom: this.classes[idx].nom,
-          niveau: this.classes[idx].niveau,
-          annee_scolaire: this.classes[idx].anneeScolaire,
-          description: this.classes[idx].description
+          nom: this.classes[idx].nom
         }).eq('id', id);
       } catch (e) {
         console.warn("Supabase update classe notice:", e);
@@ -512,10 +541,7 @@ class EPSDatabase {
           nom: eleve.nom,
           prenom: eleve.prenom,
           classe: eleve.classe,
-          genre: eleve.genre,
-          classe_id: eleve.classeId || null,
-          professeur_id: eleve.professeurId,
-          matricule: eleve.matricule || null
+          genre: eleve.genre
         });
       } catch (e) {
         console.warn("Supabase insert eleve notice:", e);
@@ -648,9 +674,7 @@ class EPSDatabase {
           nom: this.eleves[idx].nom,
           prenom: this.eleves[idx].prenom,
           classe: this.eleves[idx].classe,
-          genre: this.eleves[idx].genre,
-          classe_id: this.eleves[idx].classeId || null,
-          matricule: this.eleves[idx].matricule || null
+          genre: this.eleves[idx].genre
         }).eq('id', id);
       } catch (e) {
         console.warn("Supabase update eleve notice:", e);
@@ -685,39 +709,91 @@ class EPSDatabase {
   }
 
   // --- DISCIPLINES / ACTIVITÉS ---
-  getDisciplines() {
-    let raw = (this.cachedDisciplines && this.cachedDisciplines.length > 0) ? this.cachedDisciplines : null;
-
-    if (!raw) {
-      const list = [];
-      const seen = new Map();
-
-      (this.baremes || []).forEach(b => {
-        if (!b.discipline) return;
-        if (!seen.has(b.discipline)) {
-          seen.set(b.discipline, new Set());
-        }
-        if (b.engin) {
-          seen.get(b.discipline).add(b.engin);
-        }
-      });
-
-      seen.forEach((enginsSet, nom) => {
-        list.push({
-          id: nom.toLowerCase().replace(/\s+/g, '_').replace('/', '_'),
-          nom: nom,
-          engins: Array.from(enginsSet)
-        });
-      });
-      raw = list;
+  normalizeDisciplineName(name) {
+    if (!name) return "";
+    const lower = name.trim().toLowerCase();
+    if (lower.includes("60m") || lower.includes("60 mètres") || lower.includes("60 metres")) {
+      return "Course de vitesse de 60 mètres";
     }
+    if (lower.includes("80m") || lower.includes("80 mètres") || lower.includes("80 metres")) {
+      return "Course de vitesse de 80m";
+    }
+    if (lower.includes("1000m") || lower.includes("1000 mètres")) {
+      return "Course 1000m";
+    }
+    if (lower.includes("800m") || lower.includes("800 mètres")) {
+      return "Course 800m";
+    }
+    if (lower.includes("poids")) {
+      return "Lancer de poids";
+    }
+    if (lower.includes("hauteur")) {
+      return "Saut en hauteur";
+    }
+    if (lower.includes("longueur")) {
+      return "Saut en longueur";
+    }
+    if (lower.includes("triple")) {
+      return "Triple saut";
+    }
+    if (lower.includes("disque")) {
+      return "Lancer de disque";
+    }
+    if (lower.includes("javelot")) {
+      return "Lancer de javelot";
+    }
+    return name.trim();
+  }
 
-    const cleaned = (raw || []).filter(d => {
+  getDisciplines() {
+    const list = [];
+    const seen = new Map();
+
+    (this.baremes || []).forEach(b => {
+      if (!b.discipline) return;
+      const normalized = this.normalizeDisciplineName(b.discipline);
+      if (!seen.has(normalized)) {
+        seen.set(normalized, new Set());
+      }
+      if (b.engin) {
+        seen.get(normalized).add(b.engin);
+      }
+    });
+
+    seen.forEach((enginsSet, nom) => {
+      list.push({
+        id: nom.toLowerCase().replace(/\s+/g, '_').replace('/', '_'),
+        nom: nom,
+        engins: Array.from(enginsSet)
+      });
+    });
+
+    const cleaned = list.filter(d => {
       const n = (d.nom || '').toLowerCase();
       return !n.includes("haies") && d.nom !== "Course 60m / 80m";
     });
 
-    return cleaned.length > 0 ? cleaned : [{ id: "poids", nom: "Lancer de poids", engins: ["3kg", "4kg", "5kg"] }];
+    const officialDefaults = [
+      { id: "lancer_de_poids", nom: "Lancer de poids", engins: ["3kg", "4kg", "5kg"] },
+      { id: "course_1000m", nom: "Course 1000m", engins: [] },
+      { id: "course_800m", nom: "Course 800m", engins: [] },
+      { id: "course_de_vitesse_de_60_metres", nom: "Course de vitesse de 60 mètres", engins: [] },
+      { id: "saut_en_hauteur", nom: "Saut en hauteur", engins: [] },
+      { id: "saut_en_longueur", nom: "Saut en longueur", engins: [] }
+    ];
+
+    if (cleaned.length === 0) {
+      return officialDefaults;
+    }
+
+    // Merge any missing official disciplines
+    officialDefaults.forEach(def => {
+      if (!cleaned.some(c => c.nom.toLowerCase() === def.nom.toLowerCase())) {
+        cleaned.push(def);
+      }
+    });
+
+    return cleaned;
   }
 
   get disciplines() {
@@ -820,8 +896,8 @@ class EPSDatabase {
     let list = this.evaluations.filter(ev => ev.professeurId === targetProf || (!ev.professeurId && targetProf === 'prof_default'));
 
     if (filterDiscipline && filterDiscipline !== 'ALL') {
-      const discTarget = filterDiscipline.trim().toLowerCase();
-      list = list.filter(ev => (ev.discipline || '').trim().toLowerCase() === discTarget);
+      const discTarget = this.normalizeDisciplineName(filterDiscipline).toLowerCase();
+      list = list.filter(ev => this.normalizeDisciplineName(ev.discipline || '').toLowerCase() === discTarget);
     }
 
     if (filterClasse && filterClasse !== 'ALL') {
@@ -849,6 +925,11 @@ class EPSDatabase {
       evaluation.distance = evaluation.performance;
     }
 
+    // Normalize discipline name
+    if (evaluation.discipline) {
+      evaluation.discipline = this.normalizeDisciplineName(evaluation.discipline);
+    }
+
     // Format performance with proper unit if not present
     if (!evaluation.performanceFormatted) {
       const isTime = EPSEngine.isTimeDiscipline(evaluation.discipline);
@@ -871,9 +952,7 @@ class EPSDatabase {
           genre: evaluation.genre,
           distance: evaluation.distance,
           note: evaluation.note,
-          evaluation_date: evaluation.date,
-          professeur_id: evaluation.professeurId,
-          classe_id: evaluation.classeId || null
+          evaluation_date: evaluation.date
         });
       } catch (e) {
         console.warn("Supabase insert evaluation notice:", e);

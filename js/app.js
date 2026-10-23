@@ -55,6 +55,14 @@ class App {
     if (closeBtn) closeBtn.addEventListener('click', () => App.closeSidebar());
     if (backdrop) backdrop.addEventListener('click', () => App.closeSidebar());
 
+    // Listen to background sync / realtime events to re-render active view
+    window.addEventListener('eps:db-synced', () => {
+      const currentHash = window.location.hash.replace('#', '').trim();
+      if (appRoutes[currentHash]) {
+        App.navigate();
+      }
+    });
+
     // Render initial view with local cache for instant UI
     App.navigate();
 

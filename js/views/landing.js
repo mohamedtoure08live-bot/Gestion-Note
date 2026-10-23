@@ -15,19 +15,22 @@ export function renderLanding(container) {
   const totalEleves = eleves.length;
   const totalEvals = evaluations.length;
 
-  let averageGrade = "14.2 / 20";
-  let passRate = "85%";
-  let topLauncher = "Thomas D. (11.10m)";
+  let averageGrade = "-";
+  let passRate = "Aucune donnée";
+  let topLauncher = "Aucune évaluation";
 
   if (evaluations.length > 0) {
-    const sum = evaluations.reduce((acc, ev) => acc + (ev.note || 0), 0);
-    averageGrade = (sum / evaluations.length).toFixed(1) + " / 20";
-    const passCount = evaluations.filter(ev => ev.note >= 10).length;
-    passRate = Math.round((passCount / evaluations.length) * 100) + "%";
-    
-    let best = evaluations.reduce((prev, curr) => (curr.distance > (prev.distance || 0)) ? curr : prev, evaluations[0]);
-    if (best && best.eleveNom) {
-      topLauncher = `${best.eleveNom} (${best.distance}m)`;
+    const validEvals = evaluations.filter(ev => ev.note !== null && !isNaN(ev.note));
+    if (validEvals.length > 0) {
+      const sum = validEvals.reduce((acc, ev) => acc + (ev.note || 0), 0);
+      averageGrade = (sum / validEvals.length).toFixed(1) + " / 20";
+      const passCount = validEvals.filter(ev => ev.note >= 10).length;
+      passRate = Math.round((passCount / validEvals.length) * 100) + "%";
+      
+      let best = validEvals.reduce((prev, curr) => (curr.note > (prev.note || 0)) ? curr : prev, validEvals[0]);
+      if (best && best.eleveNom) {
+        topLauncher = `${best.eleveNom} (${best.note}/20)`;
+      }
     }
   }
 
@@ -517,11 +520,11 @@ export function renderLanding(container) {
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 24px;">
                   <div style="background:var(--lp-white); padding:20px; border-radius:12px; border:1px solid var(--lp-gray-200);">
                     <div style="font-size:0.8rem; color:var(--lp-gray-600); margin-bottom:6px;"><i class="fas fa-users" style="color:var(--lp-blue)"></i> ÉLÈVES INSCRITS</div>
-                    <div class="lp-mono" style="font-size:1.8rem; font-weight:700; color:var(--lp-dark);">${totalEleves > 0 ? totalEleves : 32}</div>
+                    <div class="lp-mono" style="font-size:1.8rem; font-weight:700; color:var(--lp-dark);">${totalEleves}</div>
                   </div>
                   <div style="background:var(--lp-white); padding:20px; border-radius:12px; border:1px solid var(--lp-gray-200);">
                     <div style="font-size:0.8rem; color:var(--lp-gray-600); margin-bottom:6px;"><i class="fas fa-check-double" style="color:var(--lp-green)"></i> ÉVALUATIONS TOTALES</div>
-                    <div class="lp-mono" style="font-size:1.8rem; font-weight:700; color:var(--lp-dark);">${totalEvals > 0 ? totalEvals : 28}</div>
+                    <div class="lp-mono" style="font-size:1.8rem; font-weight:700; color:var(--lp-dark);">${totalEvals}</div>
                   </div>
                   <div style="background:var(--lp-white); padding:20px; border-radius:12px; border:1px solid var(--lp-gray-200);">
                     <div style="font-size:0.8rem; color:var(--lp-gray-600); margin-bottom:6px;"><i class="fas fa-award" style="color:#f59e0b)"></i> MOYENNE CLASSE</div>

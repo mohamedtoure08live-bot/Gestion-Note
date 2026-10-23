@@ -8,14 +8,11 @@ import { db } from '../db.js';
 import { EPSEngine } from '../engine.js';
 
 export function renderDashboard(container) {
-  const currentProf = db.getCurrentProfesseur();
-  const classesList = db.getClasses();
-  const disciplinesList = db.getDisciplines();
-
   let activeDiscipline = 'ALL';
   let activeClasse = 'ALL';
 
   function computeDashboardStats() {
+    const disciplinesList = db.getDisciplines();
     // 1. Fetch filtered evaluations
     const evaluations = db.getEvaluations(activeDiscipline, activeClasse);
     const validEvals = evaluations.filter(ev => ev.note !== null && !isNaN(ev.note));
@@ -154,6 +151,9 @@ export function renderDashboard(container) {
   }
 
   function render() {
+    const currentProf = db.getCurrentProfesseur();
+    const classesList = db.getClasses();
+    const disciplinesList = db.getDisciplines();
     const stats = computeDashboardStats();
 
     container.innerHTML = `
@@ -404,4 +404,5 @@ export function renderDashboard(container) {
   // Listen for background updates
   window.addEventListener('eps:prof-changed', () => render());
   window.addEventListener('eps:db-ready', () => render());
+  window.addEventListener('eps:db-synced', () => render());
 }
