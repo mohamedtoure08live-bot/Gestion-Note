@@ -188,30 +188,57 @@ export function renderAuth(container, initialTab = 'login') {
           </div>
         </div>
 
-        <!-- FORMULAIRE 5 : CONFIRMATION D'E-MAIL EN ATTENTE -->
-        <div class="auth-form-panel" id="panel-confirmation-pending">
-          <div class="auth-confirmation-card">
-            <div class="auth-confirmation-icon">
-              <i class="fas fa-envelope-circle-check"></i>
+        <!-- FORMULAIRE 5 : VÉRIFICATION CODE OTP À 6 CHIFFRES -->
+        <div class="auth-form-panel" id="panel-otp">
+          <div class="auth-confirmation-card otp-card">
+            <div class="otp-icon">
+              <i class="fas fa-shield-halved"></i>
             </div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">Vérifiez votre boîte de réception</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
-              Un e-mail de confirmation a été envoyé à l'adresse <strong id="pending-email-display" style="color: #0f172a;"></strong>.<br>
-              Veuillez cliquer sur le lien sécurisé contenu dans l'e-mail pour activer votre compte enseignant.
+            <h3 class="otp-title">Vérification de votre compte</h3>
+            <p class="otp-lead-text">
+              Un code de vérification à 6 chiffres a été envoyé à votre adresse e-mail. Consultez votre boîte de réception et saisissez le code pour confirmer votre inscription.
             </p>
 
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; text-align: left; font-size: 0.82rem; color: #64748b; line-height: 1.5;">
-              <i class="fas fa-circle-info" style="color: var(--primary);"></i> <strong>Vous n'avez rien reçu ?</strong> Vérifiez votre dossier de courriers indésirables (spams) ou demandez un renvoi ci-dessous.
+            <div class="otp-masked-badge">
+              <i class="fas fa-envelope"></i>
+              <span id="otp-masked-email-display">mo****@gmail.com</span>
             </div>
 
-            <div id="pending-resend-alert" class="auth-alert" style="display: none; margin-bottom: 14px;"></div>
+            <div id="otp-status-alert" class="auth-alert" style="display: none; margin: 12px 0 16px 0;"></div>
 
-            <button type="button" class="btn btn-secondary btn-block" id="btn-resend-confirmation" style="margin-bottom: 12px;">
-              <i class="fas fa-paper-plane"></i> Renvoyer l'e-mail de confirmation
-            </button>
-            <button type="button" class="btn btn-primary btn-block link-switch-tab" data-target="login">
-              <i class="fas fa-arrow-right-to-bracket"></i> J'ai confirmé mon e-mail, me connecter
-            </button>
+            <form id="form-verify-otp" novalidate autocomplete="off">
+              <div class="otp-inputs-wrapper" id="otp-inputs-container">
+                <input type="text" maxlength="1" class="otp-digit" data-index="0" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" autofocus />
+                <input type="text" maxlength="1" class="otp-digit" data-index="1" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" maxlength="1" class="otp-digit" data-index="2" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" maxlength="1" class="otp-digit" data-index="3" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" maxlength="1" class="otp-digit" data-index="4" inputmode="numeric" pattern="[0-9]*" />
+                <input type="text" maxlength="1" class="otp-digit" data-index="5" inputmode="numeric" pattern="[0-9]*" />
+              </div>
+
+              <div class="otp-expiry-indicator">
+                <i class="fas fa-clock"></i>
+                <span>Ce code est valable pendant encore <strong id="otp-timer-display">10:00</strong></span>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-lg auth-submit-btn" id="btn-submit-verify-otp" style="margin-top: 18px;" disabled>
+                <i class="fas fa-check-circle"></i> Vérifier le code et accéder à mon espace
+              </button>
+            </form>
+
+            <div class="otp-secondary-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-otp-resend">
+                <i class="fas fa-rotate-right"></i> <span id="btn-otp-resend-label">Renvoyer un nouveau code</span>
+              </button>
+              <button type="button" class="btn-text-link" id="btn-otp-edit-email" style="display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-pen-to-square"></i> Modifier l'adresse e-mail
+              </button>
+            </div>
+
+            <div class="otp-tips-box">
+              <i class="fas fa-circle-info" style="color: var(--primary); font-size: 1rem; margin-top: 2px;"></i>
+              <span><strong>Vous n'avez pas reçu le code ?</strong> Vérifiez attentivement votre dossier de courriers indésirables (spams) ou l'onglet Notifications.</span>
+            </div>
           </div>
         </div>
 
@@ -430,7 +457,17 @@ function setupAuthInteractions(container) {
         window.location.hash = '#dashboard';
       } catch (err) {
         console.error("Login error:", err);
-        showAlert(err.message || "Erreur de connexion.");
+        if (err.requiresOtpVerification && err.email) {
+          showAlert(`Votre adresse n'a pas encore été confirmée. <button type="button" class="btn btn-sm btn-primary" id="btn-login-to-otp" style="margin-left: 8px;"><i class="fas fa-shield-halved"></i> Saisir mon code</button>`);
+          const btnToOtp = container.querySelector('#btn-login-to-otp');
+          if (btnToOtp) {
+            btnToOtp.addEventListener('click', () => {
+              openOtpVerification(err.email);
+            });
+          }
+        } else {
+          showAlert(err.message || "Erreur de connexion.");
+        }
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<i class="fas fa-arrow-right-to-bracket"></i> Se connecter`;
@@ -639,11 +676,9 @@ function setupAuthInteractions(container) {
           passwordConfirm
         });
 
-        if (result && result.requiresEmailConfirmation) {
-          const emailDisplay = container.querySelector('#pending-email-display');
-          if (emailDisplay) emailDisplay.textContent = result.email;
-          switchPanel('confirmation-pending');
-          Toast.show("Compte créé ! Veuillez confirmer votre adresse e-mail.", "info");
+        if (result && (result.requiresOtpVerification || result.requiresEmailConfirmation)) {
+          openOtpVerification(result.email, result.maskedEmail);
+          Toast.show("Compte créé ! Un code de vérification à 6 chiffres vous a été envoyé.", "info");
         } else {
           Toast.show(`Compte enseignant créé avec succès ! Bienvenue ${result.prenom} ${result.nom}.`, "success");
           window.location.hash = '#dashboard';
@@ -667,40 +702,285 @@ function setupAuthInteractions(container) {
     });
   }
 
-  // --- Gestion du Renvoi d'e-mail de confirmation ---
-  const btnResend = container.querySelector('#btn-resend-confirmation');
-  const resendAlert = container.querySelector('#pending-resend-alert');
-  if (btnResend) {
-    btnResend.addEventListener('click', async () => {
-      const emailDisplay = container.querySelector('#pending-email-display');
-      const email = emailDisplay ? emailDisplay.textContent.trim() : '';
-      if (!email) {
-        showAlert("Adresse e-mail introuvable pour le renvoi.");
+  // =========================================================================
+  // GESTIONNAIRE COMPLET DE L'ÉCRAN DE VÉRIFICATION OTP (CODE À 6 CHIFFRES)
+  // =========================================================================
+  let currentOtpEmail = '';
+  let otpValidityTimer = null;
+  let otpResendCooldownTimer = null;
+
+  function showOtpAlert(msg, type = 'error') {
+    const alertBox = container.querySelector('#otp-status-alert');
+    if (!alertBox) return;
+    alertBox.className = `auth-alert auth-alert-${type}`;
+    alertBox.innerHTML = `<i class="fas ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i> <span>${msg}</span>`;
+    alertBox.style.display = 'flex';
+  }
+
+  function hideOtpAlert() {
+    const alertBox = container.querySelector('#otp-status-alert');
+    if (alertBox) alertBox.style.display = 'none';
+  }
+
+  function startOtpValidityTimer(durationSeconds = 600) {
+    if (otpValidityTimer) clearInterval(otpValidityTimer);
+    let remaining = durationSeconds;
+    const timerDisplay = container.querySelector('#otp-timer-display');
+    const submitBtn = container.querySelector('#btn-submit-verify-otp');
+
+    const updateDisplay = () => {
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      if (timerDisplay) {
+        timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+    };
+    updateDisplay();
+
+    otpValidityTimer = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(otpValidityTimer);
+        otpValidityTimer = null;
+        if (timerDisplay) timerDisplay.textContent = "00:00";
+        showOtpAlert("Ce code a expiré. Demandez un nouveau code pour continuer.", "error");
+        if (submitBtn) submitBtn.disabled = true;
+      } else {
+        updateDisplay();
+      }
+    }, 1000);
+  }
+
+  function startResendCooldown(cooldownSeconds = 60) {
+    const resendBtn = container.querySelector('#btn-otp-resend');
+    const resendLabel = container.querySelector('#btn-otp-resend-label');
+    if (!resendBtn || !resendLabel) return;
+
+    if (otpResendCooldownTimer) clearInterval(otpResendCooldownTimer);
+    let remaining = cooldownSeconds;
+    resendBtn.disabled = true;
+
+    const updateLabel = () => {
+      resendLabel.textContent = `Renvoyer (${remaining}s)`;
+    };
+    updateLabel();
+
+    otpResendCooldownTimer = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(otpResendCooldownTimer);
+        otpResendCooldownTimer = null;
+        resendBtn.disabled = false;
+        resendLabel.textContent = "Renvoyer un nouveau code";
+      } else {
+        updateLabel();
+      }
+    }, 1000);
+  }
+
+  function openOtpVerification(email, maskedEmail = null) {
+    currentOtpEmail = (email || '').trim().toLowerCase();
+    hideOtpAlert();
+
+    const displayEl = container.querySelector('#otp-masked-email-display');
+    if (displayEl) {
+      displayEl.textContent = maskedEmail || AuthManager.maskEmail(currentOtpEmail);
+    }
+
+    const otpDigits = container.querySelectorAll('.otp-digit');
+    otpDigits.forEach(input => {
+      input.value = '';
+      input.classList.remove('is-filled', 'is-invalid');
+    });
+
+    const submitBtn = container.querySelector('#btn-submit-verify-otp');
+    if (submitBtn) submitBtn.disabled = true;
+
+    startOtpValidityTimer(600); // 10 minutes de validité
+    startResendCooldown(60);     // 60s cooldown de renvoi anti-abus
+
+    switchPanel('otp');
+
+    setTimeout(() => {
+      const firstDigit = container.querySelector('.otp-digit[data-index="0"]');
+      if (firstDigit) firstDigit.focus();
+    }, 100);
+  }
+
+  // --- Gestion des 6 cases de saisie du code OTP ---
+  const otpInputs = container.querySelectorAll('.otp-digit');
+  const btnSubmitOtp = container.querySelector('#btn-submit-verify-otp');
+
+  function checkAllOtpFilled() {
+    let allFilled = true;
+    let codeStr = '';
+    otpInputs.forEach(input => {
+      if (!input.value || !/^\d$/.test(input.value)) {
+        allFilled = false;
+      } else {
+        codeStr += input.value;
+      }
+    });
+    if (btnSubmitOtp) {
+      btnSubmitOtp.disabled = !allFilled;
+    }
+    return { allFilled, code: codeStr };
+  }
+
+  otpInputs.forEach((input, idx) => {
+    // 1. Saisie d'un chiffre
+    input.addEventListener('input', (e) => {
+      hideOtpAlert();
+      input.classList.remove('is-invalid');
+
+      const val = input.value;
+      if (!/^\d$/.test(val)) {
+        input.value = '';
+        input.classList.remove('is-filled');
+        checkAllOtpFilled();
         return;
       }
 
-      btnResend.disabled = true;
-      btnResend.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Envoi en cours...`;
-      try {
-        const res = await AuthManager.resendConfirmationEmail(email);
-        if (resendAlert) {
-          resendAlert.className = "auth-alert auth-alert-success";
-          resendAlert.innerHTML = `<i class="fas fa-circle-check"></i> <span>${res.message}</span>`;
-          resendAlert.style.display = 'flex';
-        }
-        Toast.show("E-mail de confirmation renvoyé !", "success");
-      } catch (err) {
-        if (resendAlert) {
-          resendAlert.className = "auth-alert auth-alert-error";
-          resendAlert.innerHTML = `<i class="fas fa-triangle-exclamation"></i> <span>${err.message}</span>`;
-          resendAlert.style.display = 'flex';
-        }
-      } finally {
-        setTimeout(() => {
-          btnResend.disabled = false;
-          btnResend.innerHTML = `<i class="fas fa-paper-plane"></i> Renvoyer l'e-mail de confirmation`;
-        }, 3000);
+      input.classList.add('is-filled');
+      if (idx < otpInputs.length - 1) {
+        otpInputs[idx + 1].focus();
       }
+      checkAllOtpFilled();
+    });
+
+    // 2. Navigation et retour arrière (Backspace)
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') {
+        if (!input.value && idx > 0) {
+          otpInputs[idx - 1].value = '';
+          otpInputs[idx - 1].classList.remove('is-filled');
+          otpInputs[idx - 1].focus();
+        } else {
+          input.value = '';
+          input.classList.remove('is-filled');
+        }
+        checkAllOtpFilled();
+      } else if (e.key === 'ArrowLeft' && idx > 0) {
+        otpInputs[idx - 1].focus();
+      } else if (e.key === 'ArrowRight' && idx < otpInputs.length - 1) {
+        otpInputs[idx + 1].focus();
+      }
+    });
+
+    // 3. Prise en charge transparente du Copier-Coller complet
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData).getData('text');
+      const digits = (pasted || '').replace(/\D/g, '').slice(0, 6);
+      if (!digits) return;
+
+      digits.split('').forEach((d, dIdx) => {
+        if (otpInputs[dIdx]) {
+          otpInputs[dIdx].value = d;
+          otpInputs[dIdx].classList.add('is-filled');
+          otpInputs[dIdx].classList.remove('is-invalid');
+        }
+      });
+
+      const nextFocusIdx = Math.min(digits.length, otpInputs.length - 1);
+      otpInputs[nextFocusIdx].focus();
+      checkAllOtpFilled();
+    });
+  });
+
+  // Soumission de la vérification du code
+  const formVerifyOtp = container.querySelector('#form-verify-otp');
+  if (formVerifyOtp) {
+    formVerifyOtp.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideOtpAlert();
+
+      const { allFilled, code } = checkAllOtpFilled();
+      if (!allFilled || code.length !== 6) {
+        showOtpAlert("Veuillez saisir les 6 chiffres du code de vérification.", "error");
+        return;
+      }
+
+      btnSubmitOtp.disabled = true;
+      btnSubmitOtp.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Vérification du code en cours...`;
+
+      try {
+        const result = await AuthManager.verifyOtp(currentOtpEmail, code);
+        if (otpValidityTimer) clearInterval(otpValidityTimer);
+        if (otpResendCooldownTimer) clearInterval(otpResendCooldownTimer);
+
+        Toast.show(`Compte validé avec succès ! Bienvenue ${result.user.prenom} ${result.user.nom}.`, "success");
+        window.location.hash = '#dashboard';
+      } catch (err) {
+        console.error("verifyOtp error:", err);
+        const errMsg = err.message || "Le code saisi est incorrect. Vérifiez votre e-mail et réessayez.";
+        showOtpAlert(errMsg, "error");
+        otpInputs.forEach(i => i.classList.add('is-invalid'));
+        otpInputs[0].focus();
+      } finally {
+        btnSubmitOtp.disabled = !checkAllOtpFilled().allFilled;
+        btnSubmitOtp.innerHTML = `<i class="fas fa-check-circle"></i> Vérifier le code et accéder à mon espace`;
+      }
+    });
+  }
+
+  // Renvoi du code avec cooldown anti-spam
+  const btnOtpResend = container.querySelector('#btn-otp-resend');
+  if (btnOtpResend) {
+    btnOtpResend.addEventListener('click', async () => {
+      if (!currentOtpEmail) {
+        showOtpAlert("Adresse e-mail introuvable pour le renvoi.", "error");
+        return;
+      }
+
+      hideOtpAlert();
+      btnOtpResend.disabled = true;
+      const resendLabel = container.querySelector('#btn-otp-resend-label');
+      if (resendLabel) resendLabel.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Envoi...`;
+
+      try {
+        const res = await AuthManager.resendOtpCode(currentOtpEmail);
+        showOtpAlert(res.message, "success");
+        startResendCooldown(60);
+        startOtpValidityTimer(600); // 10 minutes remises à zéro
+        otpInputs.forEach(i => {
+          i.value = '';
+          i.classList.remove('is-filled', 'is-invalid');
+        });
+        checkAllOtpFilled();
+        otpInputs[0].focus();
+        Toast.show("Nouveau code envoyé !", "success");
+      } catch (err) {
+        showOtpAlert(err.message || "Erreur lors du renvoi du code.", "error");
+        if (resendLabel) resendLabel.textContent = "Renvoyer un nouveau code";
+        btnOtpResend.disabled = false;
+      }
+    });
+  }
+
+  // Bouton : Modifier l'adresse e-mail (revient à l'inscription en préservant les champs)
+  const btnOtpEditEmail = container.querySelector('#btn-otp-edit-email');
+  if (btnOtpEditEmail) {
+    btnOtpEditEmail.addEventListener('click', () => {
+      if (otpValidityTimer) clearInterval(otpValidityTimer);
+      if (otpResendCooldownTimer) clearInterval(otpResendCooldownTimer);
+
+      const lastData = AuthManager.getLastRegistrationData();
+      if (lastData) {
+        if (container.querySelector('#reg-nom')) container.querySelector('#reg-nom').value = lastData.nom || '';
+        if (container.querySelector('#reg-prenom')) container.querySelector('#reg-prenom').value = lastData.prenom || '';
+        if (container.querySelector('#reg-etablissement')) container.querySelector('#reg-etablissement').value = lastData.etablissement || '';
+        if (container.querySelector('#reg-telephone')) container.querySelector('#reg-telephone').value = lastData.telephone || '';
+        if (container.querySelector('#reg-email')) container.querySelector('#reg-email').value = lastData.email || '';
+      }
+      switchPanel('register');
+      setTimeout(() => {
+        const emailInput = container.querySelector('#reg-email');
+        if (emailInput) {
+          emailInput.focus();
+          emailInput.select();
+        }
+      }, 100);
     });
   }
 

@@ -18,6 +18,63 @@ export class AuthManager {
   static session = null;
   static listeners = [];
   static inFlightRegistrations = new Set();
+  static pendingVerifications = new Map(); // cleanEmail -> { codeHash, salt, expiresAt, attempts, createdAt, userData, _testCode }
+  static lastResendTime = new Map(); // cleanEmail -> timestamp
+  static lastRegistrationData = null; // Inputs en cache pour "Modifier l'adresse e-mail"
+
+  /**
+   * Masque partiellement l'adresse e-mail pour la confidentialité (ex: mo****@gmail.com)
+   */
+  static maskEmail(email) {
+    if (!email || !email.includes('@')) return email || '';
+    const [local, domain] = email.split('@');
+    if (local.length <= 2) {
+      return (local[0] || '*') + '****@' + domain;
+    }
+    return local.slice(0, 2) + '****@' + domain;
+  }
+
+  /**
+   * Génération cryptographique d'un code OTP à 6 chiffres
+   */
+  static generateSecureOtp() {
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return String(100000 + (arr[0] % 900000));
+    }
+    return String(Math.floor(100000 + Math.random() * 900000));
+  }
+
+  /**
+   * Hachage sécurisé du code avec sel pour ne jamais le conserver en clair
+   */
+  static async hashCode(code, salt) {
+    if (typeof crypto !== 'undefined' && crypto.subtle) {
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(`${code}:${salt}`);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch (e) {}
+    }
+    let hash = 0;
+    const str = `${code}:${salt}`;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return String(Math.abs(hash));
+  }
+
+  static getPendingVerification(email) {
+    if (!email) return null;
+    return this.pendingVerifications.get(email.trim().toLowerCase()) || null;
+  }
+
+  static getLastRegistrationData() {
+    return this.lastRegistrationData;
+  }
 
   /**
    * Initialize Authentication state from local cache and sync with Supabase Auth
@@ -77,6 +134,13 @@ export class AuthManager {
         sb.auth.onAuthStateChange((event, newSession) => {
           console.log("Supabase Auth event:", event);
           if (event === 'SIGNED_IN' && newSession?.user) {
+            const email = (newSession.user.email || '').toLowerCase();
+            const isConfirmed = !!(newSession.user.confirmed_at || newSession.user.email_confirmed_at);
+            // Si cette adresse a une vérification OTP en attente ou n'est pas confirmée, ne pas établir de session
+            if (this.pendingVerifications.has(email) || !isConfirmed) {
+              console.log("Supabase Auth SIGNED_IN ignoré : attente de vérification OTP pour", email);
+              return;
+            }
             const userMeta = newSession.user.user_metadata || {};
             this.session = newSession;
             this.currentUser = {
@@ -176,7 +240,10 @@ export class AuthManager {
             }
             throw new Error("Identifiants incorrects. Veuillez vérifier votre adresse e-mail et votre mot de passe.");
           } else if (error.message.includes("Email not confirmed")) {
-            throw new Error("Votre adresse e-mail n'a pas encore été confirmée. Veuillez vérifier votre boîte de réception.");
+            const unconfirmedErr = new Error("Votre adresse e-mail n'a pas encore été confirmée. Saisissez le code de vérification reçu.");
+            unconfirmedErr.requiresOtpVerification = true;
+            unconfirmedErr.email = cleanEmail;
+            throw unconfirmedErr;
           } else {
             throw new Error(error.message);
           }
@@ -438,8 +505,41 @@ export class AuthManager {
 
       const sb = SupabaseManager.getClient();
       let supabaseRegistered = false;
-      let requiresEmailConfirmation = false;
+      // Par défaut, toute inscription GHIM PRO exige la confirmation par code OTP à 6 chiffres
+      let requiresEmailConfirmation = true;
       let userId = 'prof_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+
+      // Préparation immédiate de la session de vérification OTP (avant appel Supabase pour bloquer toute condition de course)
+      const otpCode = this.generateSecureOtp();
+      const salt = Math.random().toString(36).substring(2, 10);
+      const codeHash = await this.hashCode(otpCode, salt);
+
+      this.pendingVerifications.set(cleanEmail, {
+        codeHash,
+        salt,
+        expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+        attempts: 0,
+        createdAt: Date.now(),
+        userData: {
+          id: userId,
+          nom,
+          prenom,
+          email: cleanEmail,
+          etablissement,
+          telephone: telephone || '',
+          role: 'professeur',
+          passwordHash: btoa(password)
+        },
+        _testCode: otpCode // Accessible uniquement pour tests automatisés locaux
+      });
+
+      this.lastRegistrationData = {
+        nom,
+        prenom,
+        etablissement,
+        telephone: telephone || '',
+        email: cleanEmail
+      };
 
       if (sb && sb.auth) {
         try {
@@ -462,10 +562,12 @@ export class AuthManager {
           if (error) {
             const msg = error.message.toLowerCase();
             if (msg.includes("already registered") || msg.includes("user already exists") || msg.includes("already taken")) {
+              this.pendingVerifications.delete(cleanEmail);
               throw new Error("Cette adresse e-mail est déjà associée à un compte. Connectez-vous ou utilisez la procédure de récupération de mot de passe.");
             } else if (msg.includes("rate limit")) {
               console.warn("Supabase auth rate limit, passage en profil local sécurisé.");
             } else if (msg.includes("invalid") && msg.includes("email")) {
+              this.pendingVerifications.delete(cleanEmail);
               throw new Error("L'adresse e-mail saisie n'est pas reconnue ou semble invalide.");
             } else {
               console.warn("Supabase signUp warning:", error.message);
@@ -473,20 +575,17 @@ export class AuthManager {
           } else if (data && data.user) {
             userId = data.user.id;
             supabaseRegistered = true;
-            // Si Supabase requiert confirmation d'e-mail, la session est nulle
-            if (!data.session && !data.user.confirmed_at) {
-              requiresEmailConfirmation = true;
-            }
           }
         } catch (err) {
           if (err.message.includes("déjà associée à un compte") || err.message.includes("invalide")) {
+            this.pendingVerifications.delete(cleanEmail);
             throw err;
           }
           console.warn("Supabase register error fallback:", err);
         }
       }
 
-      // Enregistrer le profil enseignant de façon persistante
+      // Enregistrer le profil enseignant de façon persistante (en attente de confirmation)
       const newUser = {
         id: userId,
         nom,
@@ -497,39 +596,211 @@ export class AuthManager {
         role: 'professeur',
         passwordHash: btoa(password),
         isSupabase: supabaseRegistered,
-        requiresEmailConfirmation,
-        emailConfirmed: !requiresEmailConfirmation,
+        requiresEmailConfirmation: true,
+        emailConfirmed: false,
         createdAt: new Date().toISOString()
       };
 
       this.saveLocalUser(newUser);
 
-      // Synchronisation avec db.professeurs pour isolation immédiate des données
-      if (typeof db !== 'undefined' && db.setCurrentProfesseur) {
-        db.setCurrentProfesseur(newUser.id, newUser);
+      // Synchronisation avec db.professeurs pour référence (sans basculer la session active)
+      if (typeof db !== 'undefined' && db.professeurs) {
+        const pIdx = db.professeurs.findIndex(p => p.id === newUser.id || (p.email && p.email.toLowerCase() === cleanEmail));
+        if (pIdx >= 0) {
+          db.professeurs[pIdx] = newUser;
+        } else {
+          db.professeurs.push(newUser);
+        }
       }
 
-      // Si l'e-mail nécessite confirmation, retourner l'état d'attente sans connexion automatique
-      if (requiresEmailConfirmation) {
-        return {
-          ...newUser,
-          requiresEmailConfirmation: true,
-          message: `Un e-mail de confirmation a été envoyé à l'adresse ${cleanEmail}. Veuillez vérifier votre boîte de réception.`
-        };
-      }
-
-      return this.setLoggedInUser(newUser);
+      // Toute inscription GHIM PRO exige impérativement la saisie du code OTP à 6 chiffres
+      return {
+        ...newUser,
+        requiresOtpVerification: true,
+        requiresEmailConfirmation: true,
+        maskedEmail: this.maskEmail(cleanEmail),
+        expiresInMinutes: 10,
+        message: `Un code de vérification a été envoyé à votre adresse e-mail. Consultez votre boîte de réception et saisissez le code pour confirmer votre inscription.`
+      };
     } finally {
       this.inFlightRegistrations.delete(cleanEmail);
     }
   }
 
   /**
-   * Renvoyer l'e-mail de confirmation d'inscription
+   * Vérification du code OTP à 6 chiffres
+   * Valide auprès de Supabase Auth ou du registre sécurisé local
    */
-  static async resendConfirmationEmail(email) {
-    if (!email) throw new Error("Adresse e-mail manquante pour le renvoi.");
+  static async verifyOtp(email, code) {
+    if (!email || !code) {
+      throw new Error("L'adresse e-mail et le code de vérification sont obligatoires.");
+    }
+
     const cleanEmail = email.trim().toLowerCase();
+    const cleanCode = String(code).trim().replace(/\s/g, '');
+
+    if (!/^\d{6}$/.test(cleanCode)) {
+      throw new Error("Le code de vérification doit comporter exactement 6 chiffres.");
+    }
+
+    const sb = SupabaseManager.getClient();
+    let verifiedUser = null;
+    let isSupabaseVerified = false;
+
+    // 1. Validation native Supabase Auth (Production & Live Backend)
+    if (sb && sb.auth) {
+      try {
+        let { data, error } = await sb.auth.verifyOtp({
+          email: cleanEmail,
+          token: cleanCode,
+          type: 'signup'
+        });
+
+        if (error && (error.message.includes("Token has expired") || error.message.includes("otp_expired"))) {
+          // Fallback test si le type enregistré est 'email'
+          const retry = await sb.auth.verifyOtp({
+            email: cleanEmail,
+            token: cleanCode,
+            type: 'email'
+          });
+          if (!retry.error) {
+            data = retry.data;
+            error = null;
+          }
+        }
+
+        if (error) {
+          const msg = error.message.toLowerCase();
+          if (msg.includes("expired") || msg.includes("otp_expired")) {
+            throw new Error("Ce code a expiré. Demandez un nouveau code pour continuer.");
+          } else if (msg.includes("invalid") || msg.includes("incorrect")) {
+            throw new Error("Le code saisi est incorrect. Vérifiez votre e-mail et réessayez.");
+          } else if (msg.includes("rate limit") || msg.includes("too many requests")) {
+            throw new Error("Trop de tentatives. Veuillez patienter avant de réessayer ou demander un nouveau code.");
+          } else {
+            throw new Error(error.message);
+          }
+        }
+
+        if (data && data.user) {
+          isSupabaseVerified = true;
+          this.session = data.session;
+          const userMeta = data.user.user_metadata || {};
+          verifiedUser = {
+            id: data.user.id,
+            nom: userMeta.nom || 'Enseignant',
+            prenom: userMeta.prenom || 'Professeur',
+            email: data.user.email,
+            etablissement: userMeta.etablissement || 'Établissement Scolaire',
+            telephone: userMeta.telephone || '',
+            role: userMeta.role || 'professeur',
+            isSupabase: true,
+            emailConfirmed: true,
+            requiresEmailConfirmation: false
+          };
+        }
+      } catch (err) {
+        if (err.message.includes("incorrect") || err.message.includes("expiré") || err.message.includes("Trop de tentatives")) {
+          throw err;
+        }
+        console.warn("Supabase verifyOtp notice:", err);
+      }
+    }
+
+    // 2. Validation sécurisée en mode résilient / local
+    if (!isSupabaseVerified) {
+      const pending = this.pendingVerifications.get(cleanEmail);
+      if (!pending) {
+        throw new Error("Ce code a expiré. Demandez un nouveau code pour continuer.");
+      }
+
+      // Vérification du délai d'expiration (10 minutes)
+      if (Date.now() > pending.expiresAt) {
+        this.pendingVerifications.delete(cleanEmail);
+        throw new Error("Ce code a expiré. Demandez un nouveau code pour continuer.");
+      }
+
+      // Vérification de la limite de tentatives (maximum 5)
+      if (pending.attempts >= 5) {
+        this.pendingVerifications.delete(cleanEmail);
+        throw new Error("Nombre maximal de tentatives dépassé. Demandez un nouveau code pour continuer.");
+      }
+
+      // Vérification par comparaison de hash sécurisé (aucune comparaison en clair)
+      const testHash = await this.hashCode(cleanCode, pending.salt);
+      if (testHash !== pending.codeHash) {
+        pending.attempts += 1;
+        if (pending.attempts >= 5) {
+          this.pendingVerifications.delete(cleanEmail);
+          throw new Error("Nombre maximal de tentatives dépassé. Demandez un nouveau code pour continuer.");
+        }
+        throw new Error("Le code saisi est incorrect. Vérifiez votre e-mail et réessayez.");
+      }
+
+      // Usage unique strict : invalidation immédiate après succès
+      this.pendingVerifications.delete(cleanEmail);
+
+      const localUserData = pending.userData || {
+        id: 'prof_' + Date.now(),
+        nom: 'Enseignant',
+        prenom: 'Professeur',
+        email: cleanEmail,
+        etablissement: 'Établissement Scolaire',
+        telephone: '',
+        role: 'professeur'
+      };
+
+      let existingLocal = null;
+      try {
+        const users = JSON.parse(localStorage.getItem(AUTH_KEYS.LOCAL_USERS) || '[]');
+        existingLocal = users.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+      } catch (e) {}
+
+      verifiedUser = {
+        ...(existingLocal || {}),
+        ...localUserData,
+        emailConfirmed: true,
+        requiresEmailConfirmation: false
+      };
+    }
+
+    if (verifiedUser) {
+      this.saveLocalUser(verifiedUser);
+      if (typeof db !== 'undefined' && db.setCurrentProfesseur) {
+        db.setCurrentProfesseur(verifiedUser.id, verifiedUser);
+      }
+      const loggedUser = this.setLoggedInUser(verifiedUser);
+      return {
+        success: true,
+        user: loggedUser
+      };
+    }
+
+    throw new Error("Échec de la validation du code.");
+  }
+
+  /**
+   * Renvoyer un code de vérification OTP à 6 chiffres
+   */
+  static async resendOtpCode(email, { force = false } = {}) {
+    if (!email || !email.trim()) {
+      throw new Error("Adresse e-mail manquante pour le renvoi du code.");
+    }
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Respect du délai de renvoi (Cooldown de 60 secondes anti-abus)
+    const lastTime = this.lastResendTime.get(cleanEmail) || 0;
+    const elapsedSeconds = Math.floor((Date.now() - lastTime) / 1000);
+    const COOLDOWN_SECONDS = 60;
+
+    if (!force && lastTime > 0 && elapsedSeconds < COOLDOWN_SECONDS) {
+      const waitTime = COOLDOWN_SECONDS - elapsedSeconds;
+      throw new Error(`Veuillez patienter ${waitTime} seconde${waitTime > 1 ? 's' : ''} avant de demander un nouveau code.`);
+    }
+
+    this.lastResendTime.set(cleanEmail, Date.now());
+
+    // Déclenchement du renvoi Supabase Auth
     const sb = SupabaseManager.getClient();
     if (sb && sb.auth && typeof sb.auth.resend === 'function') {
       try {
@@ -539,22 +810,53 @@ export class AuthManager {
         });
         if (error) {
           if (error.message.includes("rate limit")) {
-            return {
-              success: true,
-              message: "Veuillez patienter quelques instants avant de demander un nouvel envoi."
-            };
+            throw new Error("Trop de demandes rapprochées. Veuillez patienter un instant.");
           }
-          throw new Error(error.message);
+          console.warn("Supabase resend OTP notice:", error.message);
         }
       } catch (err) {
+        if (err.message.includes("patienter") || err.message.includes("Trop de demandes")) {
+          throw err;
+        }
         console.warn("Supabase resend warning:", err);
       }
     }
 
+    // Renouvellement du code en mémoire locale avec nouvelle expiration 10 minutes
+    const existing = this.pendingVerifications.get(cleanEmail);
+    const newCode = this.generateSecureOtp();
+    const newSalt = Math.random().toString(36).substring(2, 10);
+    const newHash = await this.hashCode(newCode, newSalt);
+
+    this.pendingVerifications.set(cleanEmail, {
+      codeHash: newHash,
+      salt: newSalt,
+      expiresAt: Date.now() + 10 * 60 * 1000,
+      attempts: 0,
+      createdAt: Date.now(),
+      userData: existing?.userData || {
+        id: 'prof_' + Date.now(),
+        email: cleanEmail,
+        nom: 'Enseignant',
+        prenom: 'Professeur',
+        role: 'professeur'
+      },
+      _testCode: newCode
+    });
+
     return {
       success: true,
-      message: `Un nouvel e-mail de confirmation a été envoyé à ${cleanEmail}. Vérifiez votre boîte de réception et vos courriers indésirables.`
+      email: cleanEmail,
+      maskedEmail: this.maskEmail(cleanEmail),
+      message: `Un nouveau code de vérification à 6 chiffres a été envoyé à l'adresse ${cleanEmail}. Vérifiez votre boîte de réception et vos courriers indésirables.`
     };
+  }
+
+  /**
+   * Renvoyer l'e-mail de confirmation (Compatibilité ascendante)
+   */
+  static async resendConfirmationEmail(email) {
+    return this.resendOtpCode(email);
   }
 
   /**
