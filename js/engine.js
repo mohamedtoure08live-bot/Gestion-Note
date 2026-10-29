@@ -244,12 +244,13 @@ export class EPSEngine {
    * @param {number|string} performance 
    * @param {string} [engin=null]
    * @param {string} [mode="interpolation"] - 'interpolation' (exact proportional) or 'palier' (lower tier)
+   * @param {Object} [customBareme=null] - Optional teacher custom scale
    * @returns {Object} { valid, note, noteExacte, notePalier, appreciation, baremeFound, engin, detail, error }
    */
-  static calculateGrade(discipline, classe, genre, performance, engin = null, mode = "interpolation") {
+  static calculateGrade(discipline, classe, genre, performance, engin = null, mode = "interpolation", customBareme = null) {
     // 1. Mandatory Input Validation against official scale
     const validation = EPSEngine.validateInput(discipline, classe, genre, engin);
-    if (!validation.valid) {
+    if (!validation.valid && !customBareme) {
       return {
         valid: false,
         note: null,
@@ -267,6 +268,7 @@ export class EPSEngine {
     // 2. Performance Parsing
     const perfNum = EPSEngine.parsePerformance(performance);
     if (isNaN(perfNum) || perfNum <= 0) {
+      const activeBaremeRef = customBareme || validation.bareme;
       return {
         valid: true,
         note: null,
@@ -274,13 +276,13 @@ export class EPSEngine {
         notePalier: null,
         appreciation: "Performance non valide",
         baremeFound: true,
-        baremeId: validation.bareme ? validation.bareme.id : null,
-        engin: validation.bareme ? validation.bareme.engin : engin,
+        baremeId: activeBaremeRef ? activeBaremeRef.id : null,
+        engin: activeBaremeRef ? activeBaremeRef.engin : engin,
         detail: "Veuillez saisir une valeur de performance valide (ex: 3'07'' ou 11.70)."
       };
     }
 
-    const bareme = validation.bareme;
+    const bareme = customBareme || validation.bareme;
     if (!bareme || !bareme.grille || bareme.grille.length === 0) {
       return {
         valid: false,

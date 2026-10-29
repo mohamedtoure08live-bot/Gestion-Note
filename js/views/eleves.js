@@ -48,11 +48,16 @@ export function renderEleves(container) {
                 <h2 style="font-size: 1.25rem; margin: 0; color: var(--text-main);">Espace « Mes classes »</h2>
                 <div class="class-prof-selector-row" style="display:flex; align-items:center; gap: 8px; margin-top: 6px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;">
                   <span>Enseignant :</span>
-                  <select class="form-select" id="select-active-prof" style="padding: 4px 10px; font-size: 0.82rem; min-width: 180px; font-weight: 600;">
-                    ${allProfesseurs.map(p => `
-                      <option value="${p.id}" ${p.id === prof.id ? 'selected' : ''}>${p.nom} ${p.prenom || ''} (${p.etablissement || 'EPS'})</option>
-                    `).join('')}
-                  </select>
+                  ${allProfesseurs.length > 1 ? `
+                    <select class="form-select" id="select-active-prof" style="padding: 4px 10px; font-size: 0.82rem; min-width: 180px; font-weight: 600;">
+                      ${allProfesseurs.map(p => `
+                        <option value="${p.id}" ${p.id === prof.id ? 'selected' : ''}>${p.nom} ${p.prenom || ''} (${p.etablissement || 'EPS'})</option>
+                      `).join('')}
+                    </select>
+                  ` : `
+                    <strong style="color: var(--text-main); font-weight: 600;">${prof.nom} ${prof.prenom || ''}</strong>
+                    <span>(${prof.etablissement || 'Lycée Moderne'})</span>
+                  `}
                 </div>
               </div>
             </div>
@@ -640,7 +645,7 @@ export function renderEleves(container) {
       if (downloadTemplateBtn) {
         downloadTemplateBtn.addEventListener('click', (e) => {
           e.preventDefault();
-          const csvHeader = "\uFEFFNom;Prénom;Genre;Matricule\nKOUASSI;Alexandre;Garçon;MAT-2026-001\nTOURE;Aminata;Fille;MAT-2026-002\nDIALLO;Moussa;Garçon;MAT-2026-003\nYAO;Marie-Ange;Fille;MAT-2026-004\n";
+          const csvHeader = "\uFEFFNom;Prénom;Genre;Matricule\nEXEMPLE_NOM;EXEMPLE_PRENOM;Garçon;MAT-001\nEXEMPLE_NOM2;EXEMPLE_PRENOM2;Fille;MAT-002\n";
           const blob = new Blob([csvHeader], { type: 'text/csv;charset=utf-8;' });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);

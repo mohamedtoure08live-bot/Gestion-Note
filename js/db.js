@@ -18,6 +18,18 @@ const DB_KEYS = {
   INITIALIZED: 'eps_init_status_v13'
 };
 
+export const OFFICIAL_CLASSES = [
+  { id: 'Sixième', nom: 'Sixième', niveau: 'Sixième', ordre: 1, anneeScolaire: '2026-2027', description: 'Classe de 6ème', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' },
+  { id: 'Cinquième', nom: 'Cinquième', niveau: 'Cinquième', ordre: 2, anneeScolaire: '2026-2027', description: 'Classe de 5ème', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' },
+  { id: 'Quatrième', nom: 'Quatrième', niveau: 'Quatrième', ordre: 3, anneeScolaire: '2026-2027', description: 'Classe de 4ème', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' },
+  { id: 'Troisième', nom: 'Troisième', niveau: 'Troisième', ordre: 4, anneeScolaire: '2026-2027', description: 'Classe de 3ème', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' },
+  { id: 'Seconde', nom: 'Seconde', niveau: 'Seconde', ordre: 5, anneeScolaire: '2026-2027', description: 'Classe de 2nde', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' },
+  { id: 'Première', nom: 'Première', niveau: 'Première', ordre: 6, anneeScolaire: '2026-2027', description: 'Classe de 1ère', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' },
+  { id: 'Terminale', nom: 'Terminale', niveau: 'Terminale', ordre: 7, anneeScolaire: '2026-2027', description: 'Classe de Terminale', professeurId: 'prof_default', createdAt: '2026-09-01T08:00:00.000Z' }
+];
+
+export const FAKE_CLASS_IDS = ['cls_3eA', 'cls_6e1', 'cls_2ndeB'];
+
 class EPSDatabase {
   constructor() {
     this.baremes = [];
@@ -29,6 +41,14 @@ class EPSDatabase {
     this.cachedDisciplines = [];
     this.isOnline = false;
     this.realtimeSubscribed = false;
+    this.syncState = {
+      status: 'idle',
+      lastSynced: null,
+      error: null,
+      classesCount: 0,
+      elevesCount: 0,
+      evaluationsCount: 0
+    };
   }
 
   async init() {
@@ -44,16 +64,21 @@ class EPSDatabase {
 
       if (connected) {
         console.log("Connected to Supabase PostgreSQL. Syncing latest data...");
+        this.syncState.status = 'syncing';
         await this.syncFromSupabase();
         this.setupRealtime();
       } else {
         console.warn("Operating in offline cache mode.");
+        this.syncState.status = 'offline';
+        this.syncState.error = "Mode Hors-ligne : connexion à Supabase impossible.";
         if (this.baremes.length === 0) {
           await this.seedDefaultsLocally();
         }
       }
     } catch (err) {
       console.error("Database initialization error:", err);
+      this.syncState.status = 'error';
+      this.syncState.error = err.message || "Erreur de connexion à Supabase";
       if (this.baremes.length === 0) {
         await this.seedDefaultsLocally();
       }
@@ -62,6 +87,7 @@ class EPSDatabase {
     try {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('eps:db-ready', { detail: { baremesCount: this.baremes.length } }));
+        window.dispatchEvent(new CustomEvent('eps:sync-status', { detail: this.syncState }));
       }
     } catch (e) {}
   }
@@ -71,7 +97,14 @@ class EPSDatabase {
    */
   async syncFromSupabase() {
     const sb = SupabaseManager.getClient();
-    if (!sb) return;
+    if (!sb) {
+      this.syncState = {
+        status: 'offline',
+        lastSynced: this.syncState.lastSynced || null,
+        error: "Client Supabase non initialisé."
+      };
+      return;
+    }
 
     try {
       // 1. Fetch Classes
@@ -84,15 +117,23 @@ class EPSDatabase {
           id: row.id,
           nom: row.nom,
           niveau: row.niveau || row.cycle || EPSEngine.normalizeNiveau(row.nom),
+          ordre: typeof row.ordre === 'number' ? row.ordre : 10,
           anneeScolaire: row.annee_scolaire || '2026-2027',
           description: row.description || '',
           professeurId: row.professeur_id || 'prof_default',
           createdAt: row.created_at || new Date().toISOString()
         }));
-        
-        // Preserve any custom classes not yet in cloud
-        const existingCustom = this.classes.filter(c => !fetchedClasses.some(f => f.id === c.id));
-        this.classes = [...fetchedClasses, ...existingCustom];
+
+        // Sort by official order
+        fetchedClasses.sort((a, b) => (a.ordre || 10) - (b.ordre || 10));
+
+        // Purge any lingering fake mock classes
+        const cleanExisting = this.classes.filter(c => 
+          !FAKE_CLASS_IDS.includes(c.id) && 
+          !fetchedClasses.some(f => f.id === c.id)
+        );
+
+        this.classes = [...fetchedClasses, ...cleanExisting];
         localStorage.setItem(DB_KEYS.CLASSES, JSON.stringify(this.classes));
       }
 
@@ -102,19 +143,35 @@ class EPSDatabase {
         .select('*');
 
       if (!elErr && elData && elData.length > 0) {
-        const fetchedEleves = elData.map(row => ({
-          id: row.id,
-          nom: row.nom,
-          prenom: row.prenom,
-          genre: row.genre,
-          classe: row.classe,
-          classeId: row.classe_id || null,
-          matricule: row.matricule || '',
-          professeurId: row.professeur_id || 'prof_default'
-        }));
-        
-        const existingCustom = this.eleves.filter(e => !fetchedEleves.some(f => f.id === e.id));
-        this.eleves = [...fetchedEleves, ...existingCustom];
+        const fetchedEleves = elData.map(row => {
+          const rawClass = row.classe || '';
+          const matchCls = this.classes.find(c => 
+            c.id === rawClass || 
+            c.nom === rawClass || 
+            c.niveau === rawClass ||
+            (c.nom && rawClass && EPSEngine.normalizeNiveau(c.nom).toLowerCase() === EPSEngine.normalizeNiveau(rawClass).toLowerCase())
+          );
+
+          return {
+            id: row.id,
+            nom: (row.nom || '').trim(),
+            prenom: (row.prenom || '').trim(),
+            genre: row.genre,
+            classe: matchCls ? matchCls.niveau : rawClass,
+            classeId: matchCls ? matchCls.id : (row.classe_id || rawClass),
+            classeNom: matchCls ? matchCls.nom : rawClass,
+            matricule: row.matricule || '',
+            professeurId: row.professeur_id || 'prof_default'
+          };
+        });
+
+        // Filter out any potential mock students from local cache
+        const cleanExisting = this.eleves.filter(e => 
+          !['BERNARD Lucas', 'TOURE Aminata Fake'].includes(`${e.nom} ${e.prenom}`) &&
+          !fetchedEleves.some(f => f.id === e.id)
+        );
+
+        this.eleves = [...fetchedEleves, ...cleanExisting];
         localStorage.setItem(DB_KEYS.ELEVES, JSON.stringify(this.eleves));
       }
 
@@ -129,14 +186,23 @@ class EPSDatabase {
           const disc = this.normalizeDisciplineName(row.discipline);
           const isTime = EPSEngine.isTimeDiscipline(disc);
           const distNum = parseFloat(row.distance);
+          const rawClass = row.classe || '';
+          const matchCls = this.classes.find(c => 
+            c.id === rawClass || 
+            c.nom === rawClass || 
+            c.niveau === rawClass ||
+            (c.nom && rawClass && EPSEngine.normalizeNiveau(c.nom).toLowerCase() === EPSEngine.normalizeNiveau(rawClass).toLowerCase())
+          );
+
           return {
             id: row.id,
             eleveId: row.eleve_id,
             eleveNom: row.eleve_nom,
             discipline: disc,
             engin: row.engin,
-            classe: row.classe,
-            classeId: row.classe_id || null,
+            classe: matchCls ? matchCls.niveau : rawClass,
+            classeId: matchCls ? matchCls.id : (row.classe_id || rawClass),
+            classeNom: matchCls ? matchCls.nom : rawClass,
             genre: row.genre,
             distance: distNum,
             note: parseFloat(row.note),
@@ -148,24 +214,61 @@ class EPSDatabase {
         localStorage.setItem(DB_KEYS.EVALUATIONS, JSON.stringify(this.evaluations));
       }
 
-      // 4. Fetch Baremes
+      // 4. Fetch Baremes (Official Ministerial Reference Scales)
       const { data: barData, error: barErr } = await sb
         .from('baremes')
         .select('*');
 
       if (!barErr && barData && barData.length > 0) {
-        this.baremes = barData.filter(b => !b.discipline.toLowerCase().includes("haies") && b.discipline !== "Course 60m / 80m");
+        const fetchedOfficialBaremes = barData
+          .filter(b => !b.discipline.toLowerCase().includes("haies") && b.discipline !== "Course 60m / 80m")
+          .map(row => ({
+            id: row.id,
+            discipline: this.normalizeDisciplineName(row.discipline),
+            engin: row.engin || null,
+            classe: row.classe,
+            genre: row.genre,
+            type: row.type || 'distance',
+            grille: row.grille || [],
+            isOfficial: true,
+            professeurId: null,
+            nom: row.nom || `Barème Officiel — ${row.discipline}${row.engin ? ' (' + row.engin + ')' : ''} (${row.classe} ${row.genre})`,
+            createdAt: row.created_at || new Date().toISOString()
+          }));
+
+        // Preserve existing custom teacher scales
+        const localCustomBaremes = this.baremes.filter(b => b.isOfficial === false && b.professeurId);
+        this.baremes = [...fetchedOfficialBaremes, ...localCustomBaremes];
         localStorage.setItem(DB_KEYS.BAREMES, JSON.stringify(this.baremes));
       }
 
       this.saveLocalAll();
+
+      this.syncState = {
+        status: 'synced',
+        lastSynced: new Date().toISOString(),
+        error: null,
+        classesCount: this.classes.length,
+        elevesCount: this.eleves.length,
+        evaluationsCount: this.evaluations.length
+      };
+
       console.log(`Supabase Sync complete: ${this.classes.length} classes, ${this.eleves.length} élèves, ${this.evaluations.length} évaluations, ${this.baremes.length} barèmes.`);
       
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('eps:db-synced', { detail: { count: this.evaluations.length } }));
+        window.dispatchEvent(new CustomEvent('eps:sync-status', { detail: this.syncState }));
       }
     } catch (e) {
       console.warn("Failed to complete full sync from Supabase:", e);
+      this.syncState = {
+        status: 'error',
+        lastSynced: this.syncState.lastSynced || null,
+        error: e.message || "Erreur de communication avec la base de données Supabase."
+      };
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('eps:sync-status', { detail: this.syncState }));
+      }
     }
   }
 
@@ -247,73 +350,94 @@ class EPSDatabase {
 
   loadFromLocal() {
     try {
-      this.baremes = (JSON.parse(localStorage.getItem(DB_KEYS.BAREMES) || '[]'))
+      const storedBaremes = (JSON.parse(localStorage.getItem(DB_KEYS.BAREMES) || '[]'))
         .filter(b => !b.discipline.toLowerCase().includes("haies") && b.discipline !== "Course 60m / 80m");
+
+      this.baremes = storedBaremes.map(b => {
+        const isOfficial = b.isOfficial !== false && !b.professeurId;
+        return {
+          ...b,
+          discipline: this.normalizeDisciplineName(b.discipline),
+          isOfficial: isOfficial,
+          professeurId: isOfficial ? null : (b.professeurId || this.currentProfesseurId),
+          nom: b.nom || (isOfficial ? `Barème Officiel — ${b.discipline}${b.engin ? ' (' + b.engin + ')' : ''} (${b.classe} ${b.genre})` : 'Barème personnalisé')
+        };
+      });
       
       this.cachedDisciplines = (JSON.parse(localStorage.getItem(DB_KEYS.DISCIPLINES) || '[]'))
         .filter(d => !d.nom.toLowerCase().includes("haies") && d.nom !== "Course 60m / 80m");
 
-      // Load Professeurs
+      // Load Professeurs (default to active teacher)
       this.professeurs = JSON.parse(localStorage.getItem(DB_KEYS.PROFESSEURS) || '[]');
-      if (this.professeurs.length === 0) {
+      if (this.professeurs.length === 0 || this.professeurs.some(p => p.id === 'prof_toure')) {
         this.professeurs = [
-          { id: 'prof_default', nom: 'M. Soro', prenom: 'Abdoulaye', email: 'soro.eps@education.ci', etablissement: 'Lycée Moderne', role: 'Enseignant EPS' },
-          { id: 'prof_toure', nom: 'Mme Touré', prenom: 'Aminata', email: 'toure.eps@education.ci', etablissement: 'Collège de Cocody', role: 'Enseignante EPS' }
+          { id: 'prof_default', nom: 'M. Soro', prenom: 'Abdoulaye', email: 'soro.eps@education.ci', etablissement: 'Lycée Moderne', role: 'Enseignant EPS' }
         ];
       }
       this.currentProfesseurId = localStorage.getItem(DB_KEYS.CURRENT_PROF) || 'prof_default';
 
-      // Load Classes
-      this.classes = JSON.parse(localStorage.getItem(DB_KEYS.CLASSES) || '[]');
+      // Load Classes & purge any legacy mock classes
+      const storedClasses = JSON.parse(localStorage.getItem(DB_KEYS.CLASSES) || '[]');
+      this.classes = storedClasses.filter(c => !FAKE_CLASS_IDS.includes(c.id));
+
       if (this.classes.length === 0) {
-        // Seed initial teacher classes
-        this.classes = [
-          { id: 'cls_3eA', nom: '3e A', niveau: 'Troisième', anneeScolaire: '2026-2027', description: 'Classe de 3ème section A', professeurId: 'prof_default', createdAt: new Date().toISOString() },
-          { id: 'cls_6e1', nom: '6e 1', niveau: 'Sixième', anneeScolaire: '2026-2027', description: 'Classe de 6ème groupe 1', professeurId: 'prof_default', createdAt: new Date().toISOString() },
-          { id: 'cls_2ndeB', nom: '2nde B', niveau: 'Seconde', anneeScolaire: '2026-2027', description: 'Seconde scientifique B', professeurId: 'prof_default', createdAt: new Date().toISOString() }
-        ];
+        // Initialize with the standard official classes matching Supabase
+        this.classes = JSON.parse(JSON.stringify(OFFICIAL_CLASSES));
       }
 
       // Load Eleves (with backward compatibility)
       let storedEleves = JSON.parse(localStorage.getItem(DB_KEYS.ELEVES) || '[]');
       if (storedEleves.length === 0) {
-        // Try fallback from v1 key
         storedEleves = JSON.parse(localStorage.getItem('eps_eleves_v1') || '[]');
       }
       
-      this.eleves = storedEleves.map(el => {
-        let cid = el.classeId;
-        let cNom = el.classeNom;
-        if (!cid) {
-          const matchCls = this.classes.find(c => c.niveau === el.classe);
-          if (matchCls) {
-            cid = matchCls.id;
-            cNom = matchCls.nom;
-          }
-        }
-        return {
-          id: el.id,
-          nom: el.nom,
-          prenom: el.prenom,
-          genre: el.genre,
-          classe: el.classe,
-          classeId: cid || null,
-          classeNom: cNom || el.classe,
-          matricule: el.matricule || '',
-          professeurId: el.professeurId || 'prof_default'
-        };
-      });
+      this.eleves = storedEleves
+        .filter(el => !['BERNARD Lucas', 'TOURE Aminata Fake'].includes(`${el.nom} ${el.prenom}`))
+        .map(el => {
+          const rawClass = el.classe || '';
+          const matchCls = this.classes.find(c => 
+            c.id === el.classeId || 
+            c.id === rawClass || 
+            c.nom === rawClass || 
+            c.niveau === rawClass ||
+            (c.nom && rawClass && EPSEngine.normalizeNiveau(c.nom).toLowerCase() === EPSEngine.normalizeNiveau(rawClass).toLowerCase())
+          );
+          return {
+            id: el.id,
+            nom: (el.nom || '').trim(),
+            prenom: (el.prenom || '').trim(),
+            genre: el.genre,
+            classe: matchCls ? matchCls.niveau : (rawClass || 'Troisième'),
+            classeId: matchCls ? matchCls.id : (el.classeId || rawClass || 'Troisième'),
+            classeNom: matchCls ? matchCls.nom : (el.classeNom || rawClass || 'Troisième'),
+            matricule: el.matricule || '',
+            professeurId: el.professeurId || 'prof_default'
+          };
+        });
 
       // Load Evaluations (with backward compatibility)
       let storedEvals = JSON.parse(localStorage.getItem(DB_KEYS.EVALUATIONS) || '[]');
       if (storedEvals.length === 0) {
         storedEvals = JSON.parse(localStorage.getItem('eps_evaluations_v1') || '[]');
       }
-      this.evaluations = storedEvals.map(ev => ({
-        ...ev,
-        discipline: this.normalizeDisciplineName(ev.discipline),
-        professeurId: ev.professeurId || 'prof_default'
-      }));
+      this.evaluations = storedEvals.map(ev => {
+        const rawClass = ev.classe || '';
+        const matchCls = this.classes.find(c => 
+          c.id === ev.classeId || 
+          c.id === rawClass || 
+          c.nom === rawClass || 
+          c.niveau === rawClass ||
+          (c.nom && rawClass && EPSEngine.normalizeNiveau(c.nom).toLowerCase() === EPSEngine.normalizeNiveau(rawClass).toLowerCase())
+        );
+        return {
+          ...ev,
+          discipline: this.normalizeDisciplineName(ev.discipline),
+          classe: matchCls ? matchCls.niveau : rawClass,
+          classeId: matchCls ? matchCls.id : (ev.classeId || rawClass),
+          classeNom: matchCls ? matchCls.nom : (ev.classeNom || rawClass),
+          professeurId: ev.professeurId || 'prof_default'
+        };
+      });
 
     } catch (e) {
       console.warn("Local storage parse error:", e);
@@ -336,16 +460,23 @@ class EPSDatabase {
 
   async seedDefaultsLocally() {
     try {
+      let defaultBaremes = [];
       if (typeof window !== 'undefined' && window.location && typeof fetch === 'function') {
         const res = await fetch('data/default_baremes.json');
-        const defaultBaremes = await res.json();
-        this.baremes = defaultBaremes;
+        defaultBaremes = await res.json();
       } else {
         try {
           const fs = await import('fs');
-          this.baremes = JSON.parse(fs.readFileSync('./data/default_baremes.json', 'utf8'));
+          defaultBaremes = JSON.parse(fs.readFileSync('./data/default_baremes.json', 'utf8'));
         } catch (efs) {}
       }
+      this.baremes = (defaultBaremes || []).map(b => ({
+        ...b,
+        discipline: this.normalizeDisciplineName(b.discipline),
+        isOfficial: true,
+        professeurId: null,
+        nom: b.nom || `Barème Officiel — ${b.discipline}${b.engin ? ' (' + b.engin + ')' : ''} (${b.classe} ${b.genre})`
+      }));
     } catch (e) {
       console.warn("Fallback baremes loading error:", e);
     }
@@ -362,17 +493,27 @@ class EPSDatabase {
     return prof || this.professeurs[0] || { id: 'prof_default', nom: 'M. Soro', prenom: 'Abdoulaye' };
   }
 
-  setCurrentProfesseur(id) {
-    const p = this.professeurs.find(prof => prof.id === id);
-    if (p) {
-      this.currentProfesseurId = p.id;
-      localStorage.setItem(DB_KEYS.CURRENT_PROF, p.id);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('eps:prof-changed', { detail: { prof: p } }));
-      }
-      return p;
+  setCurrentProfesseur(id, profData = null) {
+    if (!id) return null;
+    this.currentProfesseurId = id;
+    localStorage.setItem(DB_KEYS.CURRENT_PROF, id);
+
+    let p = this.professeurs.find(prof => prof.id === id);
+    if (!p) {
+      p = profData || {
+        id: id,
+        nom: 'Enseignant',
+        prenom: '',
+        role: 'professeur'
+      };
+      this.professeurs.push(p);
+      this.saveLocalAll();
     }
-    return null;
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('eps:prof-changed', { detail: { prof: p } }));
+    }
+    return p;
   }
 
   addProfesseur(data) {
@@ -393,7 +534,11 @@ class EPSDatabase {
   // --- CLASSES CRUD (« Mes classes ») ---
   getClasses(profId = null) {
     const targetProf = profId || this.currentProfesseurId;
-    return this.classes.filter(c => c.professeurId === targetProf || (!c.professeurId && targetProf === 'prof_default'));
+    return this.classes.filter(c => 
+      c.professeurId === targetProf || 
+      (!c.professeurId && targetProf === 'prof_default') ||
+      (OFFICIAL_CLASSES.some(oc => oc.id === c.id) && targetProf === 'prof_default')
+    );
   }
 
   getClassById(id) {
@@ -497,13 +642,19 @@ class EPSDatabase {
   // --- ELEVES CRUD ---
   getEleves(filterClasse = null, profId = null) {
     const targetProf = profId || this.currentProfesseurId;
-    let list = this.eleves.filter(e => e.professeurId === targetProf || (!e.professeurId && targetProf === 'prof_default'));
+    let list = this.eleves.filter(e => 
+      e.professeurId === targetProf || 
+      (!e.professeurId && targetProf === 'prof_default')
+    );
 
     if (filterClasse && filterClasse !== 'ALL') {
+      const norm = EPSEngine.normalizeNiveau(filterClasse).toLowerCase();
       list = list.filter(e =>
         e.classeId === filterClasse ||
         e.classeNom === filterClasse ||
-        e.classe === filterClasse
+        e.classe === filterClasse ||
+        (e.classe && EPSEngine.normalizeNiveau(e.classe).toLowerCase() === norm) ||
+        (e.classeNom && EPSEngine.normalizeNiveau(e.classeNom).toLowerCase() === norm)
       );
     }
     return list;
@@ -800,16 +951,93 @@ class EPSDatabase {
     return this.getDisciplines();
   }
 
-  // --- BAREMES CRUD ---
+  // --- BAREMES CRUD : SÉPARATION STRICTE OFFICIEL VS PERSONNALISÉ ---
   getBaremes() {
     return this.baremes;
   }
 
-  getBaremesForCategory(discipline, classe, genre) {
+  /**
+   * Retourne uniquement les barèmes officiels ministériels de référence
+   */
+  getOfficialBaremes(discipline = null, classe = null, genre = null) {
+    let list = this.baremes.filter(b => b.isOfficial !== false && !b.professeurId);
+
+    if (discipline && discipline !== 'ALL') {
+      const disc = this.normalizeDisciplineName(discipline).toLowerCase();
+      list = list.filter(b => this.normalizeDisciplineName(b.discipline).toLowerCase() === disc);
+    }
+    if (classe && classe !== 'ALL') {
+      const cls = classe.trim().toLowerCase();
+      list = list.filter(b => (b.classe || '').trim().toLowerCase() === cls);
+    }
+    if (genre && genre !== 'ALL') {
+      const gnr = genre.trim().toLowerCase();
+      list = list.filter(b => (b.genre || '').trim().toLowerCase() === gnr);
+    }
+
+    return list;
+  }
+
+  /**
+   * Retourne uniquement les barèmes personnalisés d'un professeur
+   */
+  getCustomBaremes(profId = null, discipline = null, classe = null, genre = null) {
+    const targetProf = profId || this.currentProfesseurId;
+    let list = this.baremes.filter(b => b.isOfficial === false && b.professeurId === targetProf);
+
+    if (discipline && discipline !== 'ALL') {
+      const disc = this.normalizeDisciplineName(discipline).toLowerCase();
+      list = list.filter(b => this.normalizeDisciplineName(b.discipline).toLowerCase() === disc);
+    }
+    if (classe && classe !== 'ALL') {
+      const cls = classe.trim().toLowerCase();
+      list = list.filter(b => (b.classe || '').trim().toLowerCase() === cls);
+    }
+    if (genre && genre !== 'ALL') {
+      const gnr = genre.trim().toLowerCase();
+      list = list.filter(b => (b.genre || '').trim().toLowerCase() === gnr);
+    }
+
+    return list;
+  }
+
+  /**
+   * Trouve un barème par son ID unique (officiel ou personnalisé)
+   */
+  findBaremeById(id) {
+    if (!id) return null;
+    return this.baremes.find(b => b.id === id) || null;
+  }
+
+  /**
+   * Trouve le barème officiel ministériel correspondant aux critères
+   */
+  findOfficialBareme(discipline, classe, genre, engin = null) {
+    const list = this.getBaremesForCategory(discipline, classe, genre, null, true);
+    if (!list || list.length === 0) return null;
+
+    if (engin) {
+      const eng = engin.trim().toLowerCase();
+      const exact = list.find(b => b.engin && b.engin.trim().toLowerCase() === eng && (b.isOfficial !== false && !b.professeurId));
+      if (exact) return exact;
+    }
+
+    const noEngin = list.find(b => !b.engin && (b.isOfficial !== false && !b.professeurId));
+    if (noEngin) return noEngin;
+
+    return list.find(b => b.isOfficial !== false && !b.professeurId) || list[0] || null;
+  }
+
+  /**
+   * Recherche tous les barèmes applicables à une catégorie :
+   * Le barème officiel en premier, suivi des barèmes personnalisés du professeur.
+   */
+  getBaremesForCategory(discipline, classe, genre, profId = null, officialOnly = false) {
     if (!discipline || !classe || !genre) return [];
     let disc = discipline.trim().toLowerCase();
     const cls = classe.trim().toLowerCase();
     const gnr = genre.trim().toLowerCase();
+    const targetProf = profId || this.currentProfesseurId;
 
     if (disc.includes("haies")) return [];
 
@@ -834,66 +1062,166 @@ class EPSDatabase {
       return false;
     };
 
-    return (this.baremes || []).filter(b =>
+    let matching = (this.baremes || []).filter(b =>
       matchesDisc(b.discipline) &&
       (b.classe || '').trim().toLowerCase() === cls &&
       (b.genre || '').trim().toLowerCase() === gnr
     );
+
+    if (officialOnly) {
+      return matching.filter(b => b.isOfficial !== false && !b.professeurId);
+    }
+
+    // Filtrer : barème officiel + barèmes personnalisés du prof cible
+    return matching.filter(b => (b.isOfficial !== false && !b.professeurId) || b.professeurId === targetProf);
   }
 
-  findBareme(discipline, classe, genre, engin = null) {
-    const list = this.getBaremesForCategory(discipline, classe, genre);
+  /**
+   * Recherche de barème pour le calcul ou l'affichage
+   */
+  findBareme(discipline, classe, genre, engin = null, customId = null, profId = null) {
+    if (customId) {
+      const custom = this.findBaremeById(customId);
+      if (custom) return custom;
+    }
+
+    const list = this.getBaremesForCategory(discipline, classe, genre, profId);
     if (!list || list.length === 0) return null;
 
     if (engin) {
       const eng = engin.trim().toLowerCase();
-      const exact = list.find(b => b.engin && b.engin.trim().toLowerCase() === eng);
-      return exact || null;
+      // Priorité 1: barème personnalisé du professeur pour cet engin
+      const customMatch = list.find(b => !b.isOfficial && b.engin && b.engin.trim().toLowerCase() === eng);
+      if (customMatch && !customId) return customMatch;
+
+      // Priorité 2: barème officiel pour cet engin
+      const exactOfficial = list.find(b => (b.isOfficial !== false && !b.professeurId) && b.engin && b.engin.trim().toLowerCase() === eng);
+      if (exactOfficial) return exactOfficial;
+
+      // Fallback: any matching engin
+      const anyMatch = list.find(b => b.engin && b.engin.trim().toLowerCase() === eng);
+      if (anyMatch) return anyMatch;
     }
 
-    const noEngin = list.find(b => !b.engin);
-    if (noEngin) return noEngin;
+    const officialDefault = list.find(b => (b.isOfficial !== false && !b.professeurId) && !b.engin) || list.find(b => (b.isOfficial !== false && !b.professeurId));
+    if (officialDefault) return officialDefault;
 
-    return null;
+    return list[0] || null;
   }
 
-  async saveBareme(baremeData) {
-    if (!baremeData.id) {
-      baremeData.id = 'bar_' + Date.now();
+  /**
+   * Sauvegarde d'un barème personnalisé avec PROTECTION ABSOLUE du barème officiel
+   */
+  async saveCustomBareme(baremeData, profId = null) {
+    const targetProf = profId || this.currentProfesseurId;
+
+    // PROTECTION CRITIQUE 1 : Interdiction formelle de modifier directement un barème officiel
+    if (baremeData.isOfficial === true) {
+      throw new Error("Action interdite : Le barème officiel est une référence ministérielle protégée et ne peut pas être modifié. Veuillez créer une copie personnalisée.");
     }
 
-    const idx = this.baremes.findIndex(b => b.id === baremeData.id);
-    if (idx >= 0) {
-      this.baremes[idx] = baremeData;
-    } else {
-      this.baremes.push(baremeData);
-    }
-    this.saveLocalAll();
-
-    const sb = SupabaseManager.getClient();
-    if (sb) {
-      try {
-        await sb.from('baremes').upsert({
-          id: baremeData.id,
-          discipline: baremeData.discipline,
-          engin: baremeData.engin || null,
-          classe: baremeData.classe,
-          genre: baremeData.genre,
-          type: baremeData.type || 'distance',
-          grille: baremeData.grille || []
-        });
-      } catch (e) {
-        console.warn("Offline fallback for bareme upsert:", e);
+    const existingIdx = this.baremes.findIndex(b => b.id === baremeData.id);
+    if (existingIdx >= 0) {
+      const existing = this.baremes[existingIdx];
+      if (existing.isOfficial === true) {
+        throw new Error("Action interdite : Le barème officiel est une référence ministérielle protégée et ne peut pas être modifié. Veuillez créer une copie personnalisée.");
+      }
+      if (existing.professeurId && existing.professeurId !== targetProf) {
+        throw new Error("Accès refusé : vous n'êtes pas autorisé à modifier ce barème personnalisé.");
       }
     }
 
-    return baremeData;
+    // Assurer les métadonnées de barème personnalisé
+    const customBareme = {
+      ...baremeData,
+      id: baremeData.id || ('bar_custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)),
+      isOfficial: false,
+      professeurId: targetProf,
+      nom: (baremeData.nom || 'Mon barème personnalisé').trim(),
+      updatedAt: new Date().toISOString()
+    };
+
+    if (existingIdx >= 0) {
+      this.baremes[existingIdx] = customBareme;
+    } else {
+      this.baremes.push(customBareme);
+    }
+
+    this.saveLocalAll();
+    return customBareme;
+  }
+
+  /**
+   * Dupliquer un barème officiel ou existant en tant que barème personnalisé indépendant
+   */
+  duplicateBaremeAsCustom(sourceId, customName = null, profId = null) {
+    const source = this.findBaremeById(sourceId);
+    if (!source) {
+      throw new Error("Barème source introuvable.");
+    }
+
+    const targetProf = profId || this.currentProfesseurId;
+    const defaultName = customName || `Mon barème — ${source.discipline}${source.engin ? ' (' + source.engin + ')' : ''} (${source.classe} ${source.genre})`;
+
+    const cloned = {
+      id: 'bar_custom_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      discipline: source.discipline,
+      engin: source.engin || null,
+      classe: source.classe,
+      genre: source.genre,
+      type: source.type || 'distance',
+      grille: JSON.parse(JSON.stringify(source.grille || [])),
+      isOfficial: false,
+      professeurId: targetProf,
+      parentBaremeId: source.id,
+      nom: defaultName,
+      createdAt: new Date().toISOString()
+    };
+
+    this.baremes.push(cloned);
+    this.saveLocalAll();
+    return cloned;
+  }
+
+  /**
+   * Supprimer un barème personnalisé (interdiction formelle sur barème officiel)
+   */
+  deleteCustomBareme(baremeId, profId = null) {
+    const idx = this.baremes.findIndex(b => b.id === baremeId);
+    if (idx < 0) return false;
+
+    const target = this.baremes[idx];
+    if (target.isOfficial === true) {
+      throw new Error("Action interdite : Les barèmes officiels ne peuvent pas être supprimés.");
+    }
+
+    const targetProf = profId || this.currentProfesseurId;
+    if (target.professeurId && target.professeurId !== targetProf) {
+      throw new Error("Accès refusé : vous n'êtes pas autorisé à supprimer ce barème.");
+    }
+
+    this.baremes.splice(idx, 1);
+    this.saveLocalAll();
+    return true;
+  }
+
+  /**
+   * Méthode de compatibilité descendante avec garde-fou
+   */
+  async saveBareme(baremeData) {
+    if (baremeData.isOfficial) {
+      throw new Error("Action interdite : Le barème officiel est une référence ministérielle protégée et ne peut pas être modifié. Veuillez créer une copie personnalisée.");
+    }
+    return this.saveCustomBareme(baremeData);
   }
 
   // --- EVALUATIONS CRUD ---
   getEvaluations(filterDiscipline = null, filterClasse = null, profId = null) {
     const targetProf = profId || this.currentProfesseurId;
-    let list = this.evaluations.filter(ev => ev.professeurId === targetProf || (!ev.professeurId && targetProf === 'prof_default'));
+    let list = this.evaluations.filter(ev => 
+      ev.professeurId === targetProf || 
+      (!ev.professeurId && targetProf === 'prof_default')
+    );
 
     if (filterDiscipline && filterDiscipline !== 'ALL') {
       const discTarget = this.normalizeDisciplineName(filterDiscipline).toLowerCase();
@@ -901,10 +1229,13 @@ class EPSDatabase {
     }
 
     if (filterClasse && filterClasse !== 'ALL') {
+      const norm = EPSEngine.normalizeNiveau(filterClasse).toLowerCase();
       list = list.filter(ev =>
         ev.classeId === filterClasse ||
         ev.classeNom === filterClasse ||
-        ev.classe === filterClasse
+        ev.classe === filterClasse ||
+        (ev.classe && EPSEngine.normalizeNiveau(ev.classe).toLowerCase() === norm) ||
+        (ev.classeNom && EPSEngine.normalizeNiveau(ev.classeNom).toLowerCase() === norm)
       );
     }
 
@@ -929,6 +1260,26 @@ class EPSDatabase {
     if (evaluation.discipline) {
       evaluation.discipline = this.normalizeDisciplineName(evaluation.discipline);
     }
+
+    // Capture & fige l'instantané (snapshot) du barème utilisé pour protéger l'historique
+    let usedBareme = null;
+    if (evaluation.baremeId) {
+      usedBareme = this.findBaremeById(evaluation.baremeId);
+    }
+    if (!usedBareme) {
+      usedBareme = this.findBareme(evaluation.discipline, evaluation.classe, evaluation.genre, evaluation.engin);
+    }
+
+    evaluation.baremeId = usedBareme ? usedBareme.id : (evaluation.baremeId || 'bareme_officiel');
+    evaluation.baremeNom = usedBareme ? (usedBareme.nom || (usedBareme.isOfficial ? 'Barème Officiel' : 'Barème Personnalisé')) : 'Barème Officiel';
+    evaluation.baremeType = (usedBareme && usedBareme.isOfficial === false) ? 'personnalisé' : 'officiel';
+    evaluation.baremeSnapshot = usedBareme ? {
+      id: usedBareme.id,
+      nom: usedBareme.nom,
+      isOfficial: usedBareme.isOfficial !== false,
+      type: usedBareme.type || 'distance',
+      grille: JSON.parse(JSON.stringify(usedBareme.grille || []))
+    } : null;
 
     // Format performance with proper unit if not present
     if (!evaluation.performanceFormatted) {

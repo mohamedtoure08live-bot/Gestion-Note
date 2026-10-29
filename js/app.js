@@ -11,14 +11,20 @@ import { renderNotation } from './views/notation.js';
 import { renderBaremes } from './views/baremes.js';
 import { renderEleves } from './views/eleves.js';
 import { renderHistorique } from './views/historique.js';
+import { AuthManager } from './auth.js';
+import { renderAuth } from './views/auth.js';
 
 const appRoutes = {
   'dashboard': { title: 'Tableau de Bord Analytics', render: renderDashboard },
   'notation': { title: 'Évaluation & Calcul de Note', render: renderNotation },
-  'baremes': { title: 'Gestion des Barèmes Officiels', render: renderBaremes },
+  'baremes': { title: 'Gestion des Barèmes', render: renderBaremes },
   'classes': { title: 'Mes classes & Répertoire des Élèves', render: renderEleves },
   'eleves': { title: 'Mes classes & Répertoire des Élèves', render: renderEleves },
-  'historique': { title: 'Historique des Évaluations', render: renderHistorique }
+  'historique': { title: 'Historique des Évaluations', render: renderHistorique },
+  'auth': { title: 'Espace Enseignant EPS', render: renderAuth },
+  'login': { title: 'Connexion Enseignant', render: (c) => renderAuth(c, 'login') },
+  'register': { title: 'Inscription Enseignant', render: (c) => renderAuth(c, 'register') },
+  'reset-password': { title: 'Réinitialisation de mot de passe', render: (c) => renderAuth(c, 'forgot') }
 };
 
 const landingSections = ['hero', 'features', 'philosophy', 'how-it-works', 'demo', 'avantages', 'faq'];
@@ -26,6 +32,28 @@ const landingSections = ['hero', 'features', 'philosophy', 'how-it-works', 'demo
 class App {
   static async init() {
     console.log("Initializing GHIM PRO Application Full Stack...");
+
+    // Setup Auth Manager & User Session
+    try {
+      await AuthManager.init();
+      const currentUser = AuthManager.getCurrentUser();
+      db.setCurrentProfesseur(currentUser.id);
+    } catch (e) {
+      console.warn("Auth initialization notice:", e);
+    }
+
+    // Update Header User Profile Badge
+    App.updateUserBadge();
+
+    // Listen to Auth State Changes
+    window.addEventListener('eps:auth-changed', (e) => {
+      const user = e.detail?.user || AuthManager.getCurrentUser();
+      if (user) {
+        db.setCurrentProfesseur(user.id);
+      }
+      App.updateUserBadge();
+      App.navigate();
+    });
 
     // Setup Cloud Status Listener for app header badge
     App.setupCloudStatus();
@@ -77,6 +105,23 @@ class App {
     const hash = window.location.hash.replace('#', '').trim();
     if (appRoutes[hash]) {
       App.navigate();
+    }
+  }
+
+  static updateUserBadge() {
+    const user = AuthManager.getCurrentUser();
+    const nameEl = document.getElementById('header-user-name');
+    const avatarEl = document.getElementById('header-user-avatar');
+    const badgeEl = document.getElementById('header-user-btn');
+
+    if (nameEl && user) {
+      nameEl.textContent = `M. ${user.nom || 'Enseignant'}`;
+    }
+    if (avatarEl && user) {
+      avatarEl.textContent = ((user.prenom || user.nom || 'P')[0] || 'P').toUpperCase();
+    }
+    if (badgeEl && user) {
+      badgeEl.title = `Connecté : ${user.prenom || ''} ${user.nom || ''} (${user.etablissement || 'EPS'})`;
     }
   }
 

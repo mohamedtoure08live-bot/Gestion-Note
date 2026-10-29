@@ -33,6 +33,7 @@ export function renderHistorique(container) {
                 <th>Genre</th>
                 <th>Performance</th>
                 <th>Note sur 20</th>
+                <th>Barème utilisé</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -57,30 +58,41 @@ export function renderHistorique(container) {
       ev.eleveNom.toLowerCase().includes(query) ||
       (ev.classeNom && ev.classeNom.toLowerCase().includes(query)) ||
       ev.classe.toLowerCase().includes(query) ||
-      ev.discipline.toLowerCase().includes(query)
+      ev.discipline.toLowerCase().includes(query) ||
+      (ev.baremeNom && ev.baremeNom.toLowerCase().includes(query))
     );
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-muted); padding: 24px 14px;">Aucune évaluation trouvée.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--text-muted); padding: 24px 14px;">Aucune évaluation trouvée.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = filtered.map(ev => `
-      <tr>
-        <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${new Date(ev.date).toLocaleDateString('fr-FR')} ${new Date(ev.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
-        <td><strong>${ev.eleveNom}</strong></td>
-        <td>${ev.discipline} ${ev.engin ? '(' + ev.engin + ')' : ''}</td>
-        <td><span class="badge" style="background:#f1f5f9; color:var(--text-main);">${ev.classeNom || ev.classe}</span></td>
-        <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre}</span></td>
-        <td><strong>${ev.performanceFormatted || (typeof ev.distance === 'number' ? ev.distance.toFixed(2) + 'm' : ev.distance)}</strong></td>
-        <td><span class="badge ${ev.note >= 14 ? 'badge-note-high' : ev.note >= 10 ? 'badge-note-mid' : 'badge-note-low'}">${ev.note} / 20</span></td>
-        <td>
-          <button class="btn btn-sm btn-danger btn-delete-eval" data-id="${ev.id}">
-            <i class="fas fa-trash"></i>
-          </button>
-        </td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = filtered.map(ev => {
+      const isCustomBareme = ev.baremeType === 'personnalisé' || (ev.baremeNom && ev.baremeNom.toLowerCase().includes('personnalis'));
+      const baremeLabel = ev.baremeNom || (isCustomBareme ? 'Barème Personnalisé' : 'Barème Officiel');
+
+      return `
+        <tr>
+          <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${new Date(ev.date).toLocaleDateString('fr-FR')} ${new Date(ev.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
+          <td><strong>${ev.eleveNom}</strong></td>
+          <td>${ev.discipline} ${ev.engin ? '(' + ev.engin + ')' : ''}</td>
+          <td><span class="badge" style="background:#f1f5f9; color:var(--text-main);">${ev.classeNom || ev.classe}</span></td>
+          <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre}</span></td>
+          <td><strong>${ev.performanceFormatted || (typeof ev.distance === 'number' ? ev.distance.toFixed(2) + 'm' : ev.distance)}</strong></td>
+          <td><span class="badge ${ev.note >= 14 ? 'badge-note-high' : ev.note >= 10 ? 'badge-note-mid' : 'badge-note-low'}">${ev.note} / 20</span></td>
+          <td>
+            <span class="badge" style="${isCustomBareme ? 'background: rgba(245, 158, 11, 0.15); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.3);' : 'background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3);'} font-size: 0.72rem; padding: 3px 8px;" title="${baremeLabel}">
+              <i class="fas ${isCustomBareme ? 'fa-sliders' : 'fa-lock'}"></i> ${isCustomBareme ? 'Personnalisé' : 'Officiel'}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-danger btn-delete-eval" data-id="${ev.id}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
 
     tbody.querySelectorAll('.btn-delete-eval').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -107,9 +119,12 @@ export function renderHistorique(container) {
       return;
     }
 
-    let csvContent = "data:text/csv;charset=utf-8,Date,Eleve,Discipline,Engin,Classe,Genre,Distance_m,Note_20\n";
+    let csvContent = "data:text/csv;charset=utf-8,Date,Eleve,Discipline,Engin,Classe,Genre,Performance,Note_20,Bareme_Utilise,Type_Bareme\n";
     evaluations.forEach(ev => {
-      csvContent += `"${ev.date}","${ev.eleveNom}","${ev.discipline}","${ev.engin}","${ev.classe}","${ev.genre}",${ev.distance},${ev.note}\n`;
+      const isCustom = ev.baremeType === 'personnalisé' || (ev.baremeNom && ev.baremeNom.toLowerCase().includes('personnalis'));
+      const baremeTitle = ev.baremeNom || (isCustom ? 'Barème Personnalisé' : 'Barème Officiel');
+      const baremeType = isCustom ? 'Personnalisé' : 'Officiel';
+      csvContent += `"${ev.date}","${ev.eleveNom}","${ev.discipline}","${ev.engin || ''}","${ev.classe}","${ev.genre}","${ev.performanceFormatted || ev.distance}",${ev.note},"${baremeTitle}","${baremeType}"\n`;
     });
 
     const encodedUri = encodeURI(csvContent);

@@ -89,7 +89,14 @@ export function renderNotation(container) {
           </div>
 
           <div class="form-row">
-            <div class="form-group">
+            <div class="form-group" style="flex: 1.5;">
+              <label class="form-label"><i class="fas fa-scale-balanced"></i> Barème d'évaluation appliqué <span style="color:red;">*</span></label>
+              <select class="form-select" id="select-bareme-mode">
+                <option value="OFFICIAL" selected>🛡️ Barème Officiel Ministériel (Référence Nationale)</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="flex: 1;">
               <label class="form-label">Mode de Calcul de la Note</label>
               <select class="form-select" id="select-mode-calcul">
                 <option value="interpolation" selected>Interpolation Linéaire Exacte (Proportionnelle)</option>
@@ -159,6 +166,7 @@ export function renderNotation(container) {
   const groupEngin = container.querySelector('#group-select-engin');
   const selectEngin = container.querySelector('#select-engin');
   const selectGenre = container.querySelector('#select-genre');
+  const selectBaremeMode = container.querySelector('#select-bareme-mode');
   const selectMode = container.querySelector('#select-mode-calcul');
   const labelPerformance = container.querySelector('#label-performance');
   const inputDistance = container.querySelector('#input-distance');
@@ -198,6 +206,32 @@ export function renderNotation(container) {
       nom: val || normalized,
       niveau: normalized
     };
+  }
+
+  function updateBaremeChoices() {
+    if (!selectBaremeMode) return;
+    const discipline = selectDiscipline.value;
+    const { niveau } = getActiveClasseInfo();
+    const genre = selectGenre.value;
+    const currentVal = selectBaremeMode.value;
+
+    const customBaremes = db.getCustomBaremes(currentProf.id, discipline, niveau, genre);
+
+    let html = '<option value="OFFICIAL">🛡️ Barème Officiel Ministériel (Référence Nationale)</option>';
+    if (customBaremes && customBaremes.length > 0) {
+      html += '<optgroup label="Vos Barèmes Personnalisés">';
+      customBaremes.forEach(cb => {
+        html += `<option value="${cb.id}">⚙️ ${cb.nom}</option>`;
+      });
+      html += '</optgroup>';
+    }
+
+    selectBaremeMode.innerHTML = html;
+    if (currentVal && (currentVal === 'OFFICIAL' || customBaremes.some(cb => cb.id === currentVal))) {
+      selectBaremeMode.value = currentVal;
+    } else {
+      selectBaremeMode.value = 'OFFICIAL';
+    }
   }
 
   function updateEnginsList() {
@@ -308,10 +342,17 @@ export function renderNotation(container) {
       }
     }
 
+    // Selected scale (Official or Custom)
+    const baremeChoice = selectBaremeMode ? selectBaremeMode.value : 'OFFICIAL';
+    let customBareme = null;
+    if (baremeChoice !== 'OFFICIAL') {
+      customBareme = db.findBaremeById(baremeChoice);
+    }
+
     // 1. Strict input validation
     const validation = EPSEngine.validateInput(discipline, classe, genre, engin);
 
-    if (!validation.valid) {
+    if (!validation.valid && !customBareme) {
       validationAlert.style.display = 'block';
       validationMsg.textContent = validation.message;
 
@@ -342,7 +383,11 @@ export function renderNotation(container) {
       scoreApprec.style.background = "rgba(255,255,255,0.1)";
       scoreDetailExact.innerHTML = "Note Exacte (Interpolée) : <strong>-</strong>";
       scoreDetailPalier.innerHTML = "Note Palier Strict : <strong>-</strong>";
-      scoreDetail.textContent = `Barème officiel actif : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}`;
+      if (customBareme) {
+        scoreDetail.innerHTML = `<span style="color:#f59e0b; font-weight:700;"><i class="fas fa-sliders"></i> Barème Personnalisé : ${customBareme.nom}</span>`;
+      } else {
+        scoreDetail.innerHTML = `<span style="color:#10b981; font-weight:600;"><i class="fas fa-lock"></i> Barème officiel actif : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}</span>`;
+      }
       scoreCircle.style.borderColor = "var(--primary)";
       if (mobileScoreVal) mobileScoreVal.textContent = "-- / 20";
       if (mobileScoreApprec) {
@@ -352,7 +397,7 @@ export function renderNotation(container) {
       return;
     }
 
-    const result = EPSEngine.calculateGrade(discipline, classe, genre, rawVal, engin, mode);
+    const result = EPSEngine.calculateGrade(discipline, classe, genre, rawVal, engin, mode, customBareme);
 
     if (result.valid && result.note !== null) {
       const displayNote = (mode === 'interpolation') ? Number(result.noteExacte).toFixed(2) : result.notePalier;
@@ -382,7 +427,11 @@ export function renderNotation(container) {
 
       scoreDetailExact.innerHTML = `Note Exacte (Interpolée) : <strong style="color: #4ade80;">${Number(result.noteExacte).toFixed(2)} / 20</strong>`;
       scoreDetailPalier.innerHTML = `Note Palier Strict : <strong style="color: #60a5fa;">${result.notePalier} / 20</strong>`;
-      scoreDetail.textContent = `Barème officiel : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}`;
+      if (customBareme) {
+        scoreDetail.innerHTML = `<span style="color:#f59e0b; font-weight:700;"><i class="fas fa-sliders"></i> Barème Personnalisé actif : ${customBareme.nom}</span>`;
+      } else {
+        scoreDetail.innerHTML = `<span style="color:#10b981; font-weight:600;"><i class="fas fa-lock"></i> Barème officiel actif : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}</span>`;
+      }
     } else {
       scoreVal.textContent = "--";
       scoreApprec.textContent = result.appreciation || "Performance non valide";
@@ -403,23 +452,33 @@ export function renderNotation(container) {
   selectClasse.addEventListener('change', () => {
     updateEleveList();
     updateEnginsList();
+    updateBaremeChoices();
     updateLiveScore();
   });
 
   selectDiscipline.addEventListener('change', () => {
     updateEnginsList();
     updateEleveList();
+    updateBaremeChoices();
     updateLiveScore();
   });
 
   selectEngin.addEventListener('change', () => {
+    updateBaremeChoices();
     updateLiveScore();
   });
 
   selectGenre.addEventListener('change', () => {
     updateEnginsList();
+    updateBaremeChoices();
     updateLiveScore();
   });
+
+  if (selectBaremeMode) {
+    selectBaremeMode.addEventListener('change', () => {
+      updateLiveScore();
+    });
+  }
 
   selectMode.addEventListener('change', () => {
     updateLiveScore();
@@ -433,6 +492,7 @@ export function renderNotation(container) {
       if (el) {
         selectGenre.value = el.genre;
         updateEnginsList();
+        updateBaremeChoices();
       }
     } else {
       if (inputEleveNomLibre) inputEleveNomLibre.style.display = 'block';
@@ -485,15 +545,26 @@ export function renderNotation(container) {
       }
     }
 
-    // Validate inputs
-    const validation = EPSEngine.validateInput(selectDiscipline.value, officialNiveau, genre, selectEngin.value || null);
-    if (!validation.valid) {
-      Toast.show(validation.message, "error");
-      return;
+    // Determine chosen scale (Official vs Custom)
+    const baremeChoice = selectBaremeMode ? selectBaremeMode.value : 'OFFICIAL';
+    let chosenBareme = null;
+    if (baremeChoice !== 'OFFICIAL') {
+      chosenBareme = db.findBaremeById(baremeChoice);
+    } else {
+      chosenBareme = db.findOfficialBareme(selectDiscipline.value, officialNiveau, genre, selectEngin.value || null);
+    }
+
+    // Validate inputs against official scale (if official mode)
+    if (!chosenBareme || chosenBareme.isOfficial !== false) {
+      const validation = EPSEngine.validateInput(selectDiscipline.value, officialNiveau, genre, selectEngin.value || null);
+      if (!validation.valid) {
+        Toast.show(validation.message, "error");
+        return;
+      }
     }
 
     const perfNum = EPSEngine.parsePerformance(rawVal);
-    const result = EPSEngine.calculateGrade(selectDiscipline.value, officialNiveau, genre, rawVal, selectEngin.value || null, selectMode.value);
+    const result = EPSEngine.calculateGrade(selectDiscipline.value, officialNiveau, genre, rawVal, selectEngin.value || null, selectMode.value, chosenBareme);
 
     if (!result.valid || result.note === null || !result.baremeFound) {
       Toast.show(result.error || "Impossible d'enregistrer : saisie non conforme", "error");
@@ -521,7 +592,10 @@ export function renderNotation(container) {
         note: result.note,
         noteExacte: result.noteExacte,
         notePalier: result.notePalier,
-        professeurId: db.getCurrentProfesseur().id
+        professeurId: currentProf.id,
+        baremeId: chosenBareme ? chosenBareme.id : 'bareme_officiel',
+        baremeNom: chosenBareme ? chosenBareme.nom : 'Barème Officiel Ministériel',
+        baremeType: (chosenBareme && chosenBareme.isOfficial === false) ? 'personnalisé' : 'officiel'
       });
 
       Toast.show(`Note de ${result.note}/20 enregistrée avec succès pour ${eleveNom} !`, "success");
@@ -540,6 +614,7 @@ export function renderNotation(container) {
           if (nextEl) {
             selectGenre.value = nextEl.genre;
             updateEnginsList();
+            updateBaremeChoices();
           }
         } else {
           selectEleve.value = '';
@@ -560,17 +635,20 @@ export function renderNotation(container) {
   // Initial setup
   updateEnginsList();
   updateEleveList();
+  updateBaremeChoices();
   updateLiveScore();
 
   // Listen to background updates
   window.addEventListener('eps:prof-changed', () => {
     updateEnginsList();
     updateEleveList();
+    updateBaremeChoices();
     updateLiveScore();
   });
   window.addEventListener('eps:db-synced', () => {
     updateEnginsList();
     updateEleveList();
+    updateBaremeChoices();
     updateLiveScore();
   });
 }

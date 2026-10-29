@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/views.css">
   <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/auth.css">
 
   <!-- Supabase Client SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -92,6 +93,10 @@
           <i class="fas fa-clock-rotate-left"></i>
           <span>Historique</span>
         </a>
+        <a href="#auth" class="nav-item" id="nav-item-auth">
+          <i class="fas fa-user-circle"></i>
+          <span>Espace Enseignant</span>
+        </a>
         
         <div style="margin: 20px 14px 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;">
           <a href="#landing" class="nav-item" style="color: #60a5fa;">
@@ -119,6 +124,10 @@
         </div>
 
         <div class="header-actions">
+          <a href="#auth" class="header-user-btn" id="header-user-btn" title="Mon Compte Enseignant">
+            <span class="header-user-avatar" id="header-user-avatar">S</span>
+            <span id="header-user-name">M. Soro</span>
+          </a>
           <a href="#landing" class="btn btn-sm btn-secondary header-btn-vitrine" style="display:inline-flex; align-items:center; gap:6px; text-decoration:none;">
             <i class="fas fa-house"></i> <span class="header-btn-text">Vitrine</span>
           </a>

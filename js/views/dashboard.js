@@ -154,10 +154,56 @@ export function renderDashboard(container) {
     const currentProf = db.getCurrentProfesseur();
     const classesList = db.getClasses();
     const disciplinesList = db.getDisciplines();
+    const customBaremes = db.getCustomBaremes(currentProf.id);
     const stats = computeDashboardStats();
+    const syncState = db.syncState || { status: 'idle' };
+
+    const isNewTeacherNoData = classesList.length === 0 && stats.totalEvals === 0;
 
     container.innerHTML = `
       <div class="dashboard-wrapper">
+        ${isNewTeacherNoData ? `
+          <div class="card" style="margin-bottom: 24px; padding: 28px 24px; background: linear-gradient(135deg, #f8fafc, #edf2f7); border-left: 4px solid var(--primary);">
+            <div style="display:flex; align-items: flex-start; gap: 16px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                <i class="fas fa-hand-sparkles"></i>
+              </div>
+              <div style="flex: 1;">
+                <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">Bienvenue dans votre Espace Enseignant, ${currentProf.prenom || ''} ${currentProf.nom} !</h3>
+                <p style="color: #64748b; font-size: 0.92rem; line-height: 1.5; margin: 0 0 16px 0;">
+                  Votre compte professeur est prêt. Vous disposez d'un espace sécurisé et isolé pour gérer vos classes, évaluer vos élèves et créer vos barèmes personnalisés sans toucher au barème officiel.
+                </p>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <a href="#classes" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Créer ma première classe
+                  </a>
+                  <a href="#baremes" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-shield-halved"></i> Consulter les barèmes officiels
+                  </a>
+                  <a href="#notation" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-calculator"></i> Calculer une note (Mode autonome)
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${syncState.status === 'error' ? `
+          <div class="alert alert-danger" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; gap: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #dc2626;">
+            <i class="fas fa-triangle-exclamation" style="font-size: 1.25rem;"></i>
+            <div>
+              <strong>Erreur de synchronisation cloud :</strong> ${syncState.error || 'Connexion interrompue'}.
+              <div style="font-size: 0.8rem; opacity: 0.85;">Les indicateurs ci-dessous utilisent les données réelles locales en attendant le rétablissement du réseau.</div>
+            </div>
+          </div>
+        ` : (syncState.status === 'offline' ? `
+          <div class="alert alert-warning" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #b45309; font-size: 0.88rem;">
+            <i class="fas fa-wifi" style="opacity: 0.5;"></i>
+            <span>Mode hors-ligne actif. Vos données locales sont préservées et se synchroniseront automatiquement avec Supabase dès le retour d'Internet.</span>
+          </div>
+        ` : '')}
+
         <!-- Top Toolbar with Activity & Class Filters -->
         <div class="card dash-filters-toolbar" style="margin-bottom: 24px; padding: 16px 20px; background: #ffffff;">
           <div class="dash-filters-inner">
@@ -313,6 +359,11 @@ export function renderDashboard(container) {
                       <td colspan="7" style="text-align:center; padding: 36px 16px; color: var(--text-muted);">
                         <i class="fas fa-clipboard-question" style="font-size: 2rem; margin-bottom: 10px; display:block; opacity: 0.5;"></i>
                         Aucune évaluation trouvée pour les filtres sélectionnés.
+                        <div style="margin-top: 14px;">
+                          <a href="#notation" class="btn btn-sm btn-primary">
+                            <i class="fas fa-stopwatch"></i> Lancer une évaluation
+                          </a>
+                        </div>
                       </td>
                     </tr>
                   ` : stats.evaluations.slice(0, 7).map(ev => {
@@ -348,8 +399,8 @@ export function renderDashboard(container) {
                 <div style="font-size: 0.85rem;">
                   Professeur actif : <strong>${currentProf.nom} ${currentProf.prenom || ''}</strong>
                 </div>
-                <div style="font-size: 0.78rem; color: var(--text-light);">
-                  ${classesList.length} classe${classesList.length > 1 ? 's' : ''} gérée${classesList.length > 1 ? 's' : ''} · ${disciplinesList.length} disciplines EPS
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                  ${classesList.length} classe${classesList.length > 1 ? 's' : ''} gérée${classesList.length > 1 ? 's' : ''} · ${customBaremes.length} barème${customBaremes.length > 1 ? 's' : ''} personnalisé${customBaremes.length > 1 ? 's' : ''}
                 </div>
               </div>
 
@@ -358,10 +409,13 @@ export function renderDashboard(container) {
                   <i class="fas fa-stopwatch"></i> Lancer une Évaluation
                 </a>
                 <a href="#classes" class="btn btn-secondary" style="width: 100%; text-align:center;">
-                  <i class="fas fa-users-rectangle"></i> Gérer mes classes & élèves
+                  <i class="fas fa-chalkboard-user"></i> Gérer mes classes & élèves
                 </a>
                 <a href="#baremes" class="btn btn-secondary" style="width: 100%; text-align:center;">
-                  <i class="fas fa-table-list"></i> Consulter les barèmes
+                  <i class="fas fa-table-list"></i> Gérer mes barèmes (${customBaremes.length} perso)
+                </a>
+                <a href="#auth" class="btn btn-outline-secondary" style="width: 100%; text-align:center; font-size: 0.82rem;">
+                  <i class="fas fa-user-gear"></i> Paramètres du profil enseignant
                 </a>
               </div>
             </div>
@@ -405,4 +459,5 @@ export function renderDashboard(container) {
   window.addEventListener('eps:prof-changed', () => render());
   window.addEventListener('eps:db-ready', () => render());
   window.addEventListener('eps:db-synced', () => render());
+  window.addEventListener('eps:sync-status', () => render());
 }

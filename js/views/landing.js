@@ -61,7 +61,9 @@ export function renderLanding(container) {
           </ul>
 
           <div class="lp-nav-actions">
-            <a href="#features" class="lp-btn lp-btn-secondary">Découvrir</a>
+            <a href="#login" class="lp-btn lp-btn-secondary" style="display:inline-flex; align-items:center; gap:6px;">
+              <i class="fas fa-user-circle"></i> Espace Enseignant
+            </a>
             <a href="#dashboard" class="lp-btn lp-btn-primary">
               <i class="fas fa-arrow-right-to-bracket"></i> Accéder à l'application
             </a>
@@ -81,7 +83,10 @@ export function renderLanding(container) {
         <a href="#avantages" class="lp-nav-link lp-mobile-link">Avantages</a>
         <a href="#faq" class="lp-nav-link lp-mobile-link">FAQ</a>
         <div class="lp-nav-actions">
-          <a href="#dashboard" class="lp-btn lp-btn-primary">
+          <a href="#login" class="lp-btn lp-btn-secondary" style="width:100%; text-align:center;">
+            <i class="fas fa-user-circle"></i> Espace Enseignant
+          </a>
+          <a href="#dashboard" class="lp-btn lp-btn-primary" style="width:100%; text-align:center;">
             <i class="fas fa-arrow-right-to-bracket"></i> Accéder à l'application
           </a>
         </div>
@@ -325,11 +330,11 @@ export function renderLanding(container) {
                 <div class="lp-widget-dash-stats">
                   <div class="lp-widget-dash-box">
                     <span>Élèves enregistrés</span>
-                    <strong>${totalEleves > 0 ? totalEleves : '32'}</strong>
+                    <strong>${totalEleves}</strong>
                   </div>
                   <div class="lp-widget-dash-box">
                     <span>Évaluations</span>
-                    <strong>${totalEvals > 0 ? totalEvals : '28'}</strong>
+                    <strong>${totalEvals}</strong>
                   </div>
                 </div>
 
@@ -339,7 +344,7 @@ export function renderLanding(container) {
                     <strong class="lp-mono" style="color:var(--lp-green)">${passRate}</strong>
                   </label>
                   <div class="lp-widget-progress-bar">
-                    <div class="lp-widget-progress-fill" style="width: ${passRate};"></div>
+                    <div class="lp-widget-progress-fill" style="width: ${totalEvals > 0 ? passRate : '0%'};"></div>
                   </div>
                 </div>
               </div>
@@ -534,11 +539,11 @@ export function renderLanding(container) {
                 <div style="background:var(--lp-white); padding:22px; border-radius:12px; border:1px solid var(--lp-gray-200);">
                   <div style="font-weight:700; margin-bottom:12px; color:var(--lp-dark); display:flex; justify-content:space-between;">
                     <span>Répartition des résultats</span>
-                    <span style="color:var(--lp-green); font-size:0.85rem;"><i class="fas fa-arrow-trend-up"></i> ${passRate} de réussite</span>
+                    <span style="color:var(--lp-green); font-size:0.85rem;"><i class="fas fa-arrow-trend-up"></i> ${totalEvals > 0 ? passRate + ' de réussite' : 'Aucune évaluation'}</span>
                   </div>
                   <div style="height:12px; background:var(--lp-gray-200); border-radius:999px; overflow:hidden; display:flex;">
-                    <div style="width:${passRate}; background:var(--lp-green);" title="Note >= 10"></div>
-                    <div style="flex:1; background:#f43f5e;" title="Note < 10"></div>
+                    <div style="width:${totalEvals > 0 ? passRate : '0%'}; background:var(--lp-green);" title="Note >= 10"></div>
+                    <div style="flex:1; background:${totalEvals > 0 ? '#f43f5e' : 'var(--lp-gray-200)'};" title="${totalEvals > 0 ? 'Note < 10' : 'Aucune donnée'}"></div>
                   </div>
                 </div>
               </div>
@@ -639,33 +644,35 @@ export function renderLanding(container) {
                 <div style="background:var(--lp-white); padding:24px; border-radius:12px; border:1px solid var(--lp-gray-200);">
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <div style="font-weight:700; color:var(--lp-dark);">Gestion du Répertoire des Élèves</div>
-                    <span class="lp-mono" style="font-size:0.8rem; color:var(--lp-blue)">Tri par classe et genre</span>
+                    <span class="lp-mono" style="font-size:0.8rem; color:var(--lp-blue)">${totalEleves} élève${totalEleves > 1 ? 's' : ''} enregistré${totalEleves > 1 ? 's' : ''}</span>
                   </div>
                   <div style="display:flex; flex-direction:column; gap:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--lp-gray-50); border-radius:8px;">
-                      <div><strong>KOUASSI</strong> Alexandre</div>
-                      <div style="display:flex; gap:12px; font-size:0.85rem; color:var(--lp-gray-600);">
-                        <span>3e A</span>
-                        <span>Garçon</span>
-                        <span style="color:var(--lp-green); font-weight:600;"><i class="fas fa-check"></i> Évalué (16/20)</span>
+                    ${eleves.length === 0 ? `
+                      <div style="text-align: center; color: var(--lp-gray-600); padding: 24px 16px; font-size: 0.9rem;">
+                        <i class="fas fa-user-slash" style="font-size: 1.8rem; opacity: 0.4; display: block; margin-bottom: 8px;"></i>
+                        Aucun élève enregistré pour le moment.
+                        <div style="margin-top: 8px; font-size: 0.8rem; color: var(--lp-gray-500);">
+                          Accédez à l'application pour créer vos classes et ajouter vos élèves.
+                        </div>
                       </div>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--lp-gray-50); border-radius:8px;">
-                      <div><strong>TOURE</strong> Aminata</div>
-                      <div style="display:flex; gap:12px; font-size:0.85rem; color:var(--lp-gray-600);">
-                        <span>3e A</span>
-                        <span>Fille</span>
-                        <span style="color:var(--lp-green); font-weight:600;"><i class="fas fa-check"></i> Évalué (14.5/20)</span>
-                      </div>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--lp-gray-50); border-radius:8px;">
-                      <div><strong>BERNARD</strong> Lucas</div>
-                      <div style="display:flex; gap:12px; font-size:0.85rem; color:var(--lp-gray-600);">
-                        <span>2nde B</span>
-                        <span>Garçon</span>
-                        <span style="color:var(--lp-blue); font-weight:600;"><i class="fas fa-clock"></i> En attente</span>
-                      </div>
-                    </div>
+                    ` : eleves.slice(0, 4).map(el => {
+                      const elEvals = evaluations.filter(ev => ev.eleveId === el.id || ev.eleveNom === `${el.nom} ${el.prenom}`);
+                      const latestEval = elEvals.length > 0 ? elEvals[0] : null;
+                      return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--lp-gray-50); border-radius:8px;">
+                          <div><strong>${el.nom}</strong> ${el.prenom}</div>
+                          <div style="display:flex; gap:12px; font-size:0.85rem; color:var(--lp-gray-600);">
+                            <span>${el.classeNom || el.classe}</span>
+                            <span>${el.genre}</span>
+                            ${latestEval ? `
+                              <span style="color:var(--lp-green); font-weight:600;"><i class="fas fa-check"></i> Évalué (${latestEval.note}/20)</span>
+                            ` : `
+                              <span style="color:var(--lp-blue); font-weight:600;"><i class="fas fa-clock"></i> En attente</span>
+                            `}
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
                   </div>
                 </div>
               </div>
