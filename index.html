@@ -37,6 +37,14 @@
 
   <!-- Supabase Client SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- SheetJS Library for Multi-format Class Roster Import (.xlsx, .xls, .ods, .csv, .txt) -->
+  <script src="js/vendor/xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\\/script>');
+    }
+  </script>
 </head>
 
 <body>

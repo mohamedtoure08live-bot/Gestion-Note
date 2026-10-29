@@ -6,6 +6,7 @@
 
 import { SupabaseManager } from './supabaseClient.js';
 import { EPSEngine } from './engine.js';
+import { ImportEngine } from './importEngine.js';
 
 const DB_KEYS = {
   BAREMES: 'eps_baremes_v12',
@@ -493,12 +494,24 @@ class EPSDatabase {
     return prof || this.professeurs[0] || { id: 'prof_default', nom: 'M. Soro', prenom: 'Abdoulaye' };
   }
 
+  getProfesseurByEmail(email) {
+    if (!email) return null;
+    const cleanEmail = email.trim().toLowerCase();
+    return this.professeurs.find(p => p.email && p.email.trim().toLowerCase() === cleanEmail) || null;
+  }
+
   setCurrentProfesseur(id, profData = null) {
     if (!id) return null;
     this.currentProfesseurId = id;
     localStorage.setItem(DB_KEYS.CURRENT_PROF, id);
 
     let p = this.professeurs.find(prof => prof.id === id);
+    if (!p && profData && profData.email) {
+      const existingByEmail = this.getProfesseurByEmail(profData.email);
+      if (existingByEmail) {
+        p = existingByEmail;
+      }
+    }
     if (!p) {
       p = profData || {
         id: id,
@@ -507,6 +520,9 @@ class EPSDatabase {
         role: 'professeur'
       };
       this.professeurs.push(p);
+      this.saveLocalAll();
+    } else if (profData) {
+      Object.assign(p, profData);
       this.saveLocalAll();
     }
 
@@ -517,13 +533,22 @@ class EPSDatabase {
   }
 
   addProfesseur(data) {
+    const cleanEmail = (data.email || '').trim().toLowerCase();
+    if (cleanEmail) {
+      const existing = this.getProfesseurByEmail(cleanEmail);
+      if (existing) {
+        throw new Error(`Cette adresse e-mail est déjà associée à un compte. Connectez-vous ou utilisez la procédure de récupération de mot de passe.`);
+      }
+    }
+
     const newProf = {
-      id: 'prof_' + Date.now(),
+      id: data.id || ('prof_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)),
       nom: (data.nom || '').trim(),
       prenom: (data.prenom || '').trim(),
-      email: (data.email || '').trim(),
+      email: cleanEmail,
       etablissement: (data.etablissement || 'Établissement Scolaire').trim(),
-      role: 'Enseignant EPS',
+      telephone: (data.telephone || '').trim(),
+      role: data.role || 'professeur',
       createdAt: new Date().toISOString()
     };
     this.professeurs.push(newProf);
@@ -648,6 +673,11 @@ class EPSDatabase {
     );
 
     if (filterClasse && filterClasse !== 'ALL') {
+      const targetCls = this.getClassById(filterClasse);
+      if (targetCls) {
+        return list.filter(e => e.classeId === filterClasse || e.classeId === targetCls.id);
+      }
+
       const norm = EPSEngine.normalizeNiveau(filterClasse).toLowerCase();
       list = list.filter(e =>
         e.classeId === filterClasse ||
@@ -706,9 +736,12 @@ class EPSDatabase {
    * Batch insert students with duplicate checking
    * @param {Array} elevesList 
    * @param {string} classeId 
-   * @returns {Object} { added, duplicates, errors }
+   * @param {Array} elevesList - Liste des élèves { nom, prenom, genre, matricule, ... }
+   * @param {string} classeId - Identifiant de la classe de destination
+   * @param {Object} [options] - Options { allowDuplicates: boolean, chunkSize: number }
+   * @returns {Promise<Object>} { added, duplicates, errors, failures, totalRequested, totalAdded }
    */
-  async addElevesBatch(elevesList, classeId) {
+  async addElevesBatch(elevesList, classeId, options = {}) {
     const targetClass = this.getClassById(classeId);
     if (!targetClass) {
       throw new Error("Classe introuvable pour l'importation.");
@@ -717,51 +750,48 @@ class EPSDatabase {
     const added = [];
     const duplicates = [];
     const errors = [];
+    const failures = [];
 
     const existingInClass = this.getEleves(classeId, targetClass.professeurId);
 
     for (const raw of elevesList) {
       const nom = (raw.nom || '').trim().toUpperCase();
       const prenom = (raw.prenom || '').trim();
-      let genre = (raw.genre || '').trim();
-
-      // Normalize gender (Garçon / Fille / M / F)
-      const gLower = genre.toLowerCase();
-      if (gLower.startsWith('m') || gLower === 'garcon' || gLower === 'garçon') {
-        genre = 'Garçon';
-      } else if (gLower.startsWith('f') || gLower === 'fille') {
-        genre = 'Fille';
-      }
+      
+      // Normalisation exhaustive du genre (G, F, M, Garçon, Fille, Homme, Femme, etc.)
+      const genre = ImportEngine.normalizeGenre(raw.genreNormalized || raw.genre);
 
       if (!nom || !prenom) {
         errors.push({ raw, reason: "Nom ou prénom manquant." });
         continue;
       }
 
-      if (genre !== 'Garçon' && genre !== 'Fille') {
-        errors.push({ raw, reason: `Genre invalide (${raw.genre || 'non renseigné'}). Utilisez 'Garçon' ou 'Fille'.` });
+      if (!genre) {
+        errors.push({ raw, reason: `Genre non reconnu ("${raw.genre || 'vide'}"). Utilisez 'Garçon' ou 'Fille'.` });
         continue;
       }
 
+      const matriculeClean = (raw.matricule || '').trim();
+
       // Duplicate check: matching matricule (if provided) OR matching Nom and Prénom in this class
       const isDup = existingInClass.some(e => {
-        if (raw.matricule && e.matricule && e.matricule.trim().toLowerCase() === raw.matricule.trim().toLowerCase()) {
+        if (matriculeClean && e.matricule && e.matricule.trim().toLowerCase() === matriculeClean.toLowerCase()) {
           return true;
         }
         return e.nom.toUpperCase() === nom && e.prenom.toLowerCase() === prenom.toLowerCase();
       });
 
-      if (isDup) {
-        duplicates.push({ nom, prenom, matricule: raw.matricule || '', reason: "Déjà inscrit dans cette classe ou matricule identique." });
+      if (isDup && !options.allowDuplicates) {
+        duplicates.push({ nom, prenom, matricule: matriculeClean, reason: "Déjà inscrit dans cette classe ou matricule identique." });
         continue;
       }
 
       const newStudent = {
-        id: 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        id: 'el_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
         nom: nom,
         prenom: prenom,
         genre: genre,
-        matricule: (raw.matricule || '').trim(),
+        matricule: matriculeClean,
         classeId: targetClass.id,
         classeNom: targetClass.nom,
         classe: targetClass.niveau,
@@ -776,11 +806,13 @@ class EPSDatabase {
 
     this.saveLocalAll();
 
-    // Supabase batch insert
+    // Supabase batch insert par lots sécurisés de 50 (évite les limites de payload HTTP ou les timeouts)
     const sb = SupabaseManager.getClient();
     if (sb && added.length > 0) {
-      try {
-        await sb.from('eleves').insert(added.map(e => ({
+      const CHUNK_SIZE = options.chunkSize || 50;
+      for (let i = 0; i < added.length; i += CHUNK_SIZE) {
+        const chunk = added.slice(i, i + CHUNK_SIZE);
+        const payload = chunk.map(e => ({
           id: e.id,
           nom: e.nom,
           prenom: e.prenom,
@@ -789,13 +821,38 @@ class EPSDatabase {
           classe_id: e.classeId,
           professeur_id: e.professeurId,
           matricule: e.matricule || null
-        })));
-      } catch (e) {
-        console.warn("Supabase batch insert notice:", e);
+        }));
+
+        try {
+          const { error: sbErr } = await sb.from('eleves').insert(payload);
+          if (sbErr) {
+            console.warn("Avertissement insertion de lot Supabase, bascule en mode unitaire :", sbErr);
+            // Si le lot de 50 échoue, on tente d'insérer individuellement chaque élève
+            for (const item of payload) {
+              try {
+                const { error: singleErr } = await sb.from('eleves').insert(item);
+                if (singleErr) {
+                  failures.push({ student: item, error: singleErr.message });
+                }
+              } catch (unitErr) {
+                failures.push({ student: item, error: unitErr.message });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Erreur réseau Supabase insert :", e);
+        }
       }
     }
 
-    return { added, duplicates, errors };
+    return {
+      added,
+      duplicates,
+      errors,
+      failures,
+      totalRequested: elevesList.length,
+      totalAdded: added.length
+    };
   }
 
   async updateEleve(id, updatedData) {

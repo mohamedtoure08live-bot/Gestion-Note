@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx serve -l 3000 .",
-    "test": "node tests_verification.cjs && node tests_mission_amelioration.cjs && node tests_coherence_multiactivite.cjs && node tests_notation_autonome.cjs && node tests_suppression_donnees_fictives.cjs && node tests_espace_professeur.cjs"
+    "test": "node tests_verification.cjs && node tests_mission_amelioration.cjs && node tests_coherence_multiactivite.cjs && node tests_notation_autonome.cjs && node tests_suppression_donnees_fictives.cjs && node tests_espace_professeur.cjs && node tests_importation_complete.cjs && node tests_inscription_securisee.cjs"
   },
   "keywords": [
     "eps",
@@ -15,5 +15,8 @@
     "education"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
 }

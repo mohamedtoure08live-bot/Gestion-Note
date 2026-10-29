@@ -318,6 +318,89 @@
   color: #b91c1c;
 }
 
+/* Multi-Format Class Roster Import Wizard */
+.import-format-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.import-format-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+.import-format-pill.excel { color: #107c41; border-color: rgba(16, 124, 65, 0.3); background: rgba(16, 124, 65, 0.06); }
+.import-format-pill.ods { color: #d97706; border-color: rgba(217, 119, 6, 0.3); background: rgba(217, 119, 6, 0.06); }
+.import-format-pill.csv { color: #0284c7; border-color: rgba(2, 132, 199, 0.3); background: rgba(2, 132, 199, 0.06); }
+.import-format-pill.txt { color: #64748b; border-color: rgba(100, 116, 139, 0.3); background: rgba(100, 116, 139, 0.06); }
+
+.import-mapping-card {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.import-mapping-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.import-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 640px) {
+  .import-stats-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.import-stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.import-stat-box .stat-val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.import-stat-box .stat-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.import-stat-box.val-total .stat-val { color: var(--primary); }
+.import-stat-box.val-valid .stat-val { color: #16a34a; }
+.import-stat-box.val-dup .stat-val { color: #d97706; }
+.import-stat-box.val-err .stat-val { color: #dc2626; }
+
+
 /* ==========================================================================
    MOBILE & IPHONE VIEW OVERRIDES
    ========================================================================== */

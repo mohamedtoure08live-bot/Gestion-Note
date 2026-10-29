@@ -258,6 +258,110 @@
   font-size: 1.1rem;
 }
 
+.auth-alert-duplicate {
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  color: #92400e;
+  padding: 14px 16px;
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 20px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.auth-alert-duplicate .alert-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-alert-duplicate .alert-actions .btn {
+  padding: 6px 14px;
+  font-size: 0.82rem;
+}
+
+/* Field validation error feedback under inputs */
+.field-error-msg {
+  display: none;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.field-error-msg.visible {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.auth-input.is-invalid {
+  border-color: #ef4444 !important;
+  background-color: #fffaf0;
+}
+
+.auth-input.is-valid {
+  border-color: #10b981 !important;
+}
+
+/* Password rules checklist */
+.password-rules-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.rule-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.rule-item i {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.rule-item.valid {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.rule-item.valid i {
+  color: #16a34a;
+}
+
+/* Email confirmation pending view */
+.auth-confirmation-card {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+.auth-confirmation-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  color: #10b981;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+}
+
+
 /* --------------------------------------------------------------------------
    PROFILE CARD STYLES
    -------------------------------------------------------------------------- */
@@ -367,6 +471,36 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 768px) {
+  .auth-page-container {
+    padding: 20px 12px;
+  }
+
+  .auth-card-wrapper {
+    max-width: 100%;
+    padding: 28px 22px;
+  }
+
+  .form-row-2col {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .auth-alert-duplicate {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .auth-alert-duplicate-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .auth-alert-duplicate-actions .btn {
+    width: 100%;
+  }
+}
+
 @media (max-width: 480px) {
   .auth-card-wrapper {
     padding: 24px 18px;
