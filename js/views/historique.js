@@ -70,15 +70,17 @@ export function renderHistorique(container) {
     tbody.innerHTML = filtered.map(ev => {
       const isCustomBareme = ev.baremeType === 'personnalisé' || (ev.baremeNom && ev.baremeNom.toLowerCase().includes('personnalis'));
       const baremeLabel = ev.baremeNom || (isCustomBareme ? 'Barème Personnalisé' : 'Barème Officiel');
+      const isTime = EPSEngine.isTimeDiscipline(ev.discipline);
+      const perfDisplay = ev.performanceFormatted || EPSEngine.formatPerformance(parseFloat(ev.distance), isTime, ev.discipline);
 
       return `
         <tr>
-          <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${new Date(ev.date).toLocaleDateString('fr-FR')} ${new Date(ev.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
-          <td><strong>${ev.eleveNom}</strong></td>
-          <td>${ev.discipline} ${ev.engin ? '(' + ev.engin + ')' : ''}</td>
-          <td><span class="badge" style="background:#f1f5f9; color:var(--text-main);">${ev.classeNom || ev.classe}</span></td>
-          <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre}</span></td>
-          <td><strong>${ev.performanceFormatted || (typeof ev.distance === 'number' ? ev.distance.toFixed(2) + 'm' : ev.distance)}</strong></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${ev.date ? new Date(ev.date).toLocaleDateString('fr-FR') + ' ' + new Date(ev.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}) : '-'}</td>
+          <td><strong>${ev.eleveNom || 'Élève'}</strong></td>
+          <td>${ev.discipline || '-'} ${ev.engin ? '(' + ev.engin + ')' : ''}</td>
+          <td><span class="badge" style="background:#f1f5f9; color:var(--text-main);">${ev.classeNom || ev.classe || '-'}</span></td>
+          <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre || '-'}</span></td>
+          <td><strong>${perfDisplay}</strong></td>
           <td><span class="badge ${ev.note >= 14 ? 'badge-note-high' : ev.note >= 10 ? 'badge-note-mid' : 'badge-note-low'}">${ev.note} / 20</span></td>
           <td>
             <span class="badge" style="${isCustomBareme ? 'background: rgba(245, 158, 11, 0.15); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.3);' : 'background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3);'} font-size: 0.72rem; padding: 3px 8px;" title="${baremeLabel}">
@@ -86,7 +88,7 @@ export function renderHistorique(container) {
             </span>
           </td>
           <td>
-            <button class="btn btn-sm btn-danger btn-delete-eval" data-id="${ev.id}">
+            <button class="btn btn-sm btn-danger btn-delete-eval" data-id="${ev.id}" title="Supprimer l'évaluation">
               <i class="fas fa-trash"></i>
             </button>
           </td>
@@ -99,10 +101,10 @@ export function renderHistorique(container) {
         const id = e.currentTarget.getAttribute('data-id');
         Modal.open(
           "Supprimer l'évaluation",
-          "<p>Voulez-vous supprimer cette évaluation de Supabase et de l'historique ?</p>",
+          "<p>Voulez-vous vraiment supprimer cette évaluation de l'historique ?</p>",
           async () => {
             await db.deleteEvaluation(id);
-            Toast.show("Évaluation supprimée de Supabase.", "info");
+            Toast.show("Évaluation supprimée de l'historique.", "info");
             renderHistory();
           }
         );

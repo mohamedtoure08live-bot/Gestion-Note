@@ -52,6 +52,28 @@ class EPSDatabase {
     };
   }
 
+  formatUserError(rawMessage) {
+    if (!rawMessage) return "Une erreur est survenue lors de l'enregistrement.";
+    const str = String(rawMessage);
+    const lower = str.toLowerCase();
+    if (lower.includes('fetch error') || lower.includes('failed to fetch') || lower.includes('networkerror')) {
+      return "Impossible de récupérer les informations. Réessayez.";
+    }
+    if (lower.includes('database error') || lower.includes('postgres') || lower.includes('sql')) {
+      return "Une erreur est survenue lors de l'enregistrement.";
+    }
+    if (lower.includes('api request failed') || lower.includes('service unavailable') || lower.includes('503')) {
+      return "Le service est temporairement indisponible.";
+    }
+    if (lower.includes('loading data')) {
+      return "Chargement des informations...";
+    }
+    if (lower.includes('null value') || lower === 'null' || lower === 'undefined') {
+      return "Certaines informations requises sont manquantes.";
+    }
+    return str;
+  }
+
   async init() {
     console.log("Initializing EPS Full Stack Database...");
     
@@ -71,7 +93,7 @@ class EPSDatabase {
       } else {
         console.warn("Operating in offline cache mode.");
         this.syncState.status = 'offline';
-        this.syncState.error = "Mode Hors-ligne : connexion à Supabase impossible.";
+        this.syncState.error = "Les données sont enregistrées sur cet appareil.";
         if (this.baremes.length === 0) {
           await this.seedDefaultsLocally();
         }
@@ -79,7 +101,7 @@ class EPSDatabase {
     } catch (err) {
       console.error("Database initialization error:", err);
       this.syncState.status = 'error';
-      this.syncState.error = err.message || "Erreur de connexion à Supabase";
+      this.syncState.error = this.formatUserError(err.message || "Impossible de récupérer les informations. Réessayez.");
       if (this.baremes.length === 0) {
         await this.seedDefaultsLocally();
       }
@@ -102,7 +124,7 @@ class EPSDatabase {
       this.syncState = {
         status: 'offline',
         lastSynced: this.syncState.lastSynced || null,
-        error: "Client Supabase non initialisé."
+        error: "Service en mode autonome."
       };
       return;
     }
@@ -265,7 +287,7 @@ class EPSDatabase {
       this.syncState = {
         status: 'error',
         lastSynced: this.syncState.lastSynced || null,
-        error: e.message || "Erreur de communication avec la base de données Supabase."
+        error: this.formatUserError(e.message || "Impossible de récupérer les informations. Réessayez.")
       };
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('eps:sync-status', { detail: this.syncState }));

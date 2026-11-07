@@ -321,20 +321,20 @@ function renderProfileCard(container, user) {
 
         <div class="profile-details-list">
           <div class="profile-detail-item">
-            <span class="detail-label"><i class="fas fa-envelope"></i> E-mail</span>
-            <span class="detail-value">${user.email}</span>
+            <span class="detail-label"><i class="fas fa-envelope"></i> Adresse e-mail</span>
+            <span class="detail-value">${user.email || 'Non renseignée'}</span>
           </div>
           <div class="profile-detail-item">
             <span class="detail-label"><i class="fas fa-school"></i> Établissement</span>
             <span class="detail-value">${user.etablissement || 'Non renseigné'}</span>
           </div>
           <div class="profile-detail-item">
-            <span class="detail-label"><i class="fas fa-fingerprint"></i> Identifiant Professeur</span>
-            <span class="detail-value" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${user.id}</span>
+            <span class="detail-label"><i class="fas fa-user-tie"></i> Fonction</span>
+            <span class="detail-value">Professeur d'Éducation Physique et Sportive</span>
           </div>
           <div class="profile-detail-item">
-            <span class="detail-label"><i class="fas fa-cloud-arrow-up"></i> Statut Cloud</span>
-            <span class="detail-value">${user.isSupabase ? '<span style="color:#10b981;"><i class="fas fa-check-circle"></i> Supabase Auth Actif</span>' : '<span style="color:#64748b;"><i class="fas fa-laptop"></i> Profil Local / Déconnecté</span>'}</span>
+            <span class="detail-label"><i class="fas fa-circle-check"></i> Statut du compte</span>
+            <span class="detail-value"><span style="color:#059669; font-weight: 600;"><i class="fas fa-check-circle"></i> Compte Enseignant Actif</span></span>
           </div>
         </div>
 

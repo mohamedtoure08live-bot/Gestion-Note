@@ -1,6 +1,6 @@
 /**
  * EPS Pro Application Entry Point & Router (js/app.js)
- * Full Stack PostgreSQL & Supabase orchestration with Sport Tech Premium Showcase
+ * Orchestration applicative et routage des vues GHIM PRO
  */
 
 import { db } from './db.js';
@@ -15,16 +15,16 @@ import { AuthManager } from './auth.js';
 import { renderAuth } from './views/auth.js';
 
 const appRoutes = {
-  'dashboard': { title: 'Tableau de Bord Analytics', render: renderDashboard },
-  'notation': { title: 'Évaluation & Calcul de Note', render: renderNotation },
-  'baremes': { title: 'Gestion des Barèmes', render: renderBaremes },
-  'classes': { title: 'Mes classes & Répertoire des Élèves', render: renderEleves },
-  'eleves': { title: 'Mes classes & Répertoire des Élèves', render: renderEleves },
-  'historique': { title: 'Historique des Évaluations', render: renderHistorique },
-  'auth': { title: 'Espace Enseignant EPS', render: renderAuth },
+  'dashboard': { title: 'Tableau de bord', render: renderDashboard },
+  'notation': { title: 'Notation rapide', render: renderNotation },
+  'baremes': { title: 'Gestion des barèmes', render: renderBaremes },
+  'classes': { title: 'Mes classes & Élèves', render: renderEleves },
+  'eleves': { title: 'Mes classes & Élèves', render: renderEleves },
+  'historique': { title: 'Historique des évaluations', render: renderHistorique },
+  'auth': { title: 'Espace Enseignant', render: renderAuth },
   'login': { title: 'Connexion Enseignant', render: (c) => renderAuth(c, 'login') },
   'register': { title: 'Inscription Enseignant', render: (c) => renderAuth(c, 'register') },
-  'reset-password': { title: 'Réinitialisation de mot de passe', render: (c) => renderAuth(c, 'forgot') }
+  'reset-password': { title: 'Réinitialisation du mot de passe', render: (c) => renderAuth(c, 'forgot') }
 };
 
 const landingSections = ['hero', 'features', 'philosophy', 'how-it-works', 'demo', 'avantages', 'faq'];
@@ -115,13 +115,15 @@ class App {
     const badgeEl = document.getElementById('header-user-btn');
 
     if (nameEl && user) {
-      nameEl.textContent = `M. ${user.nom || 'Enseignant'}`;
+      const fullName = [user.prenom, user.nom].filter(Boolean).join(' ').trim();
+      nameEl.textContent = fullName || 'Enseignant EPS';
     }
     if (avatarEl && user) {
-      avatarEl.textContent = ((user.prenom || user.nom || 'P')[0] || 'P').toUpperCase();
+      avatarEl.textContent = ((user.prenom || user.nom || 'E')[0] || 'E').toUpperCase();
     }
     if (badgeEl && user) {
-      badgeEl.title = `Connecté : ${user.prenom || ''} ${user.nom || ''} (${user.etablissement || 'EPS'})`;
+      const fullName = [user.prenom, user.nom].filter(Boolean).join(' ').trim();
+      badgeEl.title = `${fullName || 'Enseignant'}${user.etablissement ? ' — ' + user.etablissement : ''}`;
     }
   }
 
@@ -129,16 +131,10 @@ class App {
     const badge = document.getElementById('cloud-status-badge');
     if (!badge) return;
 
-    SupabaseManager.onStatusChange(connected => {
-      if (connected) {
-        badge.className = 'badge badge-cloud-connected';
-        badge.innerHTML = `<span class="status-dot"></span> Supabase Connecté`;
-        badge.title = "Base de données PostgreSQL connectée en temps réel";
-      } else {
-        badge.className = 'badge badge-cloud-offline';
-        badge.innerHTML = `<span class="status-dot"></span> Mode Hors-ligne`;
-        badge.title = "Données enregistrées localement. Synchronisation dès reconnexion.";
-      }
+    // La connexion fonctionne en arrière-plan sans exposer de mention technique dans l'interface
+    badge.style.display = 'none';
+    SupabaseManager.onStatusChange(() => {
+      badge.style.display = 'none';
     });
   }
 

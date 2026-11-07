@@ -156,32 +156,32 @@ export function renderDashboard(container) {
     const disciplinesList = db.getDisciplines();
     const customBaremes = db.getCustomBaremes(currentProf.id);
     const stats = computeDashboardStats();
-    const syncState = db.syncState || { status: 'idle' };
 
-    const isNewTeacherNoData = classesList.length === 0 && stats.totalEvals === 0;
+    const hasNoClasses = classesList.length === 0;
+    const isNewTeacherNoData = hasNoClasses && stats.totalEvals === 0;
 
     container.innerHTML = `
       <div class="dashboard-wrapper">
         ${isNewTeacherNoData ? `
-          <div class="card" style="margin-bottom: 24px; padding: 28px 24px; background: linear-gradient(135deg, #f8fafc, #edf2f7); border-left: 4px solid var(--primary);">
+          <div class="card" style="margin-bottom: 24px; padding: 26px 24px; background: #ffffff; border: 1px solid var(--border-color); border-left: 4px solid var(--primary);">
             <div style="display:flex; align-items: flex-start; gap: 16px;">
-              <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
-                <i class="fas fa-hand-sparkles"></i>
+              <div style="width: 46px; height: 46px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-chalkboard-user"></i>
               </div>
               <div style="flex: 1;">
-                <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">Bienvenue dans votre Espace Enseignant, ${currentProf.prenom || ''} ${currentProf.nom} !</h3>
-                <p style="color: #64748b; font-size: 0.92rem; line-height: 1.5; margin: 0 0 16px 0;">
-                  Votre compte professeur est prêt. Vous disposez d'un espace sécurisé et isolé pour gérer vos classes, évaluer vos élèves et créer vos barèmes personnalisés sans toucher au barème officiel.
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0 0 6px 0;">Bienvenue dans votre espace d'évaluation, ${currentProf.prenom || ''} ${currentProf.nom || ''}</h3>
+                <p style="color: #475569; font-size: 0.92rem; line-height: 1.5; margin: 0 0 16px 0;">
+                  Vous n'avez pas encore créé de classe. Commencez par ajouter votre première classe pour inscrire vos élèves et enregistrer leurs évaluations d'EPS.
                 </p>
                 <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                   <a href="#classes" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Créer ma première classe
+                    <i class="fas fa-plus"></i> Ajouter ma première classe
                   </a>
-                  <a href="#baremes" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-shield-halved"></i> Consulter les barèmes officiels
+                  <a href="#notation" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-calculator"></i> Accès rapide à la notation
                   </a>
-                  <a href="#notation" class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-calculator"></i> Calculer une note (Mode autonome)
+                  <a href="#baremes" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-table-list"></i> Consulter les barèmes officiels
                   </a>
                 </div>
               </div>
@@ -189,37 +189,22 @@ export function renderDashboard(container) {
           </div>
         ` : ''}
 
-        ${syncState.status === 'error' ? `
-          <div class="alert alert-danger" style="margin-bottom: 20px; padding: 14px 18px; border-radius: 8px; display: flex; align-items: center; gap: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #dc2626;">
-            <i class="fas fa-triangle-exclamation" style="font-size: 1.25rem;"></i>
-            <div>
-              <strong>Erreur de synchronisation cloud :</strong> ${syncState.error || 'Connexion interrompue'}.
-              <div style="font-size: 0.8rem; opacity: 0.85;">Les indicateurs ci-dessous utilisent les données réelles locales en attendant le rétablissement du réseau.</div>
-            </div>
-          </div>
-        ` : (syncState.status === 'offline' ? `
-          <div class="alert alert-warning" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #b45309; font-size: 0.88rem;">
-            <i class="fas fa-wifi" style="opacity: 0.5;"></i>
-            <span>Mode hors-ligne actif. Vos données locales sont préservées et se synchroniseront automatiquement avec Supabase dès le retour d'Internet.</span>
-          </div>
-        ` : '')}
-
         <!-- Top Toolbar with Activity & Class Filters -->
         <div class="card dash-filters-toolbar" style="margin-bottom: 24px; padding: 16px 20px; background: #ffffff;">
           <div class="dash-filters-inner">
             <div class="dash-filters-title">
-              <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 1.15rem; flex-shrink: 0;">
-                <i class="fas fa-filter"></i>
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 1.1rem; flex-shrink: 0;">
+                <i class="fas fa-sliders"></i>
               </div>
               <div>
-                <h3 style="font-size: 1.05rem; margin:0; color: var(--text-main);">Filtres Analytiques</h3>
-                <span style="font-size: 0.78rem; color: var(--text-muted);">Affinez les statistiques par discipline ou classe</span>
+                <h3 style="font-size: 1.02rem; margin:0; color: var(--text-main);">Filtres d'affichage</h3>
+                <span style="font-size: 0.78rem; color: var(--text-muted);">Affinez les résultats par activité sportive ou par classe</span>
               </div>
             </div>
 
             <div class="dash-filters-controls">
               <div class="form-group dash-filter-col" style="margin:0;">
-                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Activité Sportive</label>
+                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Activité sportive</label>
                 <select class="form-select" id="dash-filter-discipline">
                   <option value="ALL" ${activeDiscipline === 'ALL' ? 'selected' : ''}>Toutes les activités (${disciplinesList.length})</option>
                   ${disciplinesList.map(d => `<option value="${d.nom}" ${activeDiscipline === d.nom ? 'selected' : ''}>${d.nom}</option>`).join('')}
@@ -227,9 +212,9 @@ export function renderDashboard(container) {
               </div>
 
               <div class="form-group dash-filter-col" style="margin:0;">
-                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Classe Évaluée</label>
+                <label class="form-label" style="font-size: 0.75rem; margin-bottom: 4px;">Classe évaluée</label>
                 <select class="form-select" id="dash-filter-classe">
-                  <option value="ALL" ${activeClasse === 'ALL' ? 'selected' : ''}>Toutes les classes</option>
+                  <option value="ALL" ${activeClasse === 'ALL' ? 'selected' : ''}>Toutes les classes (${classesList.length})</option>
                   ${classesList.map(c => `<option value="${c.id}" ${activeClasse === c.id ? 'selected' : ''}>${c.nom} (${c.niveau})</option>`).join('')}
                 </select>
               </div>
@@ -245,6 +230,14 @@ export function renderDashboard(container) {
 
         <!-- KPI Stats Grid -->
         <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chalkboard-user"></i></div>
+            <div class="stat-info">
+              <h3>${classesList.length}</h3>
+              <p>Mes classes</p>
+            </div>
+          </div>
+
           <div class="stat-card cyan">
             <div class="stat-icon"><i class="fas fa-users"></i></div>
             <div class="stat-info">
@@ -257,7 +250,15 @@ export function renderDashboard(container) {
             <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
             <div class="stat-info">
               <h3>${stats.totalEvals}</h3>
-              <p>Évaluations valides</p>
+              <p>Évaluations réalisées</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-running"></i></div>
+            <div class="stat-info">
+              <h3>${disciplinesList.length}</h3>
+              <p>Activités sportives</p>
             </div>
           </div>
 
@@ -265,7 +266,7 @@ export function renderDashboard(container) {
             <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
             <div class="stat-info">
               <h3>${stats.averageGradeStr}</h3>
-              <p>Moyenne générale</p>
+              <p>${activeClasse !== 'ALL' ? 'Moyenne de la classe' : 'Moyenne générale'}</p>
             </div>
           </div>
 
@@ -371,13 +372,13 @@ export function renderDashboard(container) {
                     const perfFormatted = ev.performanceFormatted || EPSEngine.formatPerformance(parseFloat(ev.distance), isTime, ev.discipline);
                     return `
                       <tr>
-                        <td><strong>${ev.eleveNom}</strong></td>
-                        <td>${ev.classeNom || ev.classe}</td>
-                        <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre}</span></td>
-                        <td><span style="font-weight: 500; color: var(--primary);">${ev.discipline}</span></td>
+                        <td><strong>${ev.eleveNom || 'Élève'}</strong></td>
+                        <td>${ev.classeNom || ev.classe || '-'}</td>
+                        <td><span class="badge ${ev.genre === 'Garçon' ? 'badge-garcon' : 'badge-fille'}">${ev.genre || '-'}</span></td>
+                        <td><span style="font-weight: 500; color: var(--primary);">${ev.discipline || '-'}</span></td>
                         <td><strong style="font-family: 'IBM Plex Mono', monospace;">${perfFormatted}</strong></td>
                         <td><span class="badge ${ev.note >= 14 ? 'badge-note-high' : ev.note >= 10 ? 'badge-note-mid' : 'badge-note-low'}">${ev.note} / 20</span></td>
-                        <td>${new Date(ev.date).toLocaleDateString('fr-FR')}</td>
+                        <td>${ev.date ? new Date(ev.date).toLocaleDateString('fr-FR') : '-'}</td>
                       </tr>
                     `;
                   }).join('')}
@@ -386,37 +387,53 @@ export function renderDashboard(container) {
             </div>
           </div>
 
-          <!-- Quick Action & Discipline Guide -->
+          <!-- Quick Action & Mes Classes Overview -->
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-info-circle"></i> Modules & Accès Rapide</h3>
+              <h3 class="card-title"><i class="fas fa-bolt" style="color: var(--primary);"></i> Accès rapide & Mes classes</h3>
             </div>
             <div style="font-size: 0.9rem; line-height: 1.6; color: var(--text-muted);">
-              <div style="margin-bottom: 16px; background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                <div style="font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                  <i class="fas fa-chalkboard-user" style="color: var(--primary);"></i> Espace Enseignant
-                </div>
-                <div style="font-size: 0.85rem;">
-                  Professeur actif : <strong>${currentProf.nom} ${currentProf.prenom || ''}</strong>
-                </div>
-                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
-                  ${classesList.length} classe${classesList.length > 1 ? 's' : ''} gérée${classesList.length > 1 ? 's' : ''} · ${customBaremes.length} barème${customBaremes.length > 1 ? 's' : ''} personnalisé${customBaremes.length > 1 ? 's' : ''}
-                </div>
-              </div>
-
-              <div style="display:flex; flex-direction:column; gap: 10px;">
+              <div style="display:flex; flex-direction:column; gap: 10px; margin-bottom: 20px;">
                 <a href="#notation" class="btn btn-primary btn-lg" style="width: 100%; text-align:center;">
-                  <i class="fas fa-stopwatch"></i> Lancer une Évaluation
+                  <i class="fas fa-stopwatch"></i> Accès rapide à la notation
                 </a>
                 <a href="#classes" class="btn btn-secondary" style="width: 100%; text-align:center;">
                   <i class="fas fa-chalkboard-user"></i> Gérer mes classes & élèves
                 </a>
                 <a href="#baremes" class="btn btn-secondary" style="width: 100%; text-align:center;">
-                  <i class="fas fa-table-list"></i> Gérer mes barèmes (${customBaremes.length} perso)
+                  <i class="fas fa-table-list"></i> Barèmes officiels & personnels (${customBaremes.length})
                 </a>
-                <a href="#auth" class="btn btn-outline-secondary" style="width: 100%; text-align:center; font-size: 0.82rem;">
-                  <i class="fas fa-user-gear"></i> Paramètres du profil enseignant
-                </a>
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                  <strong style="color: var(--text-main); font-size: 0.92rem;">
+                    <i class="fas fa-chalkboard" style="color: var(--primary);"></i> Mes classes (${classesList.length})
+                  </strong>
+                  <a href="#classes" style="font-size: 0.8rem; color: var(--primary); font-weight: 600; text-decoration: none;">Gérer</a>
+                </div>
+                ${classesList.length === 0 ? `
+                  <div style="background: var(--bg-main); padding: 14px; border-radius: var(--radius-md); border: 1px dashed var(--border-color); font-size: 0.84rem; color: var(--text-muted); text-align: center;">
+                    Vous n'avez pas encore créé de classe. Commencez par ajouter votre première classe.
+                  </div>
+                ` : `
+                  <div style="display:flex; flex-direction:column; gap: 8px; max-height: 220px; overflow-y: auto;">
+                    ${classesList.slice(0, 6).map(cls => {
+                      const count = db.getEleves(cls.id).length;
+                      return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background: var(--bg-main); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                          <div>
+                            <strong style="color: var(--text-main); font-size: 0.86rem;">${cls.nom}</strong>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 6px;">${cls.niveau || ''}</span>
+                          </div>
+                          <span class="badge" style="background: #ffffff; border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.75rem;">
+                            ${count} élève${count > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                `}
               </div>
             </div>
           </div>

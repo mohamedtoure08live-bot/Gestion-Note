@@ -4,7 +4,32 @@
  */
 
 export class Toast {
+  static formatMessage(rawMessage) {
+    if (rawMessage === null || rawMessage === undefined || rawMessage === 'null' || rawMessage === 'undefined') {
+      return "Une erreur est survenue lors de l'opération.";
+    }
+    const str = String(rawMessage);
+    const lower = str.toLowerCase();
+    if (lower.includes('fetch error') || lower.includes('failed to fetch') || lower.includes('networkerror')) {
+      return "Impossible de récupérer les informations. Réessayez.";
+    }
+    if (lower.includes('database error')) {
+      return "Une erreur est survenue lors de l'enregistrement.";
+    }
+    if (lower.includes('api request failed')) {
+      return "Le service est temporairement indisponible.";
+    }
+    if (lower.includes('loading data')) {
+      return "Chargement des informations...";
+    }
+    if (lower.includes('null value')) {
+      return "Certaines informations requises sont manquantes.";
+    }
+    return str;
+  }
+
   static show(message, type = 'info', duration = 3000) {
+    const cleanMessage = Toast.formatMessage(message);
     let container = document.querySelector('.toast-container');
     if (!container) {
       container = document.createElement('div');
@@ -21,7 +46,7 @@ export class Toast {
 
     toast.innerHTML = `
       <i class="fas ${iconClass}"></i>
-      <span>${message}</span>
+      <span>${cleanMessage}</span>
     `;
 
     container.appendChild(toast);

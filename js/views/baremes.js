@@ -244,9 +244,9 @@ export function renderBaremes(container) {
           </table>
         </div>
 
-        <div style="padding: 14px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 0.82rem; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
+        <div style="padding: 14px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 0.82rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <span><i class="fas fa-shield-halved" style="color: #10b981;"></i> Ce barème vous appartient et n'affecte ni les autres enseignants ni le barème officiel.</span>
-          <span style="font-family: var(--font-mono); font-size: 0.75rem;">ID: ${activeCustom.id}</span>
+          <span style="font-size: 0.78rem; color: #475569;"><i class="fas fa-sliders"></i> Barème personnalisé enseignant</span>
         </div>
       </div>
     `;

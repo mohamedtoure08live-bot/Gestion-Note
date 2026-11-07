@@ -212,6 +212,28 @@ export class AuthManager {
   }
 
   /**
+   * Formate un message d'erreur technique en libellé compréhensible par un enseignant
+   */
+  static formatUserError(rawMessage) {
+    if (!rawMessage) return "Une erreur est survenue lors de l'enregistrement.";
+    const str = String(rawMessage);
+    const lower = str.toLowerCase();
+    if (lower.includes("fetch error") || lower.includes("failed to fetch") || lower.includes("networkerror")) {
+      return "Impossible de récupérer les informations. Réessayez.";
+    }
+    if (lower.includes("database error")) {
+      return "Une erreur est survenue lors de l'enregistrement.";
+    }
+    if (lower.includes("api request failed") || lower.includes("service unavailable")) {
+      return "Le service est temporairement indisponible.";
+    }
+    if (lower.includes("null value")) {
+      return "Certaines informations obligatoires sont manquantes.";
+    }
+    return str;
+  }
+
+  /**
    * Connecter un professeur (avec Supabase Auth ou session locale)
    */
   static async login(email, password) {
@@ -245,7 +267,7 @@ export class AuthManager {
             unconfirmedErr.email = cleanEmail;
             throw unconfirmedErr;
           } else {
-            throw new Error(error.message);
+            throw new Error(this.formatUserError(error.message));
           }
         }
 

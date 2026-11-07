@@ -141,7 +141,7 @@ export function renderLanding(container) {
                     <i class="fas fa-lock"></i> ghim-pro.app/notation
                   </div>
                   <div class="lp-mockup-cloud-badge">
-                    <span id="lp-cloud-state">Cloud Synchronisé</span>
+                    <span id="lp-cloud-state">Barèmes Officiels</span>
                   </div>
                 </div>
 
@@ -166,9 +166,9 @@ export function renderLanding(container) {
                   <div class="lp-preview-calculator">
                     <div class="lp-preview-calc-header">
                       <div class="lp-preview-calc-title">
-                        <i class="fas fa-stopwatch"></i> Simulateur Live EPS
+                        <i class="fas fa-stopwatch"></i> Simulateur d'évaluation EPS
                       </div>
-                      <span class="lp-preview-calc-tag">Moteur EPSEngine</span>
+                      <span class="lp-preview-calc-tag">Calcul automatique</span>
                     </div>
 
                     <div class="lp-preview-calc-grid">
@@ -591,7 +591,7 @@ export function renderLanding(container) {
                 <div style="background:var(--lp-white); padding:24px; border-radius:12px; border:1px solid var(--lp-gray-200);">
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                     <div style="font-weight:700; color:var(--lp-dark);">Extrait de la table des barèmes intégrée</div>
-                    <span style="font-size:0.8rem; color:var(--lp-gray-600)"><i class="fas fa-database"></i> 10 disciplines enregistrées</span>
+                    <span style="font-size:0.8rem; color:var(--lp-gray-600)"><i class="fas fa-medal"></i> 10 disciplines officielles</span>
                   </div>
                   <div style="overflow-x:auto;">
                     <table class="lp-widget-bareme-table" style="font-size:0.88rem;">
@@ -825,7 +825,7 @@ export function renderLanding(container) {
                 <span class="lp-faq-icon"><i class="fas fa-chevron-down"></i></span>
               </button>
               <div class="lp-faq-answer" id="faq-ans-6">
-                Vous pouvez consulter la documentation intégrée et le code source du projet sur le dépôt GitHub officiel associé.
+                Vous pouvez consulter le guide d'utilisation intégré à l'application ou vous rapprocher du référent numérique de votre établissement scolaire.
               </div>
             </div>
           </div>
@@ -902,11 +902,11 @@ export function renderLanding(container) {
 
             <!-- Col 4: Informations -->
             <div class="lp-footer-col">
-              <h5>Informations</h5>
+              <h5>Garanties Pédagogiques</h5>
               <ul class="lp-footer-links">
-                <li><span style="color:var(--lp-gray-300); font-size:0.9rem;"><i class="fas fa-database"></i> PostgreSQL & Supabase</span></li>
-                <li><span style="color:var(--lp-gray-300); font-size:0.9rem;"><i class="fas fa-wifi"></i> Résilience Hors-Ligne</span></li>
-                <li><span style="color:var(--lp-gray-300); font-size:0.9rem;"><i class="fas fa-shield-halved"></i> Barèmes Officiels</span></li>
+                <li><span style="color:var(--lp-gray-300); font-size:0.9rem;"><i class="fas fa-shield-halved"></i> Barèmes Officiels EPS</span></li>
+                <li><span style="color:var(--lp-gray-300); font-size:0.9rem;"><i class="fas fa-check-double"></i> Calculs Automatisés Fiables</span></li>
+                <li><span style="color:var(--lp-gray-300); font-size:0.9rem;"><i class="fas fa-tablet-screen-button"></i> Saisie Terrain & Gymnase</span></li>
               </ul>
             </div>
           </div>
@@ -914,11 +914,11 @@ export function renderLanding(container) {
           <!-- Bottom bar -->
           <div class="lp-footer-bottom">
             <div>
-              &copy; 2026 GHIM PRO. Tous droits réservés.
+              &copy; 2026 GHIM PRO — Logiciel de gestion et d'évaluation EPS. Tous droits réservés.
             </div>
             <div class="lp-footer-status">
               <span class="lp-footer-status-dot"></span>
-              <span id="lp-footer-status-text">Système Opérationnel (Cloud & Local)</span>
+              <span id="lp-footer-status-text">Espace d'évaluation opérationnel</span>
             </div>
           </div>
         </div>
@@ -1107,16 +1107,16 @@ function setupLandingInteractions() {
     });
   });
 
-  // 7. Supabase Real-time Cloud Connection Listener for Landing Badges
+  // 7. Mise à jour discrète des indicateurs sans terminologie technique
   const cloudBadge = document.getElementById('lp-cloud-state');
   const footerStatus = document.getElementById('lp-footer-status-text');
 
-  SupabaseManager.onStatusChange(connected => {
+  SupabaseManager.onStatusChange(() => {
     if (cloudBadge) {
-      cloudBadge.textContent = connected ? 'PostgreSQL Connecté' : 'Mode Hors-Ligne Prêt';
+      cloudBadge.textContent = 'Barèmes Officiels';
     }
     if (footerStatus) {
-      footerStatus.textContent = connected ? 'Système Opérationnel (Cloud Supabase Connecté)' : 'Système Opérationnel (Mode Local Actif)';
+      footerStatus.textContent = 'Espace d\'évaluation opérationnel';
     }
   });
 }

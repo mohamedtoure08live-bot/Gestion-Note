@@ -92,7 +92,7 @@ export function renderNotation(container) {
             <div class="form-group" style="flex: 1.5;">
               <label class="form-label"><i class="fas fa-scale-balanced"></i> Barème d'évaluation appliqué <span style="color:red;">*</span></label>
               <select class="form-select" id="select-bareme-mode">
-                <option value="OFFICIAL" selected>🛡️ Barème Officiel Ministériel (Référence Nationale)</option>
+                <option value="OFFICIAL" selected>Barème Officiel Ministériel (Référence Nationale)</option>
               </select>
             </div>
 
@@ -105,8 +105,8 @@ export function renderNotation(container) {
             </div>
           </div>
 
-          <div id="validation-error-alert" class="alert alert-danger" style="display: none; margin-bottom: 16px; border-radius: 8px; font-size: 0.9rem; padding: 12px 16px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5; line-height: 1.5;">
-            <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #f87171;"></i>
+          <div id="validation-error-alert" class="alert alert-danger" style="display: none; margin-bottom: 16px; border-radius: 8px; font-size: 0.9rem; padding: 12px 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); color: #b91c1c; line-height: 1.5;">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #dc2626;"></i>
             <span id="validation-error-msg"></span>
           </div>
 
@@ -217,11 +217,11 @@ export function renderNotation(container) {
 
     const customBaremes = db.getCustomBaremes(currentProf.id, discipline, niveau, genre);
 
-    let html = '<option value="OFFICIAL">🛡️ Barème Officiel Ministériel (Référence Nationale)</option>';
+    let html = '<option value="OFFICIAL">Barème Officiel Ministériel (Référence Nationale)</option>';
     if (customBaremes && customBaremes.length > 0) {
       html += '<optgroup label="Vos Barèmes Personnalisés">';
       customBaremes.forEach(cb => {
-        html += `<option value="${cb.id}">⚙️ ${cb.nom}</option>`;
+        html += `<option value="${cb.id}">${cb.nom}</option>`;
       });
       html += '</optgroup>';
     }
