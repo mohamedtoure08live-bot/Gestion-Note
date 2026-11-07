@@ -6,6 +6,7 @@
 import { db } from '../db.js';
 import { Toast, Modal } from '../components.js';
 import { ImportEngine } from '../importEngine.js';
+import { OCREngine } from '../ocrEngine.js';
 
 export function renderEleves(container) {
   const currentProf = db.getCurrentProfesseur();
@@ -64,8 +65,11 @@ export function renderEleves(container) {
             </div>
 
             <div class="class-header-actions" style="display:flex; gap: 10px; flex-wrap: wrap;">
-              <button class="btn btn-secondary" id="btn-import-csv">
-                <i class="fas fa-file-excel"></i> Importer une classe (Excel, CSV, ODS)
+              <button class="btn btn-secondary" id="btn-import-csv" title="Sélectionner un fichier CSV, Excel, ODS ou Texte">
+                <i class="fas fa-file-excel"></i> Importer un fichier
+              </button>
+              <button class="btn btn-secondary" id="btn-import-photo" style="border-color: var(--primary); color: var(--primary);" title="Photographier une liste de classe ou sélectionner une image">
+                <i class="fas fa-camera"></i> Importer par photo
               </button>
               <button class="btn btn-primary" id="btn-create-class">
                 <i class="fas fa-plus-circle"></i> Nouvelle classe
@@ -179,9 +183,12 @@ export function renderEleves(container) {
                     <td colspan="6" style="text-align:center; padding: 40px 16px; color: var(--text-muted);">
                       <i class="fas fa-user-slash" style="font-size: 2rem; opacity: 0.4; display:block; margin-bottom: 8px;"></i>
                       Aucun élève trouvé dans cette classe.
-                      <div style="margin-top: 12px;">
+                      <div style="margin-top: 12px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                         <button class="btn btn-sm btn-secondary" id="btn-empty-import-csv">
-                          <i class="fas fa-file-excel"></i> Importer un fichier (Excel, CSV, ODS)
+                          <i class="fas fa-file-excel"></i> Importer un fichier
+                        </button>
+                        <button class="btn btn-sm btn-secondary" id="btn-empty-import-photo" style="border-color: var(--primary); color: var(--primary);">
+                          <i class="fas fa-camera"></i> Importer par photo
                         </button>
                       </div>
                     </td>
@@ -368,11 +375,15 @@ export function renderEleves(container) {
       });
     });
 
-    // 10. Open CSV Import Modal
+    // 10. Open CSV Import Modal & Photo Import Modal
     const btnImportCsv = container.querySelector('#btn-import-csv');
     const btnEmptyImport = container.querySelector('#btn-empty-import-csv');
+    const btnImportPhoto = container.querySelector('#btn-import-photo');
+    const btnEmptyImportPhoto = container.querySelector('#btn-empty-import-photo');
     if (btnImportCsv) btnImportCsv.addEventListener('click', () => openCsvImportModal());
     if (btnEmptyImport) btnEmptyImport.addEventListener('click', () => openCsvImportModal());
+    if (btnImportPhoto) btnImportPhoto.addEventListener('click', () => openPhotoImportModal());
+    if (btnEmptyImportPhoto) btnEmptyImportPhoto.addEventListener('click', () => openPhotoImportModal());
   }
 
   // --- MODAL: CREATE / EDIT CLASS ---
@@ -550,6 +561,24 @@ export function renderEleves(container) {
 
     const contentHtml = `
       <div id="import-wizard-container">
+        <!-- Sélecteur de méthode d'importation -->
+        <div class="import-methods-switcher">
+          <button type="button" class="import-method-card active" id="switch-to-file-import">
+            <div class="import-method-icon"><i class="fas fa-file-excel"></i></div>
+            <div class="import-method-info">
+              <h4>Importer un fichier</h4>
+              <p>Sélectionner un fichier CSV, Excel ou un autre format pris en charge.</p>
+            </div>
+          </button>
+          <button type="button" class="import-method-card" id="switch-to-photo-import">
+            <div class="import-method-icon"><i class="fas fa-camera"></i></div>
+            <div class="import-method-info">
+              <h4>Importer par photo</h4>
+              <p>Photographier une liste de classe ou sélectionner une image depuis son appareil.</p>
+            </div>
+          </button>
+        </div>
+
         <!-- Bandeau d'information multi-format -->
         <div style="background: var(--bg-main); padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border-color); font-size: 0.88rem; line-height: 1.5;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
@@ -759,6 +788,13 @@ export function renderEleves(container) {
       const selectClass = document.getElementById('import-target-class');
       const downloadTemplateBtn = document.getElementById('btn-download-csv-template');
       const allowDupsCheckbox = document.getElementById('import-allow-duplicates');
+      const btnSwitchToPhoto = document.getElementById('switch-to-photo-import');
+
+      if (btnSwitchToPhoto) {
+        btnSwitchToPhoto.addEventListener('click', () => {
+          openPhotoImportModal();
+        });
+      }
 
       // Sélecteurs de colonnes
       const mapNom = document.getElementById('map-col-nom');
@@ -1096,6 +1132,970 @@ export function renderEleves(container) {
         btnClose.addEventListener('click', () => {
           Modal.close();
         });
+      }
+    }, 50);
+  }
+
+  // --- MODAL: IMPORTATION PAR PHOTO (APPAREIL PHOTO, PRÉTRAITEMENT, OCR & CORRECTION) ---
+  function openPhotoImportModal() {
+    const myClasses = db.getClasses();
+    if (myClasses.length === 0) {
+      Toast.show("Veuillez d'abord créer au moins une classe avant d'importer une liste.", "error");
+      return;
+    }
+
+    const defaultCid = selectedClasseId !== 'ALL' ? selectedClasseId : myClasses[0].id;
+
+    // État interne des pages photographiées et des élèves reconnus
+    let photoPages = []; // [{ id, fileName, formatLabel, imgElement, rotationDeg, skewDeg, cropPreset, enhanceContrast, processedCanvas, qualityReport }]
+    let activePageIndex = 0;
+    let extractedRows = []; // Lignes d'élèves extraites et modifiables
+    let validationResult = { rows: [], stats: { detectedCount: 0, validCount: 0, toVerifyCount: 0, duplicateCount: 0, incompleteCount: 0 }, validStudentsToSave: [] };
+    let showVerifyOnly = false;
+    let activeCameraStream = null;
+
+    function stopActiveCameraStream() {
+      if (activeCameraStream) {
+        try {
+          activeCameraStream.getTracks().forEach(track => track.stop());
+        } catch (e) {}
+        activeCameraStream = null;
+      }
+    }
+
+    function cleanupAllPhotoState() {
+      stopActiveCameraStream();
+      OCREngine.cleanupImageResources();
+      photoPages = [];
+    }
+
+    const contentHtml = `
+      <div id="photo-import-wizard-container">
+        <!-- Sélecteur de méthode d'importation -->
+        <div class="import-methods-switcher">
+          <button type="button" class="import-method-card" id="photo-switch-to-file">
+            <div class="import-method-icon"><i class="fas fa-file-excel"></i></div>
+            <div class="import-method-info">
+              <h4>Importer un fichier</h4>
+              <p>Sélectionner un fichier CSV, Excel ou un autre format pris en charge.</p>
+            </div>
+          </button>
+          <button type="button" class="import-method-card active" id="photo-switch-to-photo">
+            <div class="import-method-icon"><i class="fas fa-camera"></i></div>
+            <div class="import-method-info">
+              <h4>Importer par photo</h4>
+              <p>Photographier une liste de classe ou sélectionner une image depuis son appareil.</p>
+            </div>
+          </button>
+        </div>
+
+        <!-- Bandeau formats d'images supportés -->
+        <div style="background: var(--bg-main); padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; border: 1px solid var(--border-color); font-size: 0.85rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <strong><i class="fas fa-camera-retro" style="color:var(--primary);"></i> Formats d'image pris en charge :</strong>
+              <span style="margin-left: 6px; color: var(--text-muted);">JPG / JPEG, PNG, WEBP, HEIC (iPhone)</span>
+            </div>
+            <span style="font-size: 0.78rem; color: #059669; font-weight: 600;">
+              <i class="fas fa-shield-halved"></i> Confidentialité garantie : photos supprimées après l'importation
+            </span>
+          </div>
+        </div>
+
+        <!-- Classe de destination -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label class="form-label" style="font-weight:600;">Classe de destination <span style="color:red;">*</span></label>
+          <select class="form-select" id="photo-import-target-class" required>
+            ${myClasses.map(c => `
+              <option value="${c.id}" ${c.id === defaultCid ? 'selected' : ''}>${c.nom} (${c.niveau})</option>
+            `).join('')}
+          </select>
+        </div>
+
+        <!-- Zone de prise de photo ou sélection depuis la galerie -->
+        <div class="photo-capture-actions-grid" id="photo-capture-initial-grid">
+          <div class="photo-action-box" id="btn-trigger-mobile-camera">
+            <i class="fas fa-camera"></i>
+            <strong>Prendre une photo</strong>
+            <span>Ouvrir l'appareil photo (iPhone / Mobile / Caméra)</span>
+            <input type="file" id="photo-camera-input" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" capture="environment" style="display: none;" />
+          </div>
+
+          <div class="photo-action-box" id="btn-trigger-gallery-picker">
+            <i class="fas fa-images"></i>
+            <strong>Choisir dans la galerie</strong>
+            <span>Sélectionner une ou plusieurs photos existantes</span>
+            <input type="file" id="photo-gallery-input" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif" multiple style="display: none;" />
+          </div>
+
+          <div class="photo-action-box" id="btn-trigger-webcam">
+            <i class="fas fa-video"></i>
+            <strong>Caméra de l'ordinateur</strong>
+            <span>Capturer directement depuis la webcam</span>
+          </div>
+        </div>
+
+        <!-- Flux Caméra en direct (WebRTC sur ordinateur / mobile compatible) -->
+        <div id="photo-live-camera-container" style="display: none; background: #0f172a; padding: 14px; border-radius: 12px; margin-bottom: 16px; text-align: center;">
+          <video id="photo-live-video" autoplay playsinline muted style="max-width: 100%; max-height: 300px; border-radius: 8px; background: #000;"></video>
+          <div style="display:flex; justify-content:center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-snap-live-photo">
+              <i class="fas fa-camera"></i> Capturer la liste
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-close-live-camera">
+              <i class="fas fa-times"></i> Fermer la caméra
+            </button>
+          </div>
+        </div>
+
+        <!-- Espace de prévisualisation, rotation, recadrage et diagnostic qualité -->
+        <div class="photo-preview-workspace" id="photo-preview-workspace" style="display: none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <strong style="font-size: 0.92rem; color: var(--text-main);">
+              <i class="fas fa-crop-simple" style="color:var(--primary);"></i> Prévisualisation & Ajustement avant analyse
+            </strong>
+            <div style="display:flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-photo-add-more" title="Ajouter une autre page de la liste">
+                <i class="fas fa-file-circle-plus"></i> Ajouter une page
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-photo-retake" title="Reprendre ou remplacer cette photo">
+                <i class="fas fa-rotate"></i> Reprendre la photo
+              </button>
+              <button type="button" class="btn btn-sm btn-danger" id="btn-photo-delete-page" title="Supprimer la photo sélectionnée">
+                <i class="fas fa-trash"></i> Supprimer
+              </button>
+            </div>
+          </div>
+
+          <!-- Barre des pages (si liste sur plusieurs pages) -->
+          <div class="photo-pages-strip" id="photo-pages-strip"></div>
+
+          <!-- Alertes qualité (photo floue, trop sombre, etc.) -->
+          <div id="photo-quality-warnings" style="display: none; margin-bottom: 10px;"></div>
+
+          <!-- Aperçu Canvas -->
+          <div class="photo-canvas-wrapper">
+            <canvas id="photo-preview-canvas"></canvas>
+          </div>
+
+          <!-- Outils d'orientation, redressement, recadrage et contraste -->
+          <div class="photo-tools-bar">
+            <div style="display:flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-photo-rot-left" title="Pivoter de 90° à gauche">
+                <i class="fas fa-rotate-left"></i> Pivoter -90°
+              </button>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-photo-rot-right" title="Pivoter de 90° à droite">
+                <i class="fas fa-rotate-right"></i> Pivoter +90°
+              </button>
+
+              <div style="display:inline-flex; align-items:center; gap:6px; background:#fff; padding:4px 10px; border-radius:8px; border:1px solid var(--border-color); font-size:0.78rem;">
+                <span>Inclinaison :</span>
+                <input type="range" id="photo-skew-range" min="-10" max="10" step="0.5" value="0" style="width: 75px;" />
+                <strong id="photo-skew-val">0°</strong>
+              </div>
+
+              <select class="form-select" id="photo-crop-preset" style="width: auto; padding: 5px 10px; font-size: 0.78rem;">
+                <option value="none">Cadrage : Image entière</option>
+                <option value="margin5">Recadrer les marges (5%)</option>
+                <option value="margin10">Recadrer les marges (10%)</option>
+                <option value="headerfooter">Isoler le tableau central (12%)</option>
+              </select>
+
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:0.78rem; cursor:pointer; background:#fff; padding:5px 10px; border-radius:8px; border:1px solid var(--border-color);">
+                <input type="checkbox" id="photo-enhance-contrast" checked />
+                <span>Améliorer la lisibilité</span>
+              </label>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="btn-run-ocr-analysis">
+              <i class="fas fa-wand-magic-sparkles"></i> Analyser la photo
+            </button>
+          </div>
+        </div>
+
+        <!-- Barre de progression de l'analyse OCR (Section 9) -->
+        <div class="ocr-progress-container" id="photo-ocr-progress-box" style="display: none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; font-weight:600; color:var(--text-main);">
+            <span id="photo-ocr-step-label"><i class="fas fa-spinner fa-spin" style="color:var(--primary); margin-right:6px;"></i> Préparation de l'image...</span>
+            <span id="photo-ocr-percent">0%</span>
+          </div>
+          <div class="ocr-progress-bar-track">
+            <div class="ocr-progress-bar-fill" id="photo-ocr-progress-fill" style="width: 0%;"></div>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted);" id="photo-ocr-substatus">
+            Traitement sécurisé de la liste de classe en cours...
+          </div>
+        </div>
+
+        <!-- Étape obligatoire : Aperçu, Vérification et Correction avant importation (Section 5) -->
+        <div id="photo-verification-section" style="display: none;">
+          <div class="import-stats-summary" style="margin-bottom: 12px;">
+            <div class="import-stat-box val-total">
+              <div class="stat-val" id="photo-stat-detected">0</div>
+              <div class="stat-lbl">Élèves détectés</div>
+            </div>
+            <div class="import-stat-box val-valid">
+              <div class="stat-val" id="photo-stat-valid">0</div>
+              <div class="stat-lbl">Élèves validés</div>
+            </div>
+            <div class="import-stat-box val-err">
+              <div class="stat-val" id="photo-stat-verify">0</div>
+              <div class="stat-lbl">À vérifier / corriger</div>
+            </div>
+            <div class="import-stat-box val-dup">
+              <div class="stat-val" id="photo-stat-dup">0</div>
+              <div class="stat-lbl">Doublons</div>
+            </div>
+          </div>
+
+          <!-- Barre d'outils de correction -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="font-size: 0.95rem; margin: 0; color: var(--text-main);">
+                <i class="fas fa-user-check" style="color:var(--primary);"></i> Vérification et correction des élèves reconnus
+              </h4>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">
+                Vous pouvez corriger directement un nom, un prénom, un matricule ou le sexe avant de confirmer l'importation.
+              </span>
+            </div>
+
+            <div style="display:flex; gap: 10px; align-items:center; flex-wrap:wrap;">
+              <label style="font-size: 0.8rem; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                <input type="checkbox" id="photo-filter-verify-only" />
+                <span>Afficher uniquement « À vérifier »</span>
+              </label>
+              <label style="font-size: 0.8rem; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                <input type="checkbox" id="photo-allow-duplicates" />
+                <span>Autoriser homonymes</span>
+              </label>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-photo-add-row">
+                <i class="fas fa-user-plus"></i> Ajouter un élève oublié
+              </button>
+            </div>
+          </div>
+
+          <!-- Tableau éditable d'aperçu et de correction -->
+          <div class="csv-preview-table-container" style="max-height: 340px; overflow-y: auto;">
+            <table class="table" id="photo-verification-table" style="font-size: 0.82rem; margin: 0;">
+              <thead>
+                <tr>
+                  <th style="width: 48px;">N°</th>
+                  <th style="width: 115px;">Matricule</th>
+                  <th>Nom <span style="color:red;">*</span></th>
+                  <th>Prénoms <span style="color:red;">*</span></th>
+                  <th style="width: 105px;">Sexe <span style="color:red;">*</span></th>
+                  <th style="width: 165px;">Vérification</th>
+                  <th style="width: 60px; text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="photo-verification-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+
+    Modal.open("Importer une liste de classe par photo", contentHtml, async () => {
+      const selectClass = document.getElementById('photo-import-target-class');
+      if (!selectClass || !selectClass.value) {
+        Toast.show("Veuillez sélectionner une classe de destination.", "error");
+        return;
+      }
+
+      const targetCid = selectClass.value;
+      const targetClassObj = db.getClassById(targetCid);
+      const existingInClass = db.getEleves(targetCid);
+      const allowDupsEl = document.getElementById('photo-allow-duplicates');
+      const allowDuplicates = allowDupsEl ? allowDupsEl.checked : false;
+
+      validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass);
+
+      const studentsToSave = allowDuplicates
+        ? validationResult.rows
+            .filter(r => r.status !== 'incomplete')
+            .map(r => ({
+              nom: r.nom,
+              prenom: r.prenom,
+              genre: ImportEngine.normalizeGenre(r.genre),
+              matricule: r.matricule || ''
+            }))
+        : validationResult.validStudentsToSave;
+
+      if (!studentsToSave || studentsToSave.length === 0) {
+        Toast.show("Aucun élève valide à enregistrer. Analysez d'abord une photo ou complétez les lignes.", "error");
+        return;
+      }
+
+      try {
+        const batchResult = await db.addElevesBatch(studentsToSave, targetCid, { allowDuplicates });
+
+        // Nettoyage immédiat des photos en mémoire (Section 8 — Sécurité & Confidentialité)
+        const totalDetected = validationResult.stats.detectedCount;
+        const totalValidated = studentsToSave.length;
+        const totalImported = batchResult.totalAdded;
+        const totalDuplicates = validationResult.stats.duplicateCount + (batchResult.duplicates ? batchResult.duplicates.length : 0);
+        const totalToFix = validationResult.stats.incompleteCount;
+
+        cleanupAllPhotoState();
+
+        displayPhotoImportReport({
+          targetClassName: targetClassObj ? targetClassObj.nom : 'Classe sélectionnée',
+          detectedCount: totalDetected,
+          validatedCount: totalValidated,
+          importedCount: totalImported,
+          duplicateCount: totalDuplicates,
+          toCorrectCount: totalToFix,
+          incompleteRows: validationResult.rows.filter(r => r.status === 'incomplete'),
+          duplicateRows: validationResult.rows.filter(r => r.status === 'duplicate')
+        });
+
+        selectedClasseId = targetCid;
+        renderView();
+      } catch (err) {
+        Toast.show("Une erreur est survenue lors de l'enregistrement des élèves.", "error");
+      }
+    });
+
+    // Changement du libellé du bouton de confirmation de la modale
+    setTimeout(() => {
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+      const closeBtn = document.getElementById('modal-close-btn');
+
+      if (confirmBtn) {
+        confirmBtn.innerHTML = `<i class="fas fa-check-circle"></i> Confirmer l'importation`;
+      }
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => cleanupAllPhotoState(), { once: true });
+      }
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => cleanupAllPhotoState(), { once: true });
+      }
+
+      // Références DOM
+      const btnSwitchToFile = document.getElementById('photo-switch-to-file');
+      const btnMobileCam = document.getElementById('btn-trigger-mobile-camera');
+      const inputCamera = document.getElementById('photo-camera-input');
+      const btnGallery = document.getElementById('btn-trigger-gallery-picker');
+      const inputGallery = document.getElementById('photo-gallery-input');
+      const btnWebcam = document.getElementById('btn-trigger-webcam');
+      const liveCamContainer = document.getElementById('photo-live-camera-container');
+      const liveVideo = document.getElementById('photo-live-video');
+      const btnSnapLive = document.getElementById('btn-snap-live-photo');
+      const btnCloseLive = document.getElementById('btn-close-live-camera');
+
+      const previewWorkspace = document.getElementById('photo-preview-workspace');
+      const pagesStrip = document.getElementById('photo-pages-strip');
+      const qualityWarningsEl = document.getElementById('photo-quality-warnings');
+      const previewCanvas = document.getElementById('photo-preview-canvas');
+      const btnAddMore = document.getElementById('btn-photo-add-more');
+      const btnRetake = document.getElementById('btn-photo-retake');
+      const btnDeletePage = document.getElementById('btn-photo-delete-page');
+      const btnRotLeft = document.getElementById('btn-photo-rot-left');
+      const btnRotRight = document.getElementById('btn-photo-rot-right');
+      const skewRange = document.getElementById('photo-skew-range');
+      const skewVal = document.getElementById('photo-skew-val');
+      const cropPreset = document.getElementById('photo-crop-preset');
+      const enhanceCheckbox = document.getElementById('photo-enhance-contrast');
+      const btnRunOcr = document.getElementById('btn-run-ocr-analysis');
+
+      const progressBox = document.getElementById('photo-ocr-progress-box');
+      const progressLabel = document.getElementById('photo-ocr-step-label');
+      const progressPercent = document.getElementById('photo-ocr-percent');
+      const progressFill = document.getElementById('photo-ocr-progress-fill');
+
+      const verifSection = document.getElementById('photo-verification-section');
+      const verifTbody = document.getElementById('photo-verification-tbody');
+      const statDetected = document.getElementById('photo-stat-detected');
+      const statValid = document.getElementById('photo-stat-valid');
+      const statVerify = document.getElementById('photo-stat-verify');
+      const statDup = document.getElementById('photo-stat-dup');
+      const filterVerifyCheckbox = document.getElementById('photo-filter-verify-only');
+      const allowDupsCheckbox = document.getElementById('photo-allow-duplicates');
+      const btnAddRow = document.getElementById('btn-photo-add-row');
+      const selectTargetClass = document.getElementById('photo-import-target-class');
+
+      if (btnSwitchToFile) {
+        btnSwitchToFile.addEventListener('click', () => {
+          cleanupAllPhotoState();
+          openCsvImportModal();
+        });
+      }
+
+      // 1. Prise de photo mobile / iPhone
+      if (btnMobileCam && inputCamera) {
+        btnMobileCam.addEventListener('click', (e) => {
+          if (e.target !== inputCamera) inputCamera.click();
+        });
+        inputCamera.addEventListener('change', async () => {
+          if (inputCamera.files && inputCamera.files.length > 0) {
+            await handleSelectedImageFiles(Array.from(inputCamera.files), false);
+            inputCamera.value = '';
+          }
+        });
+      }
+
+      // 2. Sélection depuis la galerie (supporte plusieurs pages)
+      if (btnGallery && inputGallery) {
+        btnGallery.addEventListener('click', (e) => {
+          if (e.target !== inputGallery) inputGallery.click();
+        });
+        inputGallery.addEventListener('change', async () => {
+          if (inputGallery.files && inputGallery.files.length > 0) {
+            await handleSelectedImageFiles(Array.from(inputGallery.files), true);
+            inputGallery.value = '';
+          }
+        });
+      }
+
+      // 3. Caméra en direct (WebRTC avec solution de remplacement automatique si refusée/indisponible)
+      if (btnWebcam) {
+        btnWebcam.addEventListener('click', async () => {
+          if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+            Toast.show("L'accès direct à la caméra n'est pas disponible sur ce navigateur. Sélectionnez une image depuis votre appareil.", "info");
+            if (inputGallery) inputGallery.click();
+            return;
+          }
+          try {
+            activeCameraStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+              audio: false
+            });
+            if (liveVideo && liveCamContainer) {
+              liveVideo.srcObject = activeCameraStream;
+              liveCamContainer.style.display = 'block';
+            }
+          } catch (camErr) {
+            Toast.show("Accès à la caméra refusé ou indisponible. Vous pouvez sélectionner une photo existante.", "info");
+            if (inputGallery) inputGallery.click();
+          }
+        });
+      }
+
+      if (btnCloseLive) {
+        btnCloseLive.addEventListener('click', () => {
+          stopActiveCameraStream();
+          if (liveCamContainer) liveCamContainer.style.display = 'none';
+        });
+      }
+
+      if (btnSnapLive && liveVideo) {
+        btnSnapLive.addEventListener('click', () => {
+          const vw = liveVideo.videoWidth || 1280;
+          const vh = liveVideo.videoHeight || 720;
+          const snapCanvas = document.createElement('canvas');
+          snapCanvas.width = vw;
+          snapCanvas.height = vh;
+          const ctx = snapCanvas.getContext('2d');
+          ctx.drawImage(liveVideo, 0, 0, vw, vh);
+
+          snapCanvas.toBlob(async (blob) => {
+            if (blob) {
+              const capturedFile = new File([blob], `capture_classe_${photoPages.length + 1}.jpg`, { type: 'image/jpeg' });
+              stopActiveCameraStream();
+              if (liveCamContainer) liveCamContainer.style.display = 'none';
+              await handleSelectedImageFiles([capturedFile], true);
+            }
+          }, 'image/jpeg', 0.92);
+        });
+      }
+
+      // Chargement d'une ou plusieurs images
+      async function handleSelectedImageFiles(files, appendMode = true) {
+        if (!appendMode) {
+          photoPages = [];
+        }
+
+        for (const file of files) {
+          if (!OCREngine.isSupportedImage(file)) {
+            Toast.show(`Format non pris en charge (${file.name}). Utilisez JPG, PNG, WEBP ou HEIC.`, "error");
+            continue;
+          }
+
+          try {
+            const standardBlob = await OCREngine.ensureStandardImageBlob(file);
+            const objUrl = OCREngine.createTrackedObjectUrl(standardBlob);
+            const imgEl = await loadImageElement(objUrl);
+
+            photoPages.push({
+              id: `page_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+              fileName: file.name || `Page ${photoPages.length + 1}`,
+              formatLabel: OCREngine.getFormatLabel(file.name || 'photo.jpg'),
+              imgElement: imgEl,
+              rotationDeg: 0,
+              skewDeg: 0,
+              cropPreset: 'none',
+              enhanceContrast: true,
+              processedCanvas: null,
+              qualityReport: null
+            });
+          } catch (err) {
+            Toast.show(err.message || "Impossible de charger cette image.", "error");
+          }
+        }
+
+        if (photoPages.length > 0) {
+          activePageIndex = photoPages.length - 1;
+          if (previewWorkspace) previewWorkspace.style.display = 'block';
+          syncControlsWithActivePage();
+          renderActivePagePreview();
+        }
+      }
+
+      function loadImageElement(url) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error("Impossible de lire le fichier image sélectionné."));
+          img.src = url;
+        });
+      }
+
+      function getCropRectFromPreset(preset) {
+        switch (preset) {
+          case 'margin5':
+            return { x: 0.05, y: 0.05, w: 0.90, h: 0.90 };
+          case 'margin10':
+            return { x: 0.10, y: 0.10, w: 0.80, h: 0.80 };
+          case 'headerfooter':
+            return { x: 0.04, y: 0.12, w: 0.92, h: 0.76 };
+          default:
+            return { x: 0, y: 0, w: 1, h: 1 };
+        }
+      }
+
+      function syncControlsWithActivePage() {
+        const page = photoPages[activePageIndex];
+        if (!page) return;
+        if (skewRange) skewRange.value = String(page.skewDeg || 0);
+        if (skewVal) skewVal.textContent = `${page.skewDeg || 0}°`;
+        if (cropPreset) cropPreset.value = page.cropPreset || 'none';
+        if (enhanceCheckbox) enhanceCheckbox.checked = page.enhanceContrast !== false;
+      }
+
+      function renderPagesStrip() {
+        if (!pagesStrip) return;
+        if (photoPages.length <= 1) {
+          pagesStrip.style.display = 'none';
+          return;
+        }
+        pagesStrip.style.display = 'flex';
+        pagesStrip.innerHTML = photoPages.map((p, idx) => `
+          <button type="button" class="photo-page-pill ${idx === activePageIndex ? 'active' : ''}" data-page-idx="${idx}">
+            <i class="fas fa-file-image"></i> Page ${idx + 1} (${p.fileName})
+          </button>
+        `).join('');
+
+        pagesStrip.querySelectorAll('.photo-page-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            activePageIndex = parseInt(btn.getAttribute('data-page-idx'), 10) || 0;
+            syncControlsWithActivePage();
+            renderActivePagePreview();
+          });
+        });
+      }
+
+      function renderActivePagePreview() {
+        renderPagesStrip();
+        const page = photoPages[activePageIndex];
+        if (!page || !previewCanvas) return;
+
+        const { canvas, qualityReport } = OCREngine.preprocessImageInBrowser(page.imgElement, {
+          rotationDeg: page.rotationDeg,
+          skewDeg: page.skewDeg,
+          crop: getCropRectFromPreset(page.cropPreset),
+          enhanceContrast: page.enhanceContrast
+        });
+
+        page.processedCanvas = canvas;
+        page.qualityReport = qualityReport;
+
+        previewCanvas.width = canvas.width;
+        previewCanvas.height = canvas.height;
+        const ctx = previewCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, 0);
+
+        // Affichage des avertissements de qualité optique (flou, sombre, contraste)
+        if (qualityWarningsEl) {
+          if (qualityReport.warnings && qualityReport.warnings.length > 0) {
+            qualityWarningsEl.style.display = 'block';
+            qualityWarningsEl.innerHTML = qualityReport.warnings.map(w => `
+              <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #b45309; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 6px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span>${w}</span>
+              </div>
+            `).join('');
+          } else {
+            qualityWarningsEl.style.display = 'none';
+            qualityWarningsEl.innerHTML = '';
+          }
+        }
+      }
+
+      // Événements de retouche d'image (Rotation, Inclinaison, Recadrage, Contraste, Suppression, Reprise)
+      if (btnRotLeft) {
+        btnRotLeft.addEventListener('click', () => {
+          const page = photoPages[activePageIndex];
+          if (!page) return;
+          page.rotationDeg = (page.rotationDeg - 90) % 360;
+          renderActivePagePreview();
+        });
+      }
+
+      if (btnRotRight) {
+        btnRotRight.addEventListener('click', () => {
+          const page = photoPages[activePageIndex];
+          if (!page) return;
+          page.rotationDeg = (page.rotationDeg + 90) % 360;
+          renderActivePagePreview();
+        });
+      }
+
+      if (skewRange) {
+        skewRange.addEventListener('input', () => {
+          const page = photoPages[activePageIndex];
+          if (!page) return;
+          page.skewDeg = parseFloat(skewRange.value) || 0;
+          if (skewVal) skewVal.textContent = `${page.skewDeg}°`;
+          renderActivePagePreview();
+        });
+      }
+
+      if (cropPreset) {
+        cropPreset.addEventListener('change', () => {
+          const page = photoPages[activePageIndex];
+          if (!page) return;
+          page.cropPreset = cropPreset.value;
+          renderActivePagePreview();
+        });
+      }
+
+      if (enhanceCheckbox) {
+        enhanceCheckbox.addEventListener('change', () => {
+          const page = photoPages[activePageIndex];
+          if (!page) return;
+          page.enhanceContrast = enhanceCheckbox.checked;
+          renderActivePagePreview();
+        });
+      }
+
+      if (btnAddMore && inputGallery) {
+        btnAddMore.addEventListener('click', () => inputGallery.click());
+      }
+
+      if (btnRetake && inputCamera) {
+        btnRetake.addEventListener('click', () => {
+          photoPages.splice(activePageIndex, 1);
+          inputCamera.click();
+        });
+      }
+
+      if (btnDeletePage) {
+        btnDeletePage.addEventListener('click', () => {
+          if (photoPages.length === 0) return;
+          photoPages.splice(activePageIndex, 1);
+          if (photoPages.length === 0) {
+            activePageIndex = 0;
+            if (previewWorkspace) previewWorkspace.style.display = 'none';
+          } else {
+            activePageIndex = Math.max(0, activePageIndex - 1);
+            syncControlsWithActivePage();
+            renderActivePagePreview();
+          }
+        });
+      }
+
+      // Lancement de la reconnaissance automatique OCR
+      if (btnRunOcr) {
+        btnRunOcr.addEventListener('click', async () => {
+          if (photoPages.length === 0) {
+            Toast.show("Veuillez d'abord prendre ou sélectionner une photo de la liste.", "error");
+            return;
+          }
+
+          // S'assurer que chaque page a son canvas prétraité à jour
+          const canvasesToAnalyze = photoPages.map(p => {
+            if (!p.processedCanvas) {
+              const res = OCREngine.preprocessImageInBrowser(p.imgElement, {
+                rotationDeg: p.rotationDeg,
+                skewDeg: p.skewDeg,
+                crop: getCropRectFromPreset(p.cropPreset),
+                enhanceContrast: p.enhanceContrast
+              });
+              p.processedCanvas = res.canvas;
+              p.qualityReport = res.qualityReport;
+            }
+            return p.processedCanvas;
+          });
+
+          if (progressBox) progressBox.style.display = 'block';
+          btnRunOcr.disabled = true;
+
+          try {
+            const ocrResult = await OCREngine.recognizePages(canvasesToAnalyze, (prog) => {
+              if (progressLabel) {
+                progressLabel.innerHTML = `<i class="fas ${prog.percent >= 100 ? 'fa-check-circle' : 'fa-spinner fa-spin'}" style="color:var(--primary); margin-right:6px;"></i> ${prog.message}`;
+              }
+              if (progressPercent) progressPercent.textContent = `${prog.percent}%`;
+              if (progressFill) progressFill.style.width = `${prog.percent}%`;
+            });
+
+            btnRunOcr.disabled = false;
+
+            if (!ocrResult.combinedStudents || ocrResult.combinedStudents.length === 0) {
+              Toast.show("Aucun élève n'a pu être détecté sur cette image. Vérifiez le cadrage ou ajoutez les élèves manuellement.", "warning");
+              extractedRows = [];
+            } else {
+              extractedRows = ocrResult.combinedStudents;
+              Toast.show(`${extractedRows.length} élève(s) détecté(s). Vérifiez l'aperçu avant de confirmer.`, "success");
+            }
+
+            if (verifSection) verifSection.style.display = 'block';
+            refreshVerificationTable();
+          } catch (err) {
+            btnRunOcr.disabled = false;
+            Toast.show(err.message || "Impossible d'analyser la photo. Vérifiez la lisibilité de l'image.", "error");
+          }
+        });
+      }
+
+      // Rafraîchit la validation et le tableau éditable des élèves reconnus
+      function refreshVerificationTable() {
+        const targetCid = selectTargetClass ? selectTargetClass.value : defaultCid;
+        const existingInClass = db.getEleves(targetCid);
+
+        validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass);
+
+        if (statDetected) statDetected.textContent = String(validationResult.stats.detectedCount);
+        if (statValid) statValid.textContent = String(validationResult.stats.validCount);
+        if (statVerify) statVerify.textContent = String(validationResult.stats.toVerifyCount);
+        if (statDup) statDup.textContent = String(validationResult.stats.duplicateCount);
+
+        if (!verifTbody) return;
+
+        const rowsToShow = showVerifyOnly
+          ? validationResult.rows.filter(r => r.status !== 'valid')
+          : validationResult.rows;
+
+        if (rowsToShow.length === 0) {
+          verifTbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 24px 12px; color: var(--text-muted);">
+                ${showVerifyOnly ? 'Aucune ligne à vérifier.' : 'Aucun élève dans la liste. Cliquez sur « Ajouter un élève oublié » pour saisir une ligne.'}
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        verifTbody.innerHTML = rowsToShow.map((row) => {
+          const isWarn = row.status === 'verify' || row.status === 'incomplete';
+          const isDup = row.status === 'duplicate';
+          const badgeClass = row.status === 'valid'
+            ? 'csv-status-valid'
+            : (isDup ? 'csv-status-dup' : 'csv-status-err');
+
+          const issueHint = row.issues && row.issues.length > 0
+            ? row.issues.join(' · ')
+            : 'Lecture conforme';
+
+          return `
+            <tr class="${isWarn ? 'ocr-row-verify' : (isDup ? 'ocr-row-duplicate' : '')}" data-row-id="${row.rowId}">
+              <td style="font-weight: 600; color: var(--text-muted);">${row.numero}</td>
+              <td>
+                <input type="text" class="ocr-editable-input input-ocr-matricule" data-row-id="${row.rowId}" value="${row.matricule || ''}" placeholder="Optionnel" />
+              </td>
+              <td>
+                <input type="text" class="ocr-editable-input input-ocr-nom ${!row.nom || row.nom.length < 2 ? 'input-warning' : ''}" data-row-id="${row.rowId}" value="${row.nom || ''}" placeholder="NOM" style="text-transform: uppercase; font-weight: 600;" />
+              </td>
+              <td>
+                <input type="text" class="ocr-editable-input input-ocr-prenom ${!row.prenom || row.prenom.length < 2 ? 'input-warning' : ''}" data-row-id="${row.rowId}" value="${row.prenom || ''}" placeholder="Prénoms" />
+              </td>
+              <td>
+                <select class="ocr-editable-input select-ocr-genre ${!ImportEngine.normalizeGenre(row.genre) ? 'input-warning' : ''}" data-row-id="${row.rowId}">
+                  <option value="" ${!ImportEngine.normalizeGenre(row.genre) ? 'selected' : ''}>À préciser</option>
+                  <option value="Garçon" ${ImportEngine.normalizeGenre(row.genre) === 'Garçon' ? 'selected' : ''}>M (Garçon)</option>
+                  <option value="Fille" ${ImportEngine.normalizeGenre(row.genre) === 'Fille' ? 'selected' : ''}>F (Fille)</option>
+                </select>
+              </td>
+              <td title="${issueHint}">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="csv-status-badge ${badgeClass}">
+                    <i class="fas ${row.status === 'valid' ? 'fa-check' : (isDup ? 'fa-copy' : 'fa-triangle-exclamation')}"></i>
+                    ${row.verificationLabel}
+                  </span>
+                  ${row.status === 'verify' ? `
+                    <button type="button" class="btn btn-sm btn-secondary btn-confirm-ocr-row" data-row-id="${row.rowId}" title="Confirmer que cette ligne est exacte" style="padding: 2px 6px; font-size: 0.72rem;">
+                      <i class="fas fa-check"></i> Valider
+                    </button>
+                  ` : ''}
+                </div>
+                ${row.issues && row.issues.length > 0 ? `
+                  <div style="font-size: 0.7rem; color: ${isDup ? '#b45309' : '#b91c1c'}; margin-top: 2px;">
+                    ${row.issues[0]}
+                  </div>
+                ` : ''}
+              </td>
+              <td style="text-align: center;">
+                <button type="button" class="btn btn-sm btn-danger btn-delete-ocr-row" data-row-id="${row.rowId}" title="Supprimer cette ligne">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Écouteurs d'édition en ligne
+        verifTbody.querySelectorAll('.input-ocr-matricule').forEach(inp => {
+          inp.addEventListener('change', () => {
+            const target = extractedRows.find(r => r.rowId === inp.getAttribute('data-row-id'));
+            if (target) {
+              target.matricule = inp.value.trim();
+              target.verifiedByTeacher = true;
+              refreshVerificationTable();
+            }
+          });
+        });
+
+        verifTbody.querySelectorAll('.input-ocr-nom').forEach(inp => {
+          inp.addEventListener('change', () => {
+            const target = extractedRows.find(r => r.rowId === inp.getAttribute('data-row-id'));
+            if (target) {
+              target.nom = inp.value.trim().toUpperCase();
+              target.verifiedByTeacher = true;
+              refreshVerificationTable();
+            }
+          });
+        });
+
+        verifTbody.querySelectorAll('.input-ocr-prenom').forEach(inp => {
+          inp.addEventListener('change', () => {
+            const target = extractedRows.find(r => r.rowId === inp.getAttribute('data-row-id'));
+            if (target) {
+              target.prenom = inp.value.trim();
+              target.verifiedByTeacher = true;
+              refreshVerificationTable();
+            }
+          });
+        });
+
+        verifTbody.querySelectorAll('.select-ocr-genre').forEach(sel => {
+          sel.addEventListener('change', () => {
+            const target = extractedRows.find(r => r.rowId === sel.getAttribute('data-row-id'));
+            if (target) {
+              target.genre = sel.value;
+              target.verifiedByTeacher = true;
+              refreshVerificationTable();
+            }
+          });
+        });
+
+        verifTbody.querySelectorAll('.btn-confirm-ocr-row').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = extractedRows.find(r => r.rowId === btn.getAttribute('data-row-id'));
+            if (target) {
+              target.verifiedByTeacher = true;
+              target.confidence = 100;
+              refreshVerificationTable();
+            }
+          });
+        });
+
+        verifTbody.querySelectorAll('.btn-delete-ocr-row').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const rowId = btn.getAttribute('data-row-id');
+            extractedRows = extractedRows.filter(r => r.rowId !== rowId);
+            // Re-numérotation propre
+            extractedRows.forEach((r, i) => { r.numero = i + 1; });
+            refreshVerificationTable();
+          });
+        });
+      }
+
+      if (filterVerifyCheckbox) {
+        filterVerifyCheckbox.addEventListener('change', () => {
+          showVerifyOnly = filterVerifyCheckbox.checked;
+          refreshVerificationTable();
+        });
+      }
+
+      if (allowDupsCheckbox) {
+        allowDupsCheckbox.addEventListener('change', () => {
+          refreshVerificationTable();
+        });
+      }
+
+      if (selectTargetClass) {
+        selectTargetClass.addEventListener('change', () => {
+          if (extractedRows.length > 0) refreshVerificationTable();
+        });
+      }
+
+      // Ajouter manuellement un élève oublié
+      if (btnAddRow) {
+        btnAddRow.addEventListener('click', () => {
+          const nextNum = extractedRows.length + 1;
+          extractedRows.push({
+            rowId: `manual_row_${Date.now()}_${nextNum}`,
+            numero: nextNum,
+            matricule: '',
+            nom: '',
+            prenom: '',
+            genre: 'Garçon',
+            confidence: 100,
+            verifiedByTeacher: true
+          });
+          if (verifSection) verifSection.style.display = 'block';
+          showVerifyOnly = false;
+          if (filterVerifyCheckbox) filterVerifyCheckbox.checked = false;
+          refreshVerificationTable();
+        });
+      }
+    }, 80);
+  }
+
+  // --- MODAL: BILAN DE L'IMPORTATION PAR PHOTO (SECTION 7) ---
+  function displayPhotoImportReport(report) {
+    const isFullSuccess = report.importedCount > 0 && report.toCorrectCount === 0 && report.duplicateCount === 0;
+    const reportHtml = `
+      <div style="padding: 6px 0;">
+        <div style="text-align: center; padding: 18px 12px; background: ${isFullSuccess ? 'rgba(22, 163, 74, 0.08)' : 'rgba(37, 99, 235, 0.08)'}; border-radius: 8px; margin-bottom: 18px; border: 1px solid ${isFullSuccess ? '#16a34a' : '#2563eb'};">
+          <i class="fas fa-circle-check" style="font-size: 2.6rem; color: ${isFullSuccess ? '#16a34a' : '#2563eb'}; margin-bottom: 8px;"></i>
+          <h3 style="margin: 0; font-size: 1.2rem; color: var(--text-main);">
+            Bilan de l'importation par photo
+          </h3>
+          <p style="margin: 4px 0 0; color: var(--text-muted); font-size: 0.9rem;">
+            <strong>${report.importedCount}</strong> élève${report.importedCount > 1 ? 's' : ''} importé${report.importedCount > 1 ? 's' : ''} dans la classe <strong>${report.targetClassName}</strong>.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px 18px; margin-bottom: 16px;">
+          <h4 style="margin: 0 0 12px; font-size: 0.92rem; color: var(--text-main);">
+            <i class="fas fa-clipboard-list" style="color:var(--primary); margin-right:6px;"></i> Résultats réels de l'enregistrement
+          </h4>
+          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.9rem;">
+            <div>• Élèves détectés : <strong>${report.detectedCount}</strong></div>
+            <div>• Élèves validés : <strong>${report.validatedCount}</strong></div>
+            <div style="color: #16a34a;">• Élèves importés : <strong>${report.importedCount}</strong></div>
+            <div style="color: #d97706;">• Doublons ignorés : <strong>${report.duplicateCount}</strong></div>
+            <div style="color: ${report.toCorrectCount > 0 ? '#dc2626' : 'var(--text-muted)'};">• Lignes à corriger : <strong>${report.toCorrectCount}</strong></div>
+          </div>
+        </div>
+
+        <div style="margin-top: 18px; text-align: right;">
+          <button class="btn btn-primary" id="btn-close-photo-report">
+            <i class="fas fa-check"></i> Terminer et afficher la classe
+          </button>
+        </div>
+      </div>
+    `;
+
+    Modal.open("Bilan de l'Importation par Photo", reportHtml, () => {});
+
+    setTimeout(() => {
+      const btnClose = document.getElementById('btn-close-photo-report');
+      if (btnClose) {
+        btnClose.addEventListener('click', () => Modal.close());
       }
     }, 50);
   }
