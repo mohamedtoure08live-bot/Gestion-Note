@@ -292,12 +292,20 @@ export function renderBaremes(container) {
 
     function updateEnginDropdown() {
       const discNom = filterDisc.value;
-      const discObj = disciplinesList.find(d => d.nom === discNom);
-      const engins = (discObj && discObj.engins && discObj.engins.length > 0) ? discObj.engins : [];
+      const clsVal = filterClasse.value;
+      const gnrVal = filterGenre.value;
+      const enginInfo = EPSEngine.getOfficialEnginInfo(discNom, clsVal, gnrVal);
+      const engins = enginInfo.allowedEngins.length > 0
+        ? enginInfo.allowedEngins
+        : enginInfo.allDisciplineEngins;
 
       if (engins.length > 0) {
         groupEngin.style.display = 'block';
-        filterEngin.innerHTML = engins.map(e => `<option value="${e}" ${e === currentEngin ? 'selected' : ''}>${e}</option>`).join('');
+        const targetEngin = (enginInfo.defaultEngin && engins.includes(enginInfo.defaultEngin))
+          ? enginInfo.defaultEngin
+          : engins[0];
+        filterEngin.innerHTML = engins.map(e => `<option value="${e}" ${e === targetEngin ? 'selected' : ''}>${e}</option>`).join('');
+        filterEngin.value = targetEngin;
         currentEngin = filterEngin.value;
       } else {
         groupEngin.style.display = 'none';
@@ -402,9 +410,14 @@ export function renderBaremes(container) {
       loadOfficialBareme();
     });
 
-    [filterEngin, filterClasse, filterGenre].forEach(el => {
-      el.addEventListener('change', loadOfficialBareme);
+    [filterClasse, filterGenre].forEach(el => {
+      el.addEventListener('change', () => {
+        updateEnginDropdown();
+        loadOfficialBareme();
+      });
     });
+
+    filterEngin.addEventListener('change', loadOfficialBareme);
 
     if (btnCreateCopy) btnCreateCopy.addEventListener('click', promptCreateCustomCopy);
     if (btnCreateCopyTop) btnCreateCopyTop.addEventListener('click', promptCreateCustomCopy);

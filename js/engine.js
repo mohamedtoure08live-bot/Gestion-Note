@@ -302,6 +302,69 @@ export class EPSEngine {
   }
 
   /**
+   * Détermine dynamiquement les engins officiels et l'engin par défaut à sélectionner
+   * exclusivement à partir des barèmes officiels existants dans la base pour (discipline, classe, genre).
+   * @param {string} discipline
+   * @param {string} classe
+   * @param {string} genre
+   * @returns {{ hasEngin: boolean, allowedEngins: string[], allDisciplineEngins: string[], defaultEngin: string|null, bareme: Object|null }}
+   */
+  static getOfficialEnginInfo(discipline, classe, genre) {
+    if (!discipline) {
+      return { hasEngin: false, allowedEngins: [], allDisciplineEngins: [], defaultEngin: null, bareme: null };
+    }
+
+    const normClasse = classe ? EPSEngine.normalizeNiveau(classe) : "";
+    const officialCategoryBaremes = (normClasse && genre)
+      ? db.getBaremesForCategory(discipline, normClasse, genre, null, true)
+      : [];
+
+    const allowedEngins = [...new Set(officialCategoryBaremes.map(b => b.engin).filter(Boolean))];
+
+    // Engins existants sur l'ensemble des barèmes officiels de cette discipline (aucune valeur inventée)
+    const allOfficialForDisc = (db.getBaremes() || []).filter(b =>
+      b.isOfficial !== false &&
+      !b.professeurId &&
+      b.discipline &&
+      b.discipline.trim().toLowerCase() === discipline.trim().toLowerCase() &&
+      b.engin
+    );
+    const allDisciplineEngins = [...new Set(allOfficialForDisc.map(b => b.engin).filter(Boolean))];
+
+    if (allowedEngins.length === 0) {
+      return {
+        hasEngin: allDisciplineEngins.length > 0,
+        allowedEngins: [],
+        allDisciplineEngins,
+        defaultEngin: allDisciplineEngins[0] || null,
+        bareme: officialCategoryBaremes[0] || null
+      };
+    }
+
+    let defaultEngin = allowedEngins[0];
+    if (allowedEngins.length > 1 && normClasse && genre) {
+      // Si plusieurs barèmes officiels existent pour ce sexe et cette classe,
+      // sélectionner l'engin spécifique à ce sexe par rapport aux barèmes de l'autre sexe de la même classe,
+      // en se basant uniquement sur les barèmes officiels existants.
+      const oppositeGenre = genre.trim().toLowerCase() === 'garçon' ? 'Fille' : 'Garçon';
+      const oppositeBaremes = db.getBaremesForCategory(discipline, normClasse, oppositeGenre, null, true);
+      const oppositeEngins = new Set(oppositeBaremes.map(b => b.engin).filter(Boolean));
+      const distinctEngin = [...allowedEngins].reverse().find(e => !oppositeEngins.has(e));
+      defaultEngin = distinctEngin || allowedEngins[allowedEngins.length - 1];
+    }
+
+    const selectedBareme = officialCategoryBaremes.find(b => b.engin === defaultEngin) || officialCategoryBaremes[0] || null;
+
+    return {
+      hasEngin: true,
+      allowedEngins,
+      allDisciplineEngins,
+      defaultEngin,
+      bareme: selectedBareme
+    };
+  }
+
+  /**
    * Validate that the activity and apparatus weight match the official reference scale
    * @param {string} discipline 
    * @param {string} classe 

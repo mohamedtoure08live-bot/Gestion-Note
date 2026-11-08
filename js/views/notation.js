@@ -56,11 +56,11 @@ export function renderNotation(container) {
             </div>
 
             <div class="form-group">
-              <label class="form-label">Élève évalué <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Optionnel pour le calcul)</span></label>
-              <select class="form-select" id="select-eleve">
-                <option value="">-- Mode direct (Sans liste d'élèves) --</option>
+              <label class="form-label">Mode de Calcul de la Note</label>
+              <select class="form-select" id="select-mode-calcul">
+                <option value="interpolation" selected>Interpolation Linéaire Exacte (Proportionnelle)</option>
+                <option value="palier">Palier Strict (Note Inférieure)</option>
               </select>
-              <input type="text" id="input-eleve-nom-libre" class="form-control" placeholder="Nom ou prénom de l'élève (optionnel)" style="margin-top: 6px; font-size: 0.85rem;" />
             </div>
           </div>
 
@@ -97,11 +97,11 @@ export function renderNotation(container) {
             </div>
 
             <div class="form-group" style="flex: 1;">
-              <label class="form-label">Mode de Calcul de la Note</label>
-              <select class="form-select" id="select-mode-calcul">
-                <option value="interpolation" selected>Interpolation Linéaire Exacte (Proportionnelle)</option>
-                <option value="palier">Palier Strict (Note Inférieure)</option>
+              <label class="form-label">Élève évalué <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">(Optionnel pour le calcul)</span></label>
+              <select class="form-select" id="select-eleve">
+                <option value="">-- Mode direct (Sans liste d'élèves) --</option>
               </select>
+              <input type="text" id="input-eleve-nom-libre" class="form-control" placeholder="Nom ou prénom de l'élève (optionnel)" style="margin-top: 6px; font-size: 0.85rem;" />
             </div>
           </div>
 
@@ -256,42 +256,26 @@ export function renderNotation(container) {
 
   function updateEnginsList() {
     const disciplineNom = selectDiscipline.value;
-    const availableDisciplines = db.getDisciplines();
-    const discObj = availableDisciplines.find(d => d.nom === disciplineNom);
-    let engins = (discObj && discObj.engins && discObj.engins.length > 0) ? discObj.engins : [];
+    const { niveau } = getActiveClasseInfo();
+    const genre = selectGenre.value;
 
-    if (engins.length === 0) {
-      const lower = disciplineNom.toLowerCase();
-      if (lower.includes("poids")) engins = ["3kg", "4kg", "5kg"];
-      else if (lower.includes("disque")) engins = ["2kg", "3kg"];
-      else if (lower.includes("javelot")) engins = ["600g", "800g"];
-    }
+    const enginInfo = EPSEngine.getOfficialEnginInfo(disciplineNom, niveau, genre);
+    const engins = enginInfo.allowedEngins.length > 0
+      ? enginInfo.allowedEngins
+      : enginInfo.allDisciplineEngins;
 
     if (engins.length > 0) {
       groupEngin.style.display = 'block';
-      const prevVal = selectEngin.value;
       selectEngin.innerHTML = engins.map(e => `<option value="${e}">${e}</option>`).join('');
-      
-      // Auto-select standard engine according to class level and gender
-      const { niveau } = getActiveClasseInfo();
-      const genre = selectGenre.value;
-      if (disciplineNom.toLowerCase().includes("poids")) {
-        if (genre === 'Fille') {
-          if (engins.includes("3kg")) selectEngin.value = "3kg";
-          else if (engins.includes("4kg")) selectEngin.value = "4kg";
-        } else {
-          if ((niveau === "Seconde" || niveau === "Première" || niveau === "Terminale") && engins.includes("5kg")) {
-            selectEngin.value = "5kg";
-          } else if (engins.includes("4kg")) {
-            selectEngin.value = "4kg";
-          }
-        }
-      } else if (prevVal && engins.includes(prevVal)) {
-        selectEngin.value = prevVal;
+      if (enginInfo.defaultEngin && engins.includes(enginInfo.defaultEngin)) {
+        selectEngin.value = enginInfo.defaultEngin;
+      } else {
+        selectEngin.value = engins[0];
       }
     } else {
       groupEngin.style.display = 'none';
       selectEngin.innerHTML = '';
+      selectEngin.value = '';
     }
 
     const isTime = EPSEngine.isTimeDiscipline(disciplineNom);
@@ -357,7 +341,6 @@ export function renderNotation(container) {
 
   function updateLiveScore() {
     const discipline = selectDiscipline.value;
-    const engin = selectEngin.value || null;
     const classInfo = getActiveClasseInfo();
     const classe = classInfo.niveau;
     let genre = selectGenre.value;
@@ -373,9 +356,12 @@ export function renderNotation(container) {
         if (selectGenre.value !== genre) {
           selectGenre.value = genre;
           updateEnginsList();
+          updateBaremeChoices();
         }
       }
     }
+
+    const engin = selectEngin.value || null;
 
     // Selected scale (Official or Custom)
     const baremeChoice = selectBaremeMode ? selectBaremeMode.value : 'OFFICIAL';
@@ -513,6 +499,15 @@ export function renderNotation(container) {
   });
 
   selectGenre.addEventListener('change', () => {
+    // Si un élève d'un autre sexe était sélectionné, repasser en mode direct pour respecter le choix de sexe du professeur
+    const eleveId = selectEleve.value;
+    if (eleveId) {
+      const eleveObj = db.getEleveById(eleveId);
+      if (eleveObj && eleveObj.genre !== selectGenre.value) {
+        selectEleve.value = '';
+        if (inputEleveNomLibre) inputEleveNomLibre.style.display = 'block';
+      }
+    }
     updateEnginsList();
     updateBaremeChoices();
     updateLiveScore();

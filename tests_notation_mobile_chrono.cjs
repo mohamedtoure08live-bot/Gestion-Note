@@ -193,6 +193,61 @@ async function main() {
     );
   });
 
+  // 5. Sélection automatique du poids de l'engin selon le sexe et le barème officiel
+  runTest('Lancer de poids - Sélection automatique de l\'engin masculin (Garçon) selon le barème officiel de chaque classe', () => {
+    const collegeClasses = ['Sixième', 'Cinquième', 'Quatrième', 'Troisième'];
+    for (const cls of collegeClasses) {
+      const info = EPSEngine.getOfficialEnginInfo('Lancer de poids', cls, 'Garçon');
+      assert.strictEqual(info.defaultEngin, '4kg', `Garçon ${cls} doit sélectionner 4kg par défaut`);
+      assert.deepStrictEqual(info.allowedEngins, ['3kg', '4kg']);
+      const grade = EPSEngine.calculateGrade('Lancer de poids', cls, 'Garçon', '10,50', info.defaultEngin);
+      assert.strictEqual(grade.valid, true);
+      assert.ok(grade.note !== null);
+    }
+
+    const lyceeClasses = ['Seconde', 'Première', 'Terminale'];
+    for (const cls of lyceeClasses) {
+      const info = EPSEngine.getOfficialEnginInfo('Lancer de poids', cls, 'Garçon');
+      assert.strictEqual(info.defaultEngin, '5kg', `Garçon ${cls} doit sélectionner 5kg par défaut`);
+      assert.deepStrictEqual(info.allowedEngins, ['4kg', '5kg']);
+      const grade = EPSEngine.calculateGrade('Lancer de poids', cls, 'Garçon', '10,50', info.defaultEngin);
+      assert.strictEqual(grade.valid, true);
+      assert.ok(grade.note !== null);
+    }
+  });
+
+  runTest('Lancer de poids - Sélection automatique de l\'engin féminin (Fille) selon le barème officiel de chaque classe (3kg en 6e-2nde, 4kg en 1ère-Terminale)', () => {
+    const classes3kg = ['Sixième', 'Cinquième', 'Quatrième', 'Troisième', 'Seconde'];
+    for (const cls of classes3kg) {
+      const info = EPSEngine.getOfficialEnginInfo('Lancer de poids', cls, 'Fille');
+      assert.strictEqual(info.defaultEngin, '3kg', `Fille ${cls} doit sélectionner 3kg selon le barème officiel`);
+      assert.deepStrictEqual(info.allowedEngins, ['3kg']);
+      const grade = EPSEngine.calculateGrade('Lancer de poids', cls, 'Fille', '7,50', info.defaultEngin);
+      assert.strictEqual(grade.valid, true);
+      assert.ok(grade.note !== null);
+    }
+
+    const classes4kg = ['Première', 'Terminale'];
+    for (const cls of classes4kg) {
+      const info = EPSEngine.getOfficialEnginInfo('Lancer de poids', cls, 'Fille');
+      assert.strictEqual(info.defaultEngin, '4kg', `Fille ${cls} doit sélectionner 4kg selon le barème officiel`);
+      assert.deepStrictEqual(info.allowedEngins, ['4kg']);
+      const grade = EPSEngine.calculateGrade('Lancer de poids', cls, 'Fille', '7,50', info.defaultEngin);
+      assert.strictEqual(grade.valid, true);
+      assert.ok(grade.note !== null);
+    }
+  });
+
+  runTest('Notation rapide - Ordre d\'affichage inversé entre "Mode de Calcul de la Note" et "Élève évalué (Optionnel pour le calcul)"', () => {
+    const idxModeCalcul = notationCode.indexOf('id="select-mode-calcul"');
+    const idxSelectEleve = notationCode.indexOf('id="select-eleve"');
+    assert.ok(idxModeCalcul > 0 && idxSelectEleve > 0, 'Les deux champs doivent exister dans notation.js');
+    assert.ok(
+      idxModeCalcul < idxSelectEleve,
+      'Mode de Calcul de la Note (#select-mode-calcul) doit désormais précéder Élève évalué (#select-eleve) dans l\'ordre d\'affichage'
+    );
+  });
+
   console.log('\n-------------------------------------------------------------------');
   console.log(`RÉSULTAT : ${passed} test(s) réussi(s), ${failed} échec(s)`);
   console.log('-------------------------------------------------------------------');
