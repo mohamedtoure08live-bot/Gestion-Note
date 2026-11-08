@@ -305,6 +305,8 @@ body.sidebar-open {
   flex: 1;
   max-width: 1400px;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin: 0 auto;
 }
 

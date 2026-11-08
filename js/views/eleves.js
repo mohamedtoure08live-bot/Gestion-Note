@@ -462,23 +462,28 @@ export function renderEleves(container) {
     const myClasses = db.getClasses();
 
     const contentHtml = `
-      <form id="modal-student-form">
-        <div class="form-row">
+      <form id="modal-student-form" class="student-form-enhanced" autocomplete="off">
+        <div class="student-form-intro">
+          <i class="fas ${isEdit ? 'fa-user-pen' : 'fa-user-plus'}"></i>
+          <span>${isEdit ? "Modifiez les informations de l'élève ci-dessous puis validez." : "Renseignez les informations de l'élève à ajouter dans la classe."}</span>
+        </div>
+
+        <div class="form-row student-form-row">
           <div class="form-group">
-            <label class="form-label">Nom de famille <span style="color:red;">*</span></label>
-            <input type="text" class="form-control" id="student-input-nom" placeholder="Ex: KOUASSI" value="${studentToEdit ? studentToEdit.nom : ''}" required style="text-transform: uppercase;" />
+            <label class="form-label" for="student-input-nom">Nom de famille <span style="color:#dc2626;">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="student-input-nom" placeholder="Ex : KOUASSI" value="${studentToEdit ? studentToEdit.nom : ''}" required style="text-transform: uppercase; font-weight: 600;" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">Prénom <span style="color:red;">*</span></label>
-            <input type="text" class="form-control" id="student-input-prenom" placeholder="Ex: Marc" value="${studentToEdit ? studentToEdit.prenom : ''}" required />
+            <label class="form-label" for="student-input-prenom">Prénom(s) <span style="color:#dc2626;">*</span></label>
+            <input type="text" class="form-control form-control-lg" id="student-input-prenom" placeholder="Ex : Jean Marc" value="${studentToEdit ? studentToEdit.prenom : ''}" required />
           </div>
         </div>
 
-        <div class="form-row">
+        <div class="form-row student-form-row">
           <div class="form-group">
-            <label class="form-label">Classe de rattachement <span style="color:red;">*</span></label>
-            <select class="form-select" id="student-input-classe" required>
+            <label class="form-label" for="student-input-classe">Classe de rattachement <span style="color:#dc2626;">*</span></label>
+            <select class="form-select form-control-lg" id="student-input-classe" required>
               ${myClasses.map(c => `
                 <option value="${c.id}" ${(studentToEdit && studentToEdit.classeId === c.id) || (!studentToEdit && defaultClassId === c.id) ? 'selected' : ''}>
                   ${c.nom} (${c.niveau})
@@ -488,17 +493,17 @@ export function renderEleves(container) {
           </div>
 
           <div class="form-group">
-            <label class="form-label">Genre <span style="color:red;">*</span></label>
-            <select class="form-select" id="student-input-genre" required>
-              <option value="Garçon" ${studentToEdit && studentToEdit.genre === 'Garçon' ? 'selected' : ''}>Garçon</option>
-              <option value="Fille" ${studentToEdit && studentToEdit.genre === 'Fille' ? 'selected' : ''}>Fille</option>
+            <label class="form-label" for="student-input-genre">Sexe / Genre <span style="color:#dc2626;">*</span></label>
+            <select class="form-select form-control-lg" id="student-input-genre" required>
+              <option value="Garçon" ${studentToEdit && studentToEdit.genre === 'Garçon' ? 'selected' : ''}>Garçon (Masculin)</option>
+              <option value="Fille" ${studentToEdit && studentToEdit.genre === 'Fille' ? 'selected' : ''}>Fille (Féminin)</option>
             </select>
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Matricule / Identifiant (optionnel)</label>
-          <input type="text" class="form-control" id="student-input-matricule" placeholder="Ex: MAT-2026-089" value="${studentToEdit ? (studentToEdit.matricule || '') : ''}" />
+        <div class="form-group" style="margin-bottom: 4px;">
+          <label class="form-label" for="student-input-matricule">Matricule / Identifiant <span style="color:var(--text-muted); font-weight:400;">(optionnel)</span></label>
+          <input type="text" class="form-control form-control-lg" id="student-input-matricule" placeholder="Ex : MAT-2026-089" value="${studentToEdit ? (studentToEdit.matricule || '') : ''}" />
         </div>
       </form>
     `;
@@ -510,9 +515,16 @@ export function renderEleves(container) {
       const inputGenre = document.getElementById('student-input-genre');
       const inputMatricule = document.getElementById('student-input-matricule');
 
-      if (!inputNom || !inputNom.value.trim() || !inputPrenom || !inputPrenom.value.trim()) {
-        Toast.show("Le nom et le prénom sont obligatoires.", "error");
-        return;
+      if (!inputNom || !inputNom.value.trim()) {
+        Toast.show("Veuillez saisir le nom de famille de l'élève.", "error");
+        if (inputNom) inputNom.focus();
+        return false;
+      }
+
+      if (!inputPrenom || !inputPrenom.value.trim()) {
+        Toast.show("Veuillez saisir le prénom de l'élève.", "error");
+        if (inputPrenom) inputPrenom.focus();
+        return false;
       }
 
       const payload = {
@@ -526,16 +538,27 @@ export function renderEleves(container) {
       try {
         if (isEdit) {
           await db.updateEleve(studentToEdit.id, payload);
-          Toast.show(`Élève ${payload.nom} ${payload.prenom} mis à jour.`, "success");
+          Toast.show(`Élève ${payload.nom} ${payload.prenom} mis à jour avec succès.`, "success");
         } else {
           await db.addEleve(payload);
-          Toast.show(`Élève ${payload.nom} ${payload.prenom} enregistré.`, "success");
+          Toast.show(`Élève ${payload.nom} ${payload.prenom} enregistré avec succès.`, "success");
         }
         renderView();
+        return true;
       } catch (err) {
         Toast.show(err.message, "error");
+        return false;
       }
     });
+
+    setTimeout(() => {
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+      if (confirmBtn) {
+        confirmBtn.innerHTML = isEdit
+          ? `<i class="fas fa-check-circle"></i> Enregistrer les modifications`
+          : `<i class="fas fa-user-plus"></i> Ajouter l'élève`;
+      }
+    }, 30);
   }
 
   // --- MODAL: ASSISTANT D'IMPORTATION UNIVERSEL (EXCEL, ODS, CSV, TXT) ---
@@ -1336,7 +1359,7 @@ export function renderEleves(container) {
             </div>
             <div class="import-stat-box val-valid">
               <div class="stat-val" id="photo-stat-valid">0</div>
-              <div class="stat-lbl">Élèves validés</div>
+              <div class="stat-lbl">Prêts à importer</div>
             </div>
             <div class="import-stat-box val-err">
               <div class="stat-val" id="photo-stat-verify">0</div>
@@ -1348,23 +1371,34 @@ export function renderEleves(container) {
             </div>
           </div>
 
-          <!-- Barre d'outils de correction -->
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; flex-wrap:wrap; gap:8px;">
+          <!-- Barre d'outils de correction et de sélection -->
+          <div class="photo-verif-toolbar">
             <div>
-              <h4 style="font-size: 0.95rem; margin: 0; color: var(--text-main);">
-                <i class="fas fa-user-check" style="color:var(--primary);"></i> Vérification et correction des élèves reconnus
+              <h4 style="font-size: 1rem; margin: 0; color: var(--text-main);">
+                <i class="fas fa-user-check" style="color:var(--primary);"></i> Vérification, sélection et correction des élèves détectés
               </h4>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">
-                Vous pouvez corriger directement un nom, un prénom, un matricule ou le sexe avant de confirmer l'importation.
+              <span style="font-size: 0.84rem; color: var(--text-muted); display:block; margin-top:2px;">
+                Vérifiez ou corrigez les noms détectés, cochez les élèves souhaités puis cliquez sur <strong>« Valider l'importation »</strong>.
               </span>
             </div>
 
             <div style="display:flex; gap: 10px; align-items:center; flex-wrap:wrap;">
-              <label style="font-size: 0.8rem; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+              <div class="photo-default-genre-box">
+                <label for="photo-default-genre" style="font-size:0.82rem; font-weight:600; color:var(--text-main);">Sexe par défaut :</label>
+                <select id="photo-default-genre" class="form-select" style="width:auto; min-height:38px; padding:4px 10px; font-size:0.85rem;">
+                  <option value="Garçon" selected>Garçon (M)</option>
+                  <option value="Fille">Fille (F)</option>
+                </select>
+                <button type="button" class="btn btn-sm btn-secondary" id="btn-apply-default-genre" title="Appliquer ce sexe aux élèves de la liste">
+                  Appliquer à tous
+                </button>
+              </div>
+
+              <label style="font-size: 0.84rem; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:500;">
                 <input type="checkbox" id="photo-filter-verify-only" />
                 <span>Afficher uniquement « À vérifier »</span>
               </label>
-              <label style="font-size: 0.8rem; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+              <label style="font-size: 0.84rem; display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:500;">
                 <input type="checkbox" id="photo-allow-duplicates" />
                 <span>Autoriser homonymes</span>
               </label>
@@ -1374,32 +1408,119 @@ export function renderEleves(container) {
             </div>
           </div>
 
+          <!-- Formulaire spacieux pour ajouter un élève oublié sur la liste -->
+          <div id="photo-forgotten-student-box" class="forgotten-student-card" style="display: none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h5 style="margin:0; font-size:0.98rem; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-user-plus" style="color:var(--primary);"></i> Ajouter un élève oublié à la liste
+              </h5>
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-close-forgotten-box" aria-label="Fermer">&times;</button>
+            </div>
+            <div class="forgotten-student-grid">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="forgotten-input-nom">Nom de famille <span style="color:#dc2626;">*</span></label>
+                <input type="text" id="forgotten-input-nom" class="form-control form-control-lg" placeholder="Ex : KOUASSI" style="text-transform:uppercase; font-weight:600;" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="forgotten-input-prenom">Prénom(s) <span style="color:#dc2626;">*</span></label>
+                <input type="text" id="forgotten-input-prenom" class="form-control form-control-lg" placeholder="Ex : Jean Marc" />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="forgotten-input-genre">Sexe <span style="color:#dc2626;">*</span></label>
+                <select id="forgotten-input-genre" class="form-select form-control-lg">
+                  <option value="Garçon">Garçon (M)</option>
+                  <option value="Fille">Fille (F)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="forgotten-input-matricule">Matricule (optionnel)</label>
+                <input type="text" id="forgotten-input-matricule" class="form-control form-control-lg" placeholder="Ex : MAT-01" />
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary" id="btn-cancel-forgotten">Annuler</button>
+              <button type="button" class="btn btn-primary" id="btn-confirm-add-forgotten">
+                <i class="fas fa-plus-circle"></i> Ajouter cet élève à l'aperçu
+              </button>
+            </div>
+          </div>
+
           <!-- Tableau éditable d'aperçu et de correction -->
-          <div class="csv-preview-table-container" style="max-height: 340px; overflow-y: auto;">
-            <table class="table" id="photo-verification-table" style="font-size: 0.82rem; margin: 0;">
+          <div class="csv-preview-table-container photo-verif-table-wrapper" style="max-height: 380px; overflow-y: auto;">
+            <table class="table" id="photo-verification-table" style="font-size: 0.9rem; margin: 0;">
               <thead>
                 <tr>
+                  <th style="width: 44px; text-align:center;">
+                    <input type="checkbox" id="photo-select-all-rows" checked title="Tout sélectionner / désélectionner" style="width:18px; height:18px; cursor:pointer;" />
+                  </th>
                   <th style="width: 48px;">N°</th>
-                  <th style="width: 115px;">Matricule</th>
-                  <th>Nom <span style="color:red;">*</span></th>
-                  <th>Prénoms <span style="color:red;">*</span></th>
-                  <th style="width: 105px;">Sexe <span style="color:red;">*</span></th>
-                  <th style="width: 165px;">Vérification</th>
-                  <th style="width: 60px; text-align: center;">Action</th>
+                  <th style="min-width: 120px;">Matricule</th>
+                  <th style="min-width: 165px;">Nom <span style="color:#dc2626;">*</span></th>
+                  <th style="min-width: 175px;">Prénoms <span style="color:#dc2626;">*</span></th>
+                  <th style="min-width: 130px;">Sexe <span style="color:#dc2626;">*</span></th>
+                  <th style="min-width: 155px;">Vérification</th>
+                  <th style="width: 64px; text-align: center;">Action</th>
                 </tr>
               </thead>
               <tbody id="photo-verification-tbody"></tbody>
             </table>
           </div>
+
+          <!-- Barre d'action claire et visible pour valider l'importation -->
+          <div class="photo-validate-action-bar">
+            <div class="photo-validate-summary-text" id="photo-ready-summary-text">
+              Vérifiez les informations ci-dessus puis cliquez sur <strong>« Valider l'importation »</strong>.
+            </div>
+            <button type="button" class="btn btn-primary btn-lg" id="btn-validate-photo-import" data-action="Confirmer l'importation">
+              <i class="fas fa-check-circle"></i> Valider l'importation
+            </button>
+          </div>
         </div>
       </div>
     `;
 
-    Modal.open("Importer une liste de classe par photo", contentHtml, async () => {
+    // Synchronise les valeurs saisies dans les champs DOM avec extractedRows avant validation/enregistrement
+    function syncExtractedRowsFromDom() {
+      const tbody = document.getElementById('photo-verification-tbody');
+      if (!tbody) return;
+      tbody.querySelectorAll('tr[data-row-id]').forEach((tr) => {
+        const rowId = tr.getAttribute('data-row-id');
+        const target = extractedRows.find(r => r.rowId === rowId);
+        if (!target) return;
+
+        const chk = tr.querySelector('.check-ocr-row');
+        const inpMat = tr.querySelector('.input-ocr-matricule');
+        const inpNom = tr.querySelector('.input-ocr-nom');
+        const inpPre = tr.querySelector('.input-ocr-prenom');
+        const selGen = tr.querySelector('.select-ocr-genre');
+
+        if (chk) target.selected = chk.checked;
+        if (inpMat) target.matricule = inpMat.value.trim();
+        if (inpNom) target.nom = inpNom.value.trim().toUpperCase();
+        if (inpPre) target.prenom = inpPre.value.trim();
+        if (selGen && selGen.value) target.genre = selGen.value;
+      });
+    }
+
+    // Fonction centrale de validation et d'enregistrement réel des élèves détectés par photo
+    async function executePhotoImportValidationAndSave() {
+      syncExtractedRowsFromDom();
+
       const selectClass = document.getElementById('photo-import-target-class');
       if (!selectClass || !selectClass.value) {
         Toast.show("Veuillez sélectionner une classe de destination.", "error");
-        return;
+        return false;
+      }
+
+      if (!extractedRows || extractedRows.length === 0) {
+        Toast.show("Aucun élève détecté pour le moment. Analysez d'abord une photo ou ajoutez un élève.", "error");
+        return false;
+      }
+
+      const selectedRows = extractedRows.filter(r => r.selected !== false);
+      if (selectedRows.length === 0) {
+        Toast.show("Veuillez sélectionner au moins un élève à importer (cochez les cases correspondantes).", "error");
+        return false;
       }
 
       const targetCid = selectClass.value;
@@ -1407,36 +1528,60 @@ export function renderEleves(container) {
       const existingInClass = db.getEleves(targetCid);
       const allowDupsEl = document.getElementById('photo-allow-duplicates');
       const allowDuplicates = allowDupsEl ? allowDupsEl.checked : false;
+      const defaultGenreEl = document.getElementById('photo-default-genre');
+      const defaultGenreVal = defaultGenreEl && defaultGenreEl.value ? defaultGenreEl.value : 'Garçon';
 
-      validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass);
+      // Compléter automatiquement le sexe par défaut pour les lignes sélectionnées dont la feuille n'indiquait pas M/F
+      extractedRows.forEach(r => {
+        if (r.selected !== false && !ImportEngine.normalizeGenre(r.genre)) {
+          r.genre = defaultGenreVal;
+        }
+      });
+
+      validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass, {
+        defaultGenre: defaultGenreVal,
+        allowSingleNameFallback: true
+      });
 
       const studentsToSave = allowDuplicates
         ? validationResult.rows
-            .filter(r => r.status !== 'incomplete')
+            .filter(r => r.selected !== false && r.status !== 'incomplete')
             .map(r => ({
               nom: r.nom,
               prenom: r.prenom,
-              genre: ImportEngine.normalizeGenre(r.genre),
+              genre: ImportEngine.normalizeGenre(r.genre) || defaultGenreVal,
               matricule: r.matricule || ''
             }))
         : validationResult.validStudentsToSave;
 
       if (!studentsToSave || studentsToSave.length === 0) {
-        Toast.show("Aucun élève valide à enregistrer. Analysez d'abord une photo ou complétez les lignes.", "error");
-        return;
+        const hasDuplicatesOnly = validationResult.stats.duplicateCount > 0 && validationResult.stats.incompleteCount === 0;
+        if (hasDuplicatesOnly) {
+          Toast.show("Tous les élèves sélectionnés sont déjà présents dans cette classe (cochez « Autoriser homonymes » si nécessaire).", "warning");
+        } else {
+          Toast.show("Certaines lignes sélectionnées sont incomplètes (Nom ou Prénom manquant). Veuillez les corriger avant de valider.", "error");
+        }
+        return false;
       }
 
       try {
         const batchResult = await db.addElevesBatch(studentsToSave, targetCid, { allowDuplicates });
 
-        // Nettoyage immédiat des photos en mémoire (Section 8 — Sécurité & Confidentialité)
         const totalDetected = validationResult.stats.detectedCount;
         const totalValidated = studentsToSave.length;
         const totalImported = batchResult.totalAdded;
         const totalDuplicates = validationResult.stats.duplicateCount + (batchResult.duplicates ? batchResult.duplicates.length : 0);
         const totalToFix = validationResult.stats.incompleteCount;
 
+        if (totalImported === 0) {
+          Toast.show("Aucun nouvel élève n'a été enregistré (élèves déjà présents dans la classe).", "warning");
+          return false;
+        }
+
+        // Nettoyage immédiat des photos en mémoire (Section 8 — Sécurité & Confidentialité)
         cleanupAllPhotoState();
+
+        Toast.show(`Importation réussie : ${totalImported} élève(s) enregistré(s) dans la classe ${targetClassObj ? targetClassObj.nom : ''}.`, "success");
 
         displayPhotoImportReport({
           targetClassName: targetClassObj ? targetClassObj.nom : 'Classe sélectionnée',
@@ -1451,19 +1596,25 @@ export function renderEleves(container) {
 
         selectedClasseId = targetCid;
         renderView();
+        return true;
       } catch (err) {
-        Toast.show("Une erreur est survenue lors de l'enregistrement des élèves.", "error");
+        Toast.show(err.message || "Une erreur est survenue lors de l'enregistrement des élèves.", "error");
+        return false;
       }
+    }
+
+    Modal.open("Importer une liste de classe par photo", contentHtml, async () => {
+      return await executePhotoImportValidationAndSave();
     });
 
-    // Changement du libellé du bouton de confirmation de la modale
+    // Changement du libellé du bouton de confirmation de la modale (Confirmer l'importation / Valider l'importation)
     setTimeout(() => {
       const confirmBtn = document.getElementById('modal-confirm-btn');
       const cancelBtn = document.getElementById('modal-cancel-btn');
       const closeBtn = document.getElementById('modal-close-btn');
 
       if (confirmBtn) {
-        confirmBtn.innerHTML = `<i class="fas fa-check-circle"></i> Confirmer l'importation`;
+        confirmBtn.innerHTML = `<i class="fas fa-check-circle"></i> Valider l'importation`;
       }
       if (cancelBtn) {
         cancelBtn.addEventListener('click', () => cleanupAllPhotoState(), { once: true });
@@ -1514,11 +1665,37 @@ export function renderEleves(container) {
       const allowDupsCheckbox = document.getElementById('photo-allow-duplicates');
       const btnAddRow = document.getElementById('btn-photo-add-row');
       const selectTargetClass = document.getElementById('photo-import-target-class');
+      const selectAllCheckbox = document.getElementById('photo-select-all-rows');
+      const defaultGenreSelect = document.getElementById('photo-default-genre');
+      const btnApplyDefaultGenre = document.getElementById('btn-apply-default-genre');
+      const btnValidateInline = document.getElementById('btn-validate-photo-import');
+      const readySummaryText = document.getElementById('photo-ready-summary-text');
+
+      // Formulaire dédié « Ajouter un élève oublié »
+      const forgottenBox = document.getElementById('photo-forgotten-student-box');
+      const btnCloseForgotten = document.getElementById('btn-close-forgotten-box');
+      const btnCancelForgotten = document.getElementById('btn-cancel-forgotten');
+      const btnConfirmForgotten = document.getElementById('btn-confirm-add-forgotten');
+      const inpForgottenNom = document.getElementById('forgotten-input-nom');
+      const inpForgottenPrenom = document.getElementById('forgotten-input-prenom');
+      const inpForgottenGenre = document.getElementById('forgotten-input-genre');
+      const inpForgottenMatricule = document.getElementById('forgotten-input-matricule');
 
       if (btnSwitchToFile) {
         btnSwitchToFile.addEventListener('click', () => {
           cleanupAllPhotoState();
           openCsvImportModal();
+        });
+      }
+
+      if (btnValidateInline) {
+        btnValidateInline.addEventListener('click', async () => {
+          btnValidateInline.disabled = true;
+          try {
+            await executePhotoImportValidationAndSave();
+          } finally {
+            btnValidateInline.disabled = false;
+          }
         });
       }
 
@@ -1846,11 +2023,23 @@ export function renderEleves(container) {
               Toast.show("Aucun élève n'a pu être détecté sur cette image. Vérifiez le cadrage ou ajoutez les élèves manuellement.", "warning");
               extractedRows = [];
             } else {
-              extractedRows = ocrResult.combinedStudents;
-              Toast.show(`${extractedRows.length} élève(s) détecté(s). Vérifiez l'aperçu avant de confirmer.`, "success");
+              const defGenre = defaultGenreSelect ? defaultGenreSelect.value : 'Garçon';
+              extractedRows = ocrResult.combinedStudents.map(st => ({
+                ...st,
+                genre: ImportEngine.normalizeGenre(st.genre) || defGenre,
+                selected: true
+              }));
+              Toast.show(`${extractedRows.length} élève(s) détecté(s). Vérifiez l'aperçu puis cliquez sur « Valider l'importation ».`, "success");
             }
 
-            if (verifSection) verifSection.style.display = 'block';
+            if (verifSection) {
+              verifSection.style.display = 'block';
+              setTimeout(() => {
+                if (typeof verifSection.scrollIntoView === 'function') {
+                  verifSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }, 120);
+            }
             refreshVerificationTable();
           } catch (err) {
             btnRunOcr.disabled = false;
@@ -1859,17 +2048,88 @@ export function renderEleves(container) {
         });
       }
 
-      // Rafraîchit la validation et le tableau éditable des élèves reconnus
-      function refreshVerificationTable() {
+      // Met à jour uniquement les compteurs et le résumé sans détruire le focus clavier des champs en cours de saisie
+      function updateStatsCountersAndRowBadge(editedRowId = null) {
         const targetCid = selectTargetClass ? selectTargetClass.value : defaultCid;
         const existingInClass = db.getEleves(targetCid);
+        const defGenre = defaultGenreSelect ? defaultGenreSelect.value : 'Garçon';
 
-        validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass);
+        validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass, {
+          defaultGenre: defGenre,
+          allowSingleNameFallback: true
+        });
 
         if (statDetected) statDetected.textContent = String(validationResult.stats.detectedCount);
         if (statValid) statValid.textContent = String(validationResult.stats.validCount);
         if (statVerify) statVerify.textContent = String(validationResult.stats.toVerifyCount);
         if (statDup) statDup.textContent = String(validationResult.stats.duplicateCount);
+
+        if (readySummaryText) {
+          readySummaryText.innerHTML = `<strong>${validationResult.stats.validCount}</strong> élève(s) sélectionné(s) prêt(s) à être importé(s) sur <strong>${validationResult.stats.detectedCount}</strong> détecté(s).`;
+        }
+
+        if (editedRowId && verifTbody) {
+          const vRow = validationResult.rows.find(r => r.rowId === editedRowId);
+          const tr = verifTbody.querySelector(`tr[data-row-id="${editedRowId}"]`);
+          if (vRow && tr) {
+            const isWarn = vRow.status === 'verify' || vRow.status === 'incomplete';
+            const isDup = vRow.status === 'duplicate';
+            tr.className = isWarn ? 'ocr-row-verify' : (isDup ? 'ocr-row-duplicate' : '');
+
+            const inpNom = tr.querySelector('.input-ocr-nom');
+            const inpPre = tr.querySelector('.input-ocr-prenom');
+            const selGen = tr.querySelector('.select-ocr-genre');
+            if (inpNom) inpNom.classList.toggle('input-warning', !vRow.nom || vRow.nom.length < 2);
+            if (inpPre) inpPre.classList.toggle('input-warning', !vRow.prenom || (vRow.prenom !== '-' && vRow.prenom.length < 2));
+            if (selGen) selGen.classList.toggle('input-warning', !ImportEngine.normalizeGenre(vRow.genre));
+
+            const badgeCell = tr.querySelector('.ocr-verif-cell');
+            if (badgeCell) {
+              const badgeClass = vRow.status === 'valid'
+                ? 'csv-status-valid'
+                : (isDup ? 'csv-status-dup' : 'csv-status-err');
+              badgeCell.innerHTML = `
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="csv-status-badge ${badgeClass}">
+                    <i class="fas ${vRow.status === 'valid' ? 'fa-check' : (isDup ? 'fa-copy' : 'fa-triangle-exclamation')}"></i>
+                    ${vRow.verificationLabel}
+                  </span>
+                </div>
+                ${vRow.issues && vRow.issues.length > 0 ? `
+                  <div style="font-size: 0.75rem; color: ${isDup ? '#b45309' : '#b91c1c'}; margin-top: 3px;">
+                    ${vRow.issues[0]}
+                  </div>
+                ` : ''}
+              `;
+            }
+          }
+        }
+      }
+
+      // Rafraîchit la validation et le tableau éditable des élèves reconnus
+      function refreshVerificationTable() {
+        const targetCid = selectTargetClass ? selectTargetClass.value : defaultCid;
+        const existingInClass = db.getEleves(targetCid);
+        const defGenre = defaultGenreSelect ? defaultGenreSelect.value : 'Garçon';
+
+        validationResult = OCREngine.validatePhotoRosterRows(extractedRows, existingInClass, {
+          defaultGenre: defGenre,
+          allowSingleNameFallback: true
+        });
+
+        if (statDetected) statDetected.textContent = String(validationResult.stats.detectedCount);
+        if (statValid) statValid.textContent = String(validationResult.stats.validCount);
+        if (statVerify) statVerify.textContent = String(validationResult.stats.toVerifyCount);
+        if (statDup) statDup.textContent = String(validationResult.stats.duplicateCount);
+
+        if (readySummaryText) {
+          readySummaryText.innerHTML = `<strong>${validationResult.stats.validCount}</strong> élève(s) sélectionné(s) prêt(s) à être importé(s) sur <strong>${validationResult.stats.detectedCount}</strong> détecté(s).`;
+        }
+
+        if (selectAllCheckbox) {
+          const allSelected = extractedRows.length > 0 && extractedRows.every(r => r.selected !== false);
+          selectAllCheckbox.checked = allSelected;
+        }
 
         if (!verifTbody) return;
 
@@ -1880,8 +2140,8 @@ export function renderEleves(container) {
         if (rowsToShow.length === 0) {
           verifTbody.innerHTML = `
             <tr>
-              <td colspan="7" style="text-align: center; padding: 24px 12px; color: var(--text-muted);">
-                ${showVerifyOnly ? 'Aucune ligne à vérifier.' : 'Aucun élève dans la liste. Cliquez sur « Ajouter un élève oublié » pour saisir une ligne.'}
+              <td colspan="8" style="text-align: center; padding: 28px 14px; color: var(--text-muted); font-size: 0.92rem;">
+                ${showVerifyOnly ? 'Aucune ligne à vérifier.' : 'Aucun élève dans la liste. Cliquez sur « Ajouter un élève oublié » pour saisir un élève.'}
               </td>
             </tr>
           `;
@@ -1899,44 +2159,48 @@ export function renderEleves(container) {
             ? row.issues.join(' · ')
             : 'Lecture conforme';
 
+          const normGenre = ImportEngine.normalizeGenre(row.genre) || defGenre;
+
           return `
             <tr class="${isWarn ? 'ocr-row-verify' : (isDup ? 'ocr-row-duplicate' : '')}" data-row-id="${row.rowId}">
-              <td style="font-weight: 600; color: var(--text-muted);">${row.numero}</td>
-              <td>
+              <td data-label="Sélection" style="text-align: center;">
+                <input type="checkbox" class="check-ocr-row" data-row-id="${row.rowId}" ${row.selected !== false ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;" title="Sélectionner cet élève pour l'importation" />
+              </td>
+              <td data-label="N°" style="font-weight: 700; color: var(--text-muted);">${row.numero}</td>
+              <td data-label="Matricule">
                 <input type="text" class="ocr-editable-input input-ocr-matricule" data-row-id="${row.rowId}" value="${row.matricule || ''}" placeholder="Optionnel" />
               </td>
-              <td>
-                <input type="text" class="ocr-editable-input input-ocr-nom ${!row.nom || row.nom.length < 2 ? 'input-warning' : ''}" data-row-id="${row.rowId}" value="${row.nom || ''}" placeholder="NOM" style="text-transform: uppercase; font-weight: 600;" />
+              <td data-label="Nom *">
+                <input type="text" class="ocr-editable-input input-ocr-nom ${!row.nom || row.nom.length < 2 ? 'input-warning' : ''}" data-row-id="${row.rowId}" value="${row.nom || ''}" placeholder="NOM DE FAMILLE" style="text-transform: uppercase; font-weight: 600;" />
               </td>
-              <td>
-                <input type="text" class="ocr-editable-input input-ocr-prenom ${!row.prenom || row.prenom.length < 2 ? 'input-warning' : ''}" data-row-id="${row.rowId}" value="${row.prenom || ''}" placeholder="Prénoms" />
+              <td data-label="Prénoms *">
+                <input type="text" class="ocr-editable-input input-ocr-prenom ${!row.prenom || (row.prenom !== '-' && row.prenom.length < 2) ? 'input-warning' : ''}" data-row-id="${row.rowId}" value="${row.prenom === '-' ? '' : (row.prenom || '')}" placeholder="Prénom(s)" />
               </td>
-              <td>
-                <select class="ocr-editable-input select-ocr-genre ${!ImportEngine.normalizeGenre(row.genre) ? 'input-warning' : ''}" data-row-id="${row.rowId}">
-                  <option value="" ${!ImportEngine.normalizeGenre(row.genre) ? 'selected' : ''}>À préciser</option>
-                  <option value="Garçon" ${ImportEngine.normalizeGenre(row.genre) === 'Garçon' ? 'selected' : ''}>M (Garçon)</option>
-                  <option value="Fille" ${ImportEngine.normalizeGenre(row.genre) === 'Fille' ? 'selected' : ''}>F (Fille)</option>
+              <td data-label="Sexe *">
+                <select class="ocr-editable-input select-ocr-genre ${!normGenre ? 'input-warning' : ''}" data-row-id="${row.rowId}">
+                  <option value="Garçon" ${normGenre === 'Garçon' ? 'selected' : ''}>Garçon (M)</option>
+                  <option value="Fille" ${normGenre === 'Fille' ? 'selected' : ''}>Fille (F)</option>
                 </select>
               </td>
-              <td title="${issueHint}">
+              <td data-label="Statut" class="ocr-verif-cell" title="${issueHint}">
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                   <span class="csv-status-badge ${badgeClass}">
                     <i class="fas ${row.status === 'valid' ? 'fa-check' : (isDup ? 'fa-copy' : 'fa-triangle-exclamation')}"></i>
                     ${row.verificationLabel}
                   </span>
                   ${row.status === 'verify' ? `
-                    <button type="button" class="btn btn-sm btn-secondary btn-confirm-ocr-row" data-row-id="${row.rowId}" title="Confirmer que cette ligne est exacte" style="padding: 2px 6px; font-size: 0.72rem;">
-                      <i class="fas fa-check"></i> Valider
+                    <button type="button" class="btn btn-sm btn-secondary btn-confirm-ocr-row" data-row-id="${row.rowId}" title="Confirmer que cette ligne est exacte" style="padding: 4px 8px; font-size: 0.76rem;">
+                      <i class="fas fa-check"></i> OK
                     </button>
                   ` : ''}
                 </div>
                 ${row.issues && row.issues.length > 0 ? `
-                  <div style="font-size: 0.7rem; color: ${isDup ? '#b45309' : '#b91c1c'}; margin-top: 2px;">
+                  <div style="font-size: 0.75rem; color: ${isDup ? '#b45309' : '#b91c1c'}; margin-top: 3px;">
                     ${row.issues[0]}
                   </div>
                 ` : ''}
               </td>
-              <td style="text-align: center;">
+              <td data-label="Action" style="text-align: center;">
                 <button type="button" class="btn btn-sm btn-danger btn-delete-ocr-row" data-row-id="${row.rowId}" title="Supprimer cette ligne">
                   <i class="fas fa-trash"></i>
                 </button>
@@ -1945,36 +2209,50 @@ export function renderEleves(container) {
           `;
         }).join('');
 
-        // Écouteurs d'édition en ligne
+        // Écouteurs de sélection individuelle
+        verifTbody.querySelectorAll('.check-ocr-row').forEach(chk => {
+          chk.addEventListener('change', () => {
+            const target = extractedRows.find(r => r.rowId === chk.getAttribute('data-row-id'));
+            if (target) {
+              target.selected = chk.checked;
+              updateStatsCountersAndRowBadge(target.rowId);
+              if (selectAllCheckbox) {
+                selectAllCheckbox.checked = extractedRows.length > 0 && extractedRows.every(r => r.selected !== false);
+              }
+            }
+          });
+        });
+
+        // Écouteurs d'édition en temps réel (sans reconstruire le DOM pendant la frappe sur mobile)
         verifTbody.querySelectorAll('.input-ocr-matricule').forEach(inp => {
-          inp.addEventListener('change', () => {
+          inp.addEventListener('input', () => {
             const target = extractedRows.find(r => r.rowId === inp.getAttribute('data-row-id'));
             if (target) {
               target.matricule = inp.value.trim();
               target.verifiedByTeacher = true;
-              refreshVerificationTable();
+              updateStatsCountersAndRowBadge(target.rowId);
             }
           });
         });
 
         verifTbody.querySelectorAll('.input-ocr-nom').forEach(inp => {
-          inp.addEventListener('change', () => {
+          inp.addEventListener('input', () => {
             const target = extractedRows.find(r => r.rowId === inp.getAttribute('data-row-id'));
             if (target) {
               target.nom = inp.value.trim().toUpperCase();
               target.verifiedByTeacher = true;
-              refreshVerificationTable();
+              updateStatsCountersAndRowBadge(target.rowId);
             }
           });
         });
 
         verifTbody.querySelectorAll('.input-ocr-prenom').forEach(inp => {
-          inp.addEventListener('change', () => {
+          inp.addEventListener('input', () => {
             const target = extractedRows.find(r => r.rowId === inp.getAttribute('data-row-id'));
             if (target) {
               target.prenom = inp.value.trim();
               target.verifiedByTeacher = true;
-              refreshVerificationTable();
+              updateStatsCountersAndRowBadge(target.rowId);
             }
           });
         });
@@ -1985,13 +2263,14 @@ export function renderEleves(container) {
             if (target) {
               target.genre = sel.value;
               target.verifiedByTeacher = true;
-              refreshVerificationTable();
+              updateStatsCountersAndRowBadge(target.rowId);
             }
           });
         });
 
         verifTbody.querySelectorAll('.btn-confirm-ocr-row').forEach(btn => {
           btn.addEventListener('click', () => {
+            syncExtractedRowsFromDom();
             const target = extractedRows.find(r => r.rowId === btn.getAttribute('data-row-id'));
             if (target) {
               target.verifiedByTeacher = true;
@@ -2003,17 +2282,37 @@ export function renderEleves(container) {
 
         verifTbody.querySelectorAll('.btn-delete-ocr-row').forEach(btn => {
           btn.addEventListener('click', () => {
+            syncExtractedRowsFromDom();
             const rowId = btn.getAttribute('data-row-id');
             extractedRows = extractedRows.filter(r => r.rowId !== rowId);
-            // Re-numérotation propre
             extractedRows.forEach((r, i) => { r.numero = i + 1; });
             refreshVerificationTable();
           });
         });
       }
 
+      if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', () => {
+          syncExtractedRowsFromDom();
+          const checked = selectAllCheckbox.checked;
+          extractedRows.forEach(r => { r.selected = checked; });
+          refreshVerificationTable();
+        });
+      }
+
+      if (btnApplyDefaultGenre && defaultGenreSelect) {
+        btnApplyDefaultGenre.addEventListener('click', () => {
+          syncExtractedRowsFromDom();
+          const chosenGenre = defaultGenreSelect.value || 'Garçon';
+          extractedRows.forEach(r => { r.genre = chosenGenre; });
+          refreshVerificationTable();
+          Toast.show(`Sexe « ${chosenGenre} » appliqué aux élèves de l'aperçu.`, "info");
+        });
+      }
+
       if (filterVerifyCheckbox) {
         filterVerifyCheckbox.addEventListener('change', () => {
+          syncExtractedRowsFromDom();
           showVerifyOnly = filterVerifyCheckbox.checked;
           refreshVerificationTable();
         });
@@ -2021,34 +2320,100 @@ export function renderEleves(container) {
 
       if (allowDupsCheckbox) {
         allowDupsCheckbox.addEventListener('change', () => {
+          syncExtractedRowsFromDom();
           refreshVerificationTable();
         });
       }
 
       if (selectTargetClass) {
         selectTargetClass.addEventListener('change', () => {
+          syncExtractedRowsFromDom();
           if (extractedRows.length > 0) refreshVerificationTable();
         });
       }
 
-      // Ajouter manuellement un élève oublié
+      // Ouvrir / utiliser le formulaire spacieux « Ajouter un élève oublié »
       if (btnAddRow) {
         btnAddRow.addEventListener('click', () => {
+          syncExtractedRowsFromDom();
+          if (verifSection) verifSection.style.display = 'block';
+          if (forgottenBox) {
+            forgottenBox.style.display = 'block';
+            if (inpForgottenNom) {
+              inpForgottenNom.value = '';
+              setTimeout(() => {
+                inpForgottenNom.focus();
+                if (typeof forgottenBox.scrollIntoView === 'function') {
+                  forgottenBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }, 80);
+            }
+            if (inpForgottenPrenom) inpForgottenPrenom.value = '';
+            if (inpForgottenMatricule) inpForgottenMatricule.value = '';
+            if (inpForgottenGenre && defaultGenreSelect) inpForgottenGenre.value = defaultGenreSelect.value || 'Garçon';
+          } else {
+            const nextNum = extractedRows.length + 1;
+            extractedRows.push({
+              rowId: `manual_row_${Date.now()}_${nextNum}`,
+              numero: nextNum,
+              matricule: '',
+              nom: '',
+              prenom: '',
+              genre: defaultGenreSelect ? defaultGenreSelect.value : 'Garçon',
+              confidence: 100,
+              verifiedByTeacher: true,
+              selected: true
+            });
+            showVerifyOnly = false;
+            if (filterVerifyCheckbox) filterVerifyCheckbox.checked = false;
+            refreshVerificationTable();
+          }
+        });
+      }
+
+      const hideForgottenBox = () => {
+        if (forgottenBox) forgottenBox.style.display = 'none';
+      };
+      if (btnCloseForgotten) btnCloseForgotten.addEventListener('click', hideForgottenBox);
+      if (btnCancelForgotten) btnCancelForgotten.addEventListener('click', hideForgottenBox);
+
+      if (btnConfirmForgotten) {
+        btnConfirmForgotten.addEventListener('click', () => {
+          syncExtractedRowsFromDom();
+          const nomVal = inpForgottenNom ? inpForgottenNom.value.trim().toUpperCase() : '';
+          const prenomVal = inpForgottenPrenom ? inpForgottenPrenom.value.trim() : '';
+          const genreVal = inpForgottenGenre ? inpForgottenGenre.value : 'Garçon';
+          const matVal = inpForgottenMatricule ? inpForgottenMatricule.value.trim() : '';
+
+          if (!nomVal || nomVal.length < 2) {
+            Toast.show("Veuillez saisir le nom de famille de l'élève oublié.", "error");
+            if (inpForgottenNom) inpForgottenNom.focus();
+            return;
+          }
+          if (!prenomVal || prenomVal.length < 2) {
+            Toast.show("Veuillez saisir le prénom de l'élève oublié.", "error");
+            if (inpForgottenPrenom) inpForgottenPrenom.focus();
+            return;
+          }
+
           const nextNum = extractedRows.length + 1;
           extractedRows.push({
             rowId: `manual_row_${Date.now()}_${nextNum}`,
             numero: nextNum,
-            matricule: '',
-            nom: '',
-            prenom: '',
-            genre: 'Garçon',
+            matricule: matVal,
+            nom: nomVal,
+            prenom: prenomVal,
+            genre: genreVal,
             confidence: 100,
-            verifiedByTeacher: true
+            verifiedByTeacher: true,
+            selected: true
           });
-          if (verifSection) verifSection.style.display = 'block';
+
+          hideForgottenBox();
           showVerifyOnly = false;
           if (filterVerifyCheckbox) filterVerifyCheckbox.checked = false;
           refreshVerificationTable();
+          Toast.show(`Élève ${nomVal} ${prenomVal} ajouté à la liste à importer.`, "success");
         });
       }
     }, 80);

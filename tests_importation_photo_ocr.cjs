@@ -445,6 +445,7 @@ async function runTests() {
   if (passed < total) {
     process.exit(1);
   }
+  process.exit(0);
 }
 
 runTests();

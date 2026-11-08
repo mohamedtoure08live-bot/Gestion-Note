@@ -515,6 +515,21 @@ export function renderNotation(container) {
 
   if (selectBaremeMode) {
     selectBaremeMode.addEventListener('change', () => {
+      const choice = selectBaremeMode.value;
+      if (choice === 'OFFICIAL') {
+        updateEnginsList();
+      } else {
+        const customBareme = db.findBaremeById(choice);
+        if (customBareme && customBareme.engin) {
+          if (!Array.from(selectEngin.options).some(o => o.value === customBareme.engin)) {
+            const opt = document.createElement('option');
+            opt.value = customBareme.engin;
+            opt.textContent = customBareme.engin;
+            selectEngin.appendChild(opt);
+          }
+          selectEngin.value = customBareme.engin;
+        }
+      }
       updateLiveScore();
     });
   }

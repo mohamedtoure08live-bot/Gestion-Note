@@ -563,6 +563,7 @@ export const OCREngine = {
           confidence: parsed.confidence,
           uncertainFields: parsed.uncertainFields || [],
           warnings: parsed.warnings || [],
+          selected: parsed.selected !== false,
           rawText: rawLine
         });
       }
@@ -986,7 +987,8 @@ export const OCREngine = {
       dateNaissance,
       confidence,
       uncertainFields,
-      warnings
+      warnings,
+      selected: true
     };
   },
 
@@ -995,25 +997,49 @@ export const OCREngine = {
    * en réutilisant les règles strictes de GHIM PRO (sans jamais fusionner deux homonymes automatiquement)
    * @param {Array<Object>} rows Lignes actuelles de l'aperçu photo
    * @param {Array<Object>} existingStudentsInClass Élèves déjà enregistrés dans la classe cible
-   * @returns {{ rows: Array<Object>, stats: { detectedCount: number, validCount: number, toVerifyCount: number, duplicateCount: number, incompleteCount: number }, validStudentsToSave: Array<Object> }}
+   * @param {Object} [options={}] Options supplémentaires (ex: defaultGenre, allowSingleNameFallback)
+   * @returns {{ rows: Array<Object>, stats: { detectedCount: number, selectedCount: number, validCount: number, toVerifyCount: number, duplicateCount: number, incompleteCount: number }, validStudentsToSave: Array<Object> }}
    */
-  validatePhotoRosterRows(rows, existingStudentsInClass = []) {
+  validatePhotoRosterRows(rows, existingStudentsInClass = [], options = {}) {
     const validatedRows = [];
     const validStudentsToSave = [];
     const seenInPhoto = [];
+    const fallbackGenre = options && options.defaultGenre ? ImportEngine.normalizeGenre(options.defaultGenre) : '';
+    const allowSingleNameFallback = Boolean(options && options.allowSingleNameFallback);
 
     let validCount = 0;
     let toVerifyCount = 0;
     let duplicateCount = 0;
     let incompleteCount = 0;
+    let selectedCount = 0;
 
     (rows || []).forEach((row, idx) => {
-      const nom = String(row.nom || '').trim().toUpperCase();
-      const prenom = String(row.prenom || '').trim();
+      let nom = String(row.nom || '').trim().toUpperCase();
+      let prenom = String(row.prenom || '').trim();
       const matricule = String(row.matricule || '').trim();
-      const genreNorm = ImportEngine.normalizeGenre(row.genre);
+      let genreNorm = ImportEngine.normalizeGenre(row.genre);
       const confidence = typeof row.confidence === 'number' ? row.confidence : 85;
       const verifiedByTeacher = Boolean(row.verifiedByTeacher);
+      const isSelected = row.selected !== false;
+
+      if (isSelected) selectedCount++;
+
+      // Si le nom complet a été saisi dans la colonne Nom et que Prénom est vide, découper proprement
+      if (nom && (!prenom || prenom.length < 2) && nom.includes(' ')) {
+        const split = ImportEngine.splitFullName(nom);
+        if (split.nom && split.prenom && split.prenom.length >= 2) {
+          nom = split.nom.toUpperCase();
+          prenom = split.prenom;
+        }
+      }
+
+      if (allowSingleNameFallback && nom && nom.length >= 2 && !prenom) {
+        prenom = '-';
+      }
+
+      if (!genreNorm && fallbackGenre) {
+        genreNorm = fallbackGenre;
+      }
 
       const issues = [];
       let status = 'valid'; // 'valid' | 'verify' | 'incomplete' | 'duplicate'
@@ -1023,7 +1049,7 @@ export const OCREngine = {
       if (!nom || nom.length < 2) {
         issues.push('Nom manquant ou trop court');
       }
-      if (!prenom || prenom.length < 2) {
+      if (!prenom || (prenom !== '-' && prenom.length < 2)) {
         issues.push('Prénom manquant');
       }
       if (!genreNorm) {
@@ -1092,15 +1118,17 @@ export const OCREngine = {
             validCount++;
           }
 
-          // L'élève possède toutes les informations requises et n'est pas un doublon : il peut être importé
-          validStudentsToSave.push({
-            rowId: row.rowId || `row_${idx + 1}`,
-            numero: row.numero || idx + 1,
-            nom,
-            prenom,
-            genre: genreNorm,
-            matricule
-          });
+          // L'élève possède toutes les informations requises et n'est pas un doublon : il peut être importé s'il est sélectionné
+          if (isSelected) {
+            validStudentsToSave.push({
+              rowId: row.rowId || `row_${idx + 1}`,
+              numero: row.numero || idx + 1,
+              nom,
+              prenom,
+              genre: genreNorm,
+              matricule
+            });
+          }
         }
       }
 
@@ -1114,6 +1142,7 @@ export const OCREngine = {
         matricule,
         confidence,
         verifiedByTeacher,
+        selected: isSelected,
         status,
         verificationLabel,
         issues
@@ -1124,6 +1153,7 @@ export const OCREngine = {
       rows: validatedRows,
       stats: {
         detectedCount: validatedRows.length,
+        selectedCount,
         validCount: validStudentsToSave.length,
         toVerifyCount,
         duplicateCount,

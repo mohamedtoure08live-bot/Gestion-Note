@@ -61,7 +61,12 @@ export class Toast {
 }
 
 export class Modal {
+  static _callId = 0;
+
   static open(title, contentHtml, onConfirm = null) {
+    Modal._callId = (Modal._callId || 0) + 1;
+    const currentCallId = Modal._callId;
+
     let overlay = document.getElementById('global-modal');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -71,12 +76,12 @@ export class Modal {
         <div class="modal-container">
           <div class="modal-header">
             <h3 id="modal-title">Titre</h3>
-            <button class="btn btn-sm btn-secondary" id="modal-close-btn">&times;</button>
+            <button type="button" class="btn btn-sm btn-secondary" id="modal-close-btn" aria-label="Fermer">&times;</button>
           </div>
           <div class="modal-body" id="modal-body"></div>
           <div class="modal-footer" id="modal-footer">
-            <button class="btn btn-secondary" id="modal-cancel-btn">Fermer</button>
-            <button class="btn btn-primary" id="modal-confirm-btn">Valider</button>
+            <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Annuler</button>
+            <button type="button" class="btn btn-primary" id="modal-confirm-btn">Valider</button>
           </div>
         </div>
       `;
@@ -91,12 +96,38 @@ export class Modal {
 
     titleEl.textContent = title;
     bodyEl.innerHTML = contentHtml;
+    confirmBtn.innerHTML = 'Valider';
+    confirmBtn.disabled = false;
+    cancelBtn.textContent = onConfirm ? 'Annuler' : 'Fermer';
+
+    // Éviter que le clavier mobile (iOS / Android) ne masque les champs en cours de saisie
+    bodyEl.querySelectorAll('input, select, textarea').forEach((field) => {
+      field.addEventListener('focus', () => {
+        setTimeout(() => {
+          if (typeof field.scrollIntoView === 'function') {
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 220);
+      });
+    });
 
     if (onConfirm) {
       confirmBtn.style.display = 'inline-flex';
-      confirmBtn.onclick = () => {
-        onConfirm();
-        Modal.close();
+      confirmBtn.onclick = async () => {
+        if (confirmBtn.disabled) return;
+        try {
+          confirmBtn.disabled = true;
+          const result = await onConfirm();
+          confirmBtn.disabled = false;
+          // Ne fermer la modale que si la validation a réussi (result !== false)
+          // et qu'aucune nouvelle modale (ex: bilan d'importation) n'a été ouverte par onConfirm
+          if (result !== false && Modal._callId === currentCallId) {
+            Modal.close();
+          }
+        } catch (err) {
+          confirmBtn.disabled = false;
+          Toast.show(err.message || "Une erreur est survenue.", "error");
+        }
       };
     } else {
       confirmBtn.style.display = 'none';
