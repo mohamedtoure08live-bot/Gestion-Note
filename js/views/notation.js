@@ -111,10 +111,27 @@ export function renderNotation(container) {
           </div>
 
           <div class="form-group">
-            <label class="form-label" id="label-performance">Distance Réalisée</label>
+            <label class="form-label" id="label-performance" for="input-distance">Distance Réalisée</label>
             <div class="distance-input-container">
-              <input type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false" class="form-control distance-big-input" id="input-distance" placeholder="0.00" autofocus />
-              <span class="distance-unit" id="unit-badge">mètres</span>
+              <input type="text" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control distance-big-input" id="input-distance" placeholder="11,70" autofocus />
+              <span class="distance-unit" id="unit-badge" aria-hidden="true">m</span>
+            </div>
+            <div class="chrono-input-toolbar" id="chrono-input-toolbar">
+              <span class="performance-format-hint" id="performance-format-hint">Saisissez une distance en mètres (ex : 11,70)</span>
+              <div class="chrono-quick-keys" id="chrono-quick-keys" style="display: none;" role="group" aria-label="Touches rapides de saisie chronométrée">
+                <button type="button" class="chrono-key-btn" data-insert=":" title="Insérer le séparateur minutes:secondes (:)">
+                  <span class="chrono-key-symbol">:</span>
+                  <span class="chrono-key-label">min:sec</span>
+                </button>
+                <button type="button" class="chrono-key-btn" data-insert="," title="Insérer la virgule des centièmes (,)">
+                  <span class="chrono-key-symbol">,</span>
+                  <span class="chrono-key-label">centièmes</span>
+                </button>
+                <button type="button" class="chrono-key-btn chrono-key-clear" id="btn-clear-distance" title="Effacer la saisie">
+                  <i class="fas fa-backspace"></i>
+                  <span class="chrono-key-label">Effacer</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -171,6 +188,9 @@ export function renderNotation(container) {
   const labelPerformance = container.querySelector('#label-performance');
   const inputDistance = container.querySelector('#input-distance');
   const unitBadge = container.querySelector('#unit-badge');
+  const performanceFormatHint = container.querySelector('#performance-format-hint');
+  const chronoQuickKeys = container.querySelector('#chrono-quick-keys');
+  const btnClearDistance = container.querySelector('#btn-clear-distance');
   const btnSave = container.querySelector('#btn-save-eval');
   const validationAlert = container.querySelector('#validation-error-alert');
   const validationMsg = container.querySelector('#validation-error-msg');
@@ -278,8 +298,23 @@ export function renderNotation(container) {
     const isLongRun = disciplineNom.toLowerCase().includes("1000m") || disciplineNom.toLowerCase().includes("800m");
     
     labelPerformance.textContent = isTime ? "Temps / Chrono Réalisé" : "Distance / Hauteur Réalisée";
-    unitBadge.textContent = isLongRun ? "min'sec'' (ex: 2'10'' ou 3'09'')" : (isTime ? "secondes (ex: 8.20 ou 9.80)" : "mètres");
-    inputDistance.placeholder = isLongRun ? "ex: 2'10'', 3'09'', ou 2'10 (min'sec'')" : (isTime ? "ex: 8''2 ou 9''8 ou 8.20" : "ex: 11.70");
+    unitBadge.textContent = isLongRun ? "min:s" : (isTime ? "s" : "m");
+    inputDistance.placeholder = isLongRun ? "1:25,48" : (isTime ? "45,32" : "11,70");
+    inputDistance.setAttribute('inputmode', isTime ? 'text' : 'decimal');
+
+    if (performanceFormatHint) {
+      if (isLongRun) {
+        performanceFormatHint.textContent = "Formats acceptés : 1:25,48 (min:sec,cent) · 2:10 · 45,32 (secondes)";
+      } else if (isTime) {
+        performanceFormatHint.textContent = "Formats acceptés : 45,32 · 8,20 (secondes) ou 1:25,48 (min:sec,cent)";
+      } else {
+        performanceFormatHint.textContent = "Saisissez une mesure en mètres (ex : 11,70 ou 4,50)";
+      }
+    }
+
+    if (chronoQuickKeys) {
+      chronoQuickKeys.style.display = isTime ? 'flex' : 'none';
+    }
   }
 
   function updateEleveList() {
@@ -378,6 +413,7 @@ export function renderNotation(container) {
     btnSave.style.cursor = 'pointer';
 
     if (!rawVal) {
+      inputDistance.classList.remove('input-format-invalid');
       scoreVal.textContent = "00";
       scoreApprec.textContent = "Saisissez une performance";
       scoreApprec.style.background = "rgba(255,255,255,0.1)";
@@ -400,6 +436,7 @@ export function renderNotation(container) {
     const result = EPSEngine.calculateGrade(discipline, classe, genre, rawVal, engin, mode, customBareme);
 
     if (result.valid && result.note !== null) {
+      inputDistance.classList.remove('input-format-invalid');
       const displayNote = (mode === 'interpolation') ? Number(result.noteExacte).toFixed(2) : result.notePalier;
       scoreVal.textContent = displayNote;
       scoreApprec.textContent = result.appreciation;
@@ -433,6 +470,13 @@ export function renderNotation(container) {
         scoreDetail.innerHTML = `<span style="color:#10b981; font-weight:600;"><i class="fas fa-lock"></i> Barème officiel actif : ${classe} - ${genre}${engin ? ' (' + engin + ')' : ''}</span>`;
       }
     } else {
+      inputDistance.classList.add('input-format-invalid');
+      validationAlert.style.display = 'block';
+      validationMsg.textContent = result.detail || "Format de performance non valide.";
+      btnSave.disabled = true;
+      btnSave.style.opacity = '0.5';
+      btnSave.style.cursor = 'not-allowed';
+
       scoreVal.textContent = "--";
       scoreApprec.textContent = result.appreciation || "Performance non valide";
       scoreApprec.style.background = "var(--accent-rose)";
@@ -509,6 +553,40 @@ export function renderNotation(container) {
   inputDistance.addEventListener('input', () => {
     updateLiveScore();
   });
+
+  if (chronoQuickKeys) {
+    chronoQuickKeys.querySelectorAll('.chrono-key-btn[data-insert]').forEach(btn => {
+      btn.addEventListener('mousedown', (e) => {
+        // Prevent button click from blurring #input-distance on mobile/desktop
+        e.preventDefault();
+      });
+      btn.addEventListener('click', () => {
+        const charToInsert = btn.getAttribute('data-insert') || '';
+        const currentVal = inputDistance.value;
+        const start = typeof inputDistance.selectionStart === 'number' ? inputDistance.selectionStart : currentVal.length;
+        const end = typeof inputDistance.selectionEnd === 'number' ? inputDistance.selectionEnd : currentVal.length;
+        const nextVal = currentVal.slice(0, start) + charToInsert + currentVal.slice(end);
+        inputDistance.value = nextVal;
+        inputDistance.focus();
+        try {
+          const newCursor = start + charToInsert.length;
+          inputDistance.setSelectionRange(newCursor, newCursor);
+        } catch (_) {}
+        updateLiveScore();
+      });
+    });
+  }
+
+  if (btnClearDistance) {
+    btnClearDistance.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+    });
+    btnClearDistance.addEventListener('click', () => {
+      inputDistance.value = '';
+      inputDistance.focus();
+      updateLiveScore();
+    });
+  }
 
   // Save evaluation button (autonomous or student-linked)
   btnSave.addEventListener('click', async () => {

@@ -45,50 +45,176 @@ export class EPSEngine {
    * @returns {number}
    */
   /**
+   * Valide et analyse une performance saisie (temps chronométré ou distance/hauteur).
+   * Refuse les formats malformés et les secondes >= 60 dans un format min:sec (ex: 1:75,30).
+   * @param {string|number} raw
+   * @param {string} [discipline=""]
+   * @returns {{ valid: boolean, isEmpty?: boolean, value: number, error?: string }}
+   */
+  static validatePerformanceFormat(raw, discipline = "") {
+    const isTime = EPSEngine.isTimeDiscipline(discipline);
+
+    if (raw === null || raw === undefined || String(raw).trim() === '') {
+      return {
+        valid: false,
+        isEmpty: true,
+        value: NaN,
+        error: isTime
+          ? "Veuillez saisir un temps chronométré (ex: 45,32 ou 1:25,48)."
+          : "Veuillez saisir une distance ou hauteur (ex: 11,70)."
+      };
+    }
+
+    if (typeof raw === 'number') {
+      if (isNaN(raw) || raw <= 0 || !isFinite(raw)) {
+        return {
+          valid: false,
+          value: NaN,
+          error: "La valeur saisie doit être supérieure à zéro."
+        };
+      }
+      return { valid: true, value: Math.round(raw * 10000) / 10000 };
+    }
+
+    // Nettoyage des espaces en début/fin et autour des séparateurs
+    let str = String(raw).trim();
+    if (!str) {
+      return {
+        valid: false,
+        isEmpty: true,
+        value: NaN,
+        error: "Veuillez saisir une performance valide."
+      };
+    }
+
+    // Normalisation des apostrophes et guillemets unicode
+    str = str
+      .replace(/´´/g, '"')
+      .replace(/''/g, '"')
+      .replace(/[’′´`]/g, "'")
+      .replace(/[″”“]/g, '"');
+
+    // Cas 1 : Format Minutes : Secondes (,Centièmes) ou Minutes ' Secondes '' (Centièmes)
+    // Exemples : 1:25,48 | 12:05,30 | 1:25.48 | 3'09'' | 3'09"15 | 2'35''
+    if (str.includes(':') || str.includes("'")) {
+      // Vérifier le format exact min:sec(,cc) ou min'sec''(cc)
+      const minSecColonMatch = str.match(/^(\d+)\s*:\s*(\d{1,2}(?:[.,]\d{1,3})?)$/);
+      const minSecQuoteMatch = str.match(/^(\d+)\s*'\s*(\d{1,2}(?:[.,]\d{1,3})?)\s*(?:"\s*(\d{1,3})?)?$/);
+
+      const match = minSecColonMatch || minSecQuoteMatch;
+      if (!match) {
+        // Détecter spécifiquement si les secondes comportent plus de 2 chiffres ou sont >= 60 (ex: 1:120)
+        return {
+          valid: false,
+          value: NaN,
+          error: "Format de temps incorrect. Utilisez le format min:sec,centièmes (ex: 1:25,48 ou 12:05,30)."
+        };
+      }
+
+      const mins = parseInt(match[1], 10);
+      let secsStr = match[2].replace(',', '.');
+      if (minSecQuoteMatch && match[3] && !secsStr.includes('.')) {
+        secsStr = `${secsStr}.${match[3]}`;
+      }
+      const secs = parseFloat(secsStr);
+
+      if (isNaN(mins) || isNaN(secs) || mins < 0 || secs < 0) {
+        return {
+          valid: false,
+          value: NaN,
+          error: "Format de temps non valide."
+        };
+      }
+
+      // Règle stricte Section 4 : les secondes doivent être comprises entre 00 et 59.99 (refuser 1:75,30)
+      if (secs >= 60) {
+        return {
+          valid: false,
+          value: NaN,
+          error: "Format de temps invalide : les secondes doivent être comprises entre 00 et 59 (ex: 1:25,48)."
+        };
+      }
+
+      const totalSeconds = Math.round((mins * 60 + secs) * 10000) / 10000;
+      if (totalSeconds <= 0) {
+        return {
+          valid: false,
+          value: NaN,
+          error: "La durée saisie doit être supérieure à zéro."
+        };
+      }
+
+      return {
+        valid: true,
+        value: totalSeconds
+      };
+    }
+
+    // Cas 2 : Format Sprint avec guillemets (ex: 8"2 ou 8''20)
+    if (str.includes('"')) {
+      const sprintMatch = str.match(/^(\d+)\s*"\s*(\d{1,3})$/);
+      if (!sprintMatch) {
+        return {
+          valid: false,
+          value: NaN,
+          error: "Format de temps incorrect (ex: 45,32 ou 1:25,48)."
+        };
+      }
+      const val = parseFloat(`${sprintMatch[1]}.${sprintMatch[2]}`);
+      if (isNaN(val) || val <= 0) {
+        return { valid: false, value: NaN, error: "La performance doit être supérieure à zéro." };
+      }
+      return { valid: true, value: val };
+    }
+
+    // Cas 3 : Format décimal standard avec virgule ou point (ex: 45,32 | 45.32 | 11,70 | 189)
+    // Rejeter strictement tout caractère parasite (ex: "45,32abc", "abc", "12,3,4")
+    const cleanNumStr = str.replace(/\s+/g, '');
+    if (!/^\d+(?:[.,]\d+)?$/.test(cleanNumStr)) {
+      return {
+        valid: false,
+        value: NaN,
+        error: isTime
+          ? "Format de temps incorrect. Utilisez des chiffres avec virgule ou deux-points (ex: 45,32 ou 1:25,48)."
+          : "Format de performance incorrect. Saisissez une valeur numérique valide (ex: 11,70)."
+      };
+    }
+
+    const numVal = parseFloat(cleanNumStr.replace(',', '.'));
+    if (isNaN(numVal) || numVal <= 0) {
+      return {
+        valid: false,
+        value: NaN,
+        error: "La performance saisie doit être supérieure à zéro."
+      };
+    }
+
+    return {
+      valid: true,
+      value: Math.round(numVal * 10000) / 10000
+    };
+  }
+
+  /**
    * Helper to parse performance strings into numeric value
    * Supports:
+   * - Minutes:Seconds,Hundredths (ex: 1:25,48 -> 85.48, 12:05,30 -> 725.30)
    * - Minutes'Seconds'' (ex: 3'7'', 3'07'', 3'7, 3:07, 3'07.5) -> convert to total seconds
    * - Sprint formats (ex: 8''2, 8"2) -> convert to 8.2 seconds
-   * - French decimals (ex: 11,70 -> 11.70)
+   * - French decimals (ex: 45,32 -> 45.32, 11,70 -> 11.70)
    * - Raw numbers (ex: 189 -> 189)
+   * Rejects invalid formats (such as 1:75,30 or abc) by returning NaN.
    * @param {string|number} raw 
    * @returns {number}
    */
   static parsePerformance(raw) {
-    if (typeof raw === 'number') return raw;
-    if (!raw) return NaN;
-
-    let str = String(raw).trim();
-    if (!str) return NaN;
-
-    // Normalize unicode single quotes, acute accents, apostrophes (´, ’, ′, `) -> '
-    // Normalize unicode double quotes, double acute accents (´´, ″, ”, “) -> "
-    str = str.replace(/´´/g, '"')
-             .replace(/''/g, '"')
-             .replace(/[’′´`]/g, "'")
-             .replace(/[″”“]/g, '"');
-
-    // Format 1: Minutes + Seconds (e.g. 3'7", 3'07", 3’7´´, 3'7, 3:07, 3:7, 3'07.5)
-    const minSecMatch = str.match(/^(\d+)\s*[':]\s*(\d+(?:[\.,]\d+)?)\s*["']?$/);
-    if (minSecMatch) {
-      const mins = parseFloat(minSecMatch[1]) || 0;
-      const secs = parseFloat(minSecMatch[2].replace(',', '.')) || 0;
-      return mins * 60 + secs;
-    }
-
-    // Format 2: Sprint notation with double quotes or apostrophes (e.g. 8"2, 8''2)
-    const sprintMatch = str.match(/^(\d+)["']+(\d+)$/);
-    if (sprintMatch) {
-      return parseFloat(`${sprintMatch[1]}.${sprintMatch[2]}`);
-    }
-
-    // Fallback: raw numeric string (e.g. 187, 11.70, 11,70)
-    return parseFloat(str.replace(',', '.'));
+    const validated = EPSEngine.validatePerformanceFormat(raw);
+    return validated.valid ? validated.value : NaN;
   }
 
   /**
    * Helper to format numeric performance into human-readable representation
-   * (e.g. 187s -> 3'07'', 8.2s -> 8''2, 11.70 -> 11.70m)
+   * (e.g. 187s -> 3'07'', 85.48s -> 1'25''48, 8.2s -> 8''2s, 11.70 -> 11.70m)
    * @param {number} perfNum 
    * @param {boolean} isTime 
    * @param {string} [discipline=""]
@@ -105,9 +231,15 @@ export class EPSEngine {
     const isLongDistance = discLower.includes("1000m") || discLower.includes("800m") || perfNum >= 60;
 
     if (isLongDistance) {
-      const mins = Math.floor(perfNum / 60);
-      const secs = perfNum % 60;
-      const secFormatted = secs % 1 === 0 ? secs.toFixed(0) : secs.toFixed(1);
+      const mins = Math.floor((perfNum + 1e-7) / 60);
+      const secs = Math.max(0, perfNum - mins * 60);
+      const isIntSec = Math.abs(secs - Math.round(secs)) < 1e-4;
+      let secFormatted;
+      if (isIntSec) {
+        secFormatted = String(Math.round(secs));
+      } else {
+        secFormatted = secs.toFixed(2).replace(/0$/, '');
+      }
       const secStr = secs < 10 ? `0${secFormatted}` : `${secFormatted}`;
       return `${mins}'${secStr}''`;
     }
@@ -265,20 +397,24 @@ export class EPSEngine {
       };
     }
 
-    // 2. Performance Parsing
-    const perfNum = EPSEngine.parsePerformance(performance);
-    if (isNaN(perfNum) || perfNum <= 0) {
+    // 2. Performance Parsing & Format Validation
+    const formatValidation = EPSEngine.validatePerformanceFormat(performance, discipline);
+    const perfNum = formatValidation.value;
+    if (!formatValidation.valid || isNaN(perfNum) || perfNum <= 0) {
       const activeBaremeRef = customBareme || validation.bareme;
+      const errDetail = formatValidation.error || "Veuillez saisir une valeur de performance valide (ex: 1:25,48 ou 11,70).";
       return {
         valid: true,
+        formatValid: false,
         note: null,
         noteExacte: null,
         notePalier: null,
-        appreciation: "Performance non valide",
+        appreciation: "Format non valide",
         baremeFound: true,
         baremeId: activeBaremeRef ? activeBaremeRef.id : null,
         engin: activeBaremeRef ? activeBaremeRef.engin : engin,
-        detail: "Veuillez saisir une valeur de performance valide (ex: 3'07'' ou 11.70)."
+        error: errDetail,
+        detail: errDetail
       };
     }
 
